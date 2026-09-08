@@ -1,235 +1,315 @@
-// Government Surveillance Screen — State → District → Block → Village drill-down
+// Risk Intelligence Screen — AI-assisted disease risk assessment workspace
 
 import 'package:flutter/material.dart';
 import '../../services/farmer_data_service.dart';
-import '../../models/case.dart';
+import 'govt_theme.dart';
+import 'govt_mock_data.dart';
+import 'widgets/govt_widgets.dart';
 
-class GovtSurveillanceScreen extends StatelessWidget {
+class GovtSurveillanceScreen extends StatefulWidget {
   final FarmerDataService dataService;
   const GovtSurveillanceScreen({super.key, required this.dataService});
 
   @override
+  State<GovtSurveillanceScreen> createState() => _GovtSurveillanceScreenState();
+}
+
+class _GovtSurveillanceScreenState extends State<GovtSurveillanceScreen> {
+  String _selectedDistrict = 'Erode';
+  String _selectedSpecies = 'All Species';
+  String _selectedDisease = 'All Diseases';
+  String _selectedTimeRange = '7 Days';
+
+  final _districts = ['Erode', 'Namakkal', 'Salem', 'Coimbatore'];
+  final _species = ['All Species', 'Cattle', 'Buffalo', 'Goat', 'Sheep', 'Pig'];
+  final _diseases = ['All Diseases', 'FMD', 'HS', 'PPR', 'BQ', 'Brucellosis'];
+  final _timeRanges = ['24 Hours', '7 Days', '14 Days', '30 Days'];
+
+  @override
   Widget build(BuildContext context) {
-    return ListenableBuilder(
-      listenable: dataService,
-      builder: (context, _) {
-        final cases = dataService.getAllCases();
-        final byVillage = dataService.getCasesByVillage();
-        final byDistrict = dataService.getCasesByDistrict();
-        final mortality = dataService.getMortalityReports();
+    final intel = GovtMockData.getRiskIntelligence();
+    final riskZones = (intel['riskZones'] as List).cast<Map<String, dynamic>>();
 
-        return Scaffold(
-          backgroundColor: const Color(0xFFECF0F8),
-          appBar: AppBar(
-            title: const Text('Geographic Surveillance', style: TextStyle(fontWeight: FontWeight.bold)),
-            backgroundColor: const Color(0xFF4A148C),
+    return Scaffold(
+      backgroundColor: GovtColors.pageBackground,
+      body: CustomScrollView(
+        slivers: [
+          SliverAppBar(
+            pinned: true,
+            backgroundColor: GovtColors.brandDark,
             foregroundColor: Colors.white,
-          ),
-          body: ListView(
-            padding: const EdgeInsets.all(16),
-            children: [
-              // State summary
-              _levelCard(
-                context,
-                level: 'STATE',
-                name: 'Maharashtra',
-                icon: Icons.map_rounded,
-                color: const Color(0xFF4A148C),
-                stats: {
-                  'Total Cases': cases.length.toString(),
-                  'Mortality': mortality.length.toString(),
-                  'Districts Affected': byDistrict.length.toString(),
-                },
-              ),
-
-              const SizedBox(height: 16),
-
-              // District breakdown
-              ...byDistrict.entries.map((entry) {
-                final districtCases = entry.value;
-                final districtVillages = <String>{};
-                for (final c in districtCases) {
-                  districtVillages.add(c.village);
-                }
-                return _levelCard(
-                  context,
-                  level: 'DISTRICT',
-                  name: entry.key,
-                  icon: Icons.location_city_rounded,
-                  color: const Color(0xFF1565C0),
-                  stats: {
-                    'Cases': districtCases.length.toString(),
-                    'Villages Affected': districtVillages.length.toString(),
-                    'Critical': districtCases.where((c) => c.riskLevel == 'CRITICAL').length.toString(),
-                  },
-                  children: _buildVillageCards(context, districtCases, byVillage),
-                );
-              }),
-
-              if (cases.isEmpty)
-                const Center(
-                  child: Padding(
-                    padding: EdgeInsets.all(40),
-                    child: Text('No cases reported yet.',
-                        style: TextStyle(color: Colors.grey, fontSize: 16)),
-                  ),
-                ),
-
-              const SizedBox(height: 80),
-            ],
-          ),
-        );
-      },
-    );
-  }
-
-  List<Widget> _buildVillageCards(
-      BuildContext context,
-      List<LivestockCase> districtCases,
-      Map<String, List<LivestockCase>> byVillage) {
-    final villages = <String>{};
-    for (final c in districtCases) {
-      villages.add(c.village);
-    }
-
-    return villages.map((village) {
-      final villageCases = byVillage[village] ?? [];
-      final highRisk = villageCases.where((c) => c.riskLevel == 'HIGH' || c.riskLevel == 'CRITICAL').length;
-      final isCluster = villageCases.length >= 3;
-
-      return Container(
-        margin: const EdgeInsets.fromLTRB(16, 0, 0, 10),
-        decoration: BoxDecoration(
-          color: Colors.white,
-          borderRadius: BorderRadius.circular(12),
-          border: Border.all(
-            color: isCluster ? Colors.red.shade200 : Colors.grey.shade200,
-          ),
-        ),
-        child: ExpansionTile(
-          tilePadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
-          leading: CircleAvatar(
-            backgroundColor: isCluster ? Colors.red.shade50 : Colors.blue.shade50,
-            child: Text(
-              village.substring(0, 1).toUpperCase(),
-              style: TextStyle(
-                color: isCluster ? Colors.red : Colors.blue,
-                fontWeight: FontWeight.bold,
-              ),
-            ),
-          ),
-          title: Row(
-            children: [
-              Text(village, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 14)),
-              if (isCluster) ...[
-                const SizedBox(width: 8),
-                Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
-                  decoration: BoxDecoration(
-                    color: Colors.red.shade100,
-                    borderRadius: BorderRadius.circular(8),
-                  ),
-                  child: const Text('⚠ CLUSTER',
-                      style: TextStyle(fontSize: 10, fontWeight: FontWeight.bold, color: Colors.red)),
-                ),
-              ],
-            ],
-          ),
-          subtitle: Text('${villageCases.length} cases · $highRisk high risk',
-              style: const TextStyle(fontSize: 12, color: Colors.grey)),
-          children: villageCases.map((c) => ListTile(
-                dense: true,
-                contentPadding: const EdgeInsets.symmetric(horizontal: 20),
-                leading: _riskDot(c.riskLevel),
-                title: Text('${c.caseId} · ${c.species}',
-                    style: const TextStyle(fontSize: 13)),
-                subtitle: Text(c.farmerName, style: const TextStyle(fontSize: 11)),
-                trailing: Text(c.status.displayName,
-                    style: const TextStyle(fontSize: 10, color: Colors.blueGrey)),
-              )).toList(),
-        ),
-      );
-    }).toList();
-  }
-
-  Widget _levelCard(
-    BuildContext context, {
-    required String level,
-    required String name,
-    required IconData icon,
-    required Color color,
-    required Map<String, String> stats,
-    List<Widget>? children,
-  }) {
-    return Container(
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(16),
-        boxShadow: [BoxShadow(color: Colors.black.withValues(alpha: 0.05), blurRadius: 6)],
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.stretch,
-        children: [
-          Container(
-            padding: const EdgeInsets.all(14),
-            decoration: BoxDecoration(
-              color: color,
-              borderRadius: children != null
-                  ? const BorderRadius.only(topLeft: Radius.circular(16), topRight: Radius.circular(16))
-                  : BorderRadius.circular(16),
-            ),
-            child: Row(
+            automaticallyImplyLeading: false,
+            title: const Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Icon(icon, color: Colors.white70, size: 20),
-                const SizedBox(width: 10),
-                Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(level,
-                        style: const TextStyle(color: Colors.white54, fontSize: 11, fontWeight: FontWeight.w600)),
-                    Text(name,
-                        style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 16)),
-                  ],
+                Text('Risk Intelligence', style: TextStyle(fontSize: 17, fontWeight: FontWeight.w700)),
+                Text('AI-assisted disease risk assessment', style: TextStyle(fontSize: 11, color: Colors.white70)),
+              ],
+            ),
+            actions: [
+              IconButton(icon: const Icon(Icons.tune_rounded), onPressed: () {}),
+            ],
+          ),
+
+          SliverToBoxAdapter(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                // ── Filter Strip ──────────────────────────────────────────
+                Container(
+                  color: GovtColors.surface,
+                  padding: const EdgeInsets.symmetric(vertical: 10, horizontal: 16),
+                  child: SingleChildScrollView(
+                    scrollDirection: Axis.horizontal,
+                    child: Row(
+                      children: [
+                        _filterChip('District', _selectedDistrict, _districts, (v) => setState(() => _selectedDistrict = v)),
+                        const SizedBox(width: 8),
+                        _filterChip('Species', _selectedSpecies, _species, (v) => setState(() => _selectedSpecies = v)),
+                        const SizedBox(width: 8),
+                        _filterChip('Disease', _selectedDisease, _diseases, (v) => setState(() => _selectedDisease = v)),
+                        const SizedBox(width: 8),
+                        _filterChip('Period', _selectedTimeRange, _timeRanges, (v) => setState(() => _selectedTimeRange = v)),
+                      ],
+                    ),
+                  ),
                 ),
+
+                // ── Risk Map ──────────────────────────────────────────────
+                Padding(
+                  padding: const EdgeInsets.fromLTRB(16, 16, 16, 0),
+                  child: GovtSectionCard(
+                    padding: const EdgeInsets.all(12),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Row(
+                          children: [
+                            Expanded(
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Text('$_selectedDistrict District — Risk Map',
+                                      style: GovtTypography.sectionTitle),
+                                  Text('Updated: ${intel['lastUpdated']}', style: GovtTypography.caption),
+                                ],
+                              ),
+                            ),
+                            RiskBadge(level: intel['riskLevel'] as String),
+                          ],
+                        ),
+                        const SizedBox(height: 12),
+                        DistrictRiskMapCanvas(riskZones: riskZones, district: _selectedDistrict),
+                      ],
+                    ),
+                  ),
+                ),
+
+                const SizedBox(height: 16),
+
+                // ── Risk Summary Panel ────────────────────────────────────
+                Padding(
+                  padding: GovtSpacing.pagePadding,
+                  child: GovtSectionCard(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        const SectionHeader(title: 'AI-Assisted Risk Summary', subtitle: 'DEMO — Not a confirmed outbreak'),
+                        // Disclaimer
+                        Container(
+                          padding: const EdgeInsets.all(10),
+                          decoration: BoxDecoration(
+                            color: GovtColors.warningLight,
+                            borderRadius: GovtRadius.smRadius,
+                            border: Border.all(color: GovtColors.warning.withValues(alpha: 0.3)),
+                          ),
+                          child: const Row(
+                            children: [
+                              Icon(Icons.info_outline_rounded, size: 16, color: GovtColors.warning),
+                              SizedBox(width: 8),
+                              Expanded(
+                                child: Text(
+                                  'This is an AI-assisted risk signal based on reported data. It does NOT confirm an outbreak. Always validate with veterinary field investigation.',
+                                  style: TextStyle(fontSize: 11, color: GovtColors.warning, height: 1.4),
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                        const SizedBox(height: 16),
+                        Row(
+                          children: [
+                            _riskSummaryItem('Current Risk', intel['riskLevel'] as String, (intel['riskLevel'] as String).riskColor),
+                            _riskSummaryItem('Confidence', '${intel['confidence']}%', GovtColors.brand),
+                            _riskSummaryItem('Trend', intel['trend'] as String, GovtColors.critical),
+                          ],
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+
+                const SizedBox(height: 12),
+
+                // ── Contributing Factors ──────────────────────────────────
+                Padding(
+                  padding: GovtSpacing.pagePadding,
+                  child: GovtSectionCard(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        const SectionHeader(title: 'Contributing Risk Factors'),
+                        ...(intel['contributingFactors'] as List<String>).asMap().entries.map(
+                          (entry) => Padding(
+                            padding: const EdgeInsets.only(bottom: 10),
+                            child: Row(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Container(
+                                  width: 20,
+                                  height: 20,
+                                  decoration: BoxDecoration(
+                                    color: _factorColor(entry.key).withValues(alpha: 0.12),
+                                    borderRadius: GovtRadius.smRadius,
+                                  ),
+                                  child: Center(
+                                    child: Text(
+                                      '${entry.key + 1}',
+                                      style: TextStyle(fontSize: 10, fontWeight: FontWeight.w700, color: _factorColor(entry.key)),
+                                    ),
+                                  ),
+                                ),
+                                const SizedBox(width: 10),
+                                Expanded(
+                                  child: Text(entry.value, style: GovtTypography.body),
+                                ),
+                              ],
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+
+                const SizedBox(height: 12),
+
+                // ── Village Risk Breakdown ────────────────────────────────
+                Padding(
+                  padding: GovtSpacing.pagePadding,
+                  child: GovtSectionCard(
+                    padding: EdgeInsets.zero,
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        const Padding(
+                          padding: EdgeInsets.all(16),
+                          child: SectionHeader(title: 'Village Risk Breakdown'),
+                        ),
+                        const Divider(height: 1, color: GovtColors.border),
+                        ...riskZones.map((zone) => _villageRiskRow(zone)),
+                      ],
+                    ),
+                  ),
+                ),
+
+                const SizedBox(height: 100),
               ],
             ),
           ),
-          Padding(
-            padding: const EdgeInsets.all(14),
-            child: Row(
-              children: stats.entries.map((e) => Expanded(
-                child: Column(
-                  children: [
-                    Text(e.value,
-                        style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold, color: color)),
-                    Text(e.key,
-                        style: const TextStyle(fontSize: 11, color: Colors.grey),
-                        textAlign: TextAlign.center),
-                  ],
-                ),
-              )).toList(),
-            ),
-          ),
-          if (children != null) ...[
-            const Divider(height: 1),
-            ...children,
-          ],
         ],
       ),
     );
   }
 
-  Widget _riskDot(String risk) {
-    final color = switch (risk) {
-      'CRITICAL' => Colors.red,
-      'HIGH' => Colors.orange,
-      'MEDIUM' => Colors.amber,
-      _ => Colors.green,
-    };
-    return Container(
-      width: 12,
-      height: 12,
-      decoration: BoxDecoration(color: color, shape: BoxShape.circle),
+  Widget _filterChip(String label, String selected, List<String> options, void Function(String) onChanged) {
+    return GestureDetector(
+      onTap: () => _showPicker(label, options, onChanged),
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+        decoration: BoxDecoration(
+          color: selected.contains('All') ? GovtColors.surfaceSubtle : GovtColors.brandLight,
+          borderRadius: GovtRadius.smRadius,
+          border: Border.all(color: selected.contains('All') ? GovtColors.border : GovtColors.brand.withValues(alpha: 0.4)),
+        ),
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Text(
+              selected,
+              style: TextStyle(
+                fontSize: 12,
+                fontWeight: FontWeight.w600,
+                color: selected.contains('All') ? GovtColors.textSecondary : GovtColors.brand,
+              ),
+            ),
+            const SizedBox(width: 4),
+            Icon(Icons.keyboard_arrow_down_rounded, size: 14, color: selected.contains('All') ? GovtColors.textSecondary : GovtColors.brand),
+          ],
+        ),
+      ),
     );
+  }
+
+  void _showPicker(String title, List<String> options, void Function(String) onChanged) {
+    showModalBottomSheet(
+      context: context,
+      shape: const RoundedRectangleBorder(borderRadius: BorderRadius.vertical(top: Radius.circular(16))),
+      builder: (ctx) => Padding(
+        padding: const EdgeInsets.all(16),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text('Select $title', style: GovtTypography.sectionTitle),
+            const SizedBox(height: 12),
+            ...options.map((o) => ListTile(
+              dense: true,
+              title: Text(o, style: GovtTypography.body),
+              trailing: Icon(Icons.check_rounded, size: 16, color: GovtColors.brand),
+              onTap: () { onChanged(o); Navigator.pop(ctx); },
+            )),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _riskSummaryItem(String label, String value, Color color) {
+    return Expanded(
+      child: Column(
+        children: [
+          Text(value, style: TextStyle(fontSize: 18, fontWeight: FontWeight.w700, color: color)),
+          const SizedBox(height: 4),
+          Text(label, style: GovtTypography.metricLabel),
+        ],
+      ),
+    );
+  }
+
+  Widget _villageRiskRow(Map<String, dynamic> zone) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+      decoration: const BoxDecoration(border: Border(bottom: BorderSide(color: GovtColors.divider))),
+      child: Row(
+        children: [
+          Container(
+            width: 8,
+            height: 8,
+            decoration: BoxDecoration(color: (zone['risk'] as String).riskColor, shape: BoxShape.circle),
+          ),
+          const SizedBox(width: 12),
+          Expanded(child: Text(zone['name'] as String, style: GovtTypography.bodyMedium)),
+          Text('${zone['cases']} cases', style: GovtTypography.caption),
+          const SizedBox(width: 12),
+          RiskBadge(level: zone['risk'] as String, compact: true),
+        ],
+      ),
+    );
+  }
+
+  Color _factorColor(int i) {
+    const colors = [GovtColors.critical, GovtColors.riskHigh, GovtColors.warning, GovtColors.brand, GovtColors.textSecondary];
+    return colors[i % colors.length];
   }
 }
