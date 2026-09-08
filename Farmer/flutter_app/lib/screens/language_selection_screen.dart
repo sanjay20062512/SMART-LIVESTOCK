@@ -96,7 +96,7 @@ class _LanguageSelectionScreenState extends State<LanguageSelectionScreen> {
                 language: AppLanguage.english,
                 nativeName: 'English',
                 subText: 'Select English to continue',
-                iconEmoji: '🇬🇧',
+                icon: Icons.language_rounded,
               ),
               const SizedBox(height: 12),
 
@@ -104,7 +104,7 @@ class _LanguageSelectionScreenState extends State<LanguageSelectionScreen> {
                 language: AppLanguage.tamil,
                 nativeName: 'தமிழ்',
                 subText: 'தமிழில் தொடர இதை அழுத்தவும்',
-                iconEmoji: '🌾',
+                icon: Icons.translate_rounded,
               ),
               const SizedBox(height: 12),
 
@@ -112,7 +112,7 @@ class _LanguageSelectionScreenState extends State<LanguageSelectionScreen> {
                 language: AppLanguage.hindi,
                 nativeName: 'हिन्दी',
                 subText: 'हिंदी में जारी रखने के लिए चुनें',
-                iconEmoji: '🇮🇳',
+                icon: Icons.g_translate_rounded,
               ),
 
               const SizedBox(height: 28),
@@ -172,7 +172,7 @@ class _LanguageSelectionScreenState extends State<LanguageSelectionScreen> {
     required AppLanguage language,
     required String nativeName,
     required String subText,
-    required String iconEmoji,
+    required IconData icon,
   }) {
     final isSelected = _selected == language;
     final primaryColor = Theme.of(context).colorScheme.primary;
@@ -206,7 +206,18 @@ class _LanguageSelectionScreenState extends State<LanguageSelectionScreen> {
             padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
             child: Row(
               children: [
-                Text(iconEmoji, style: const TextStyle(fontSize: 32)),
+                Container(
+                  padding: const EdgeInsets.all(10),
+                  decoration: BoxDecoration(
+                    color: isSelected ? primaryColor.withValues(alpha: 0.15) : Colors.grey.shade100,
+                    shape: BoxShape.circle,
+                  ),
+                  child: Icon(
+                    icon,
+                    size: 24,
+                    color: isSelected ? primaryColor : Colors.grey.shade700,
+                  ),
+                ),
                 const SizedBox(width: 16),
                 Expanded(
                   child: Column(

@@ -1,6 +1,8 @@
 // Animal data model
 // Contains predefined breed catalogues and simple age bracket options.
 
+import 'package:flutter/material.dart';
+
 enum AnimalSpecies { cow, buffalo, goat, sheep, poultry, pig, other }
 
 enum AnimalGender { male, female, unknown }
@@ -27,22 +29,19 @@ extension AnimalSpeciesExt on AnimalSpecies {
     }
   }
 
-  String get emoji {
+  // Deprecated emoji replacement
+  String get emoji => '';
+
+  IconData get icon {
     switch (this) {
       case AnimalSpecies.cow:
-        return '🐄';
       case AnimalSpecies.buffalo:
-        return '🐃';
       case AnimalSpecies.goat:
-        return '🐐';
       case AnimalSpecies.sheep:
-        return '🐑';
-      case AnimalSpecies.poultry:
-        return '🐔';
       case AnimalSpecies.pig:
-        return '🐖';
+      case AnimalSpecies.poultry:
       case AnimalSpecies.other:
-        return '🐾';
+        return Icons.pets;
     }
   }
 

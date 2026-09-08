@@ -350,7 +350,7 @@ class _LoginScreenState extends State<LoginScreen>
                         ),
                         child: const Row(
                           children: [
-                            Text('🇮🇳', style: TextStyle(fontSize: 12)),
+                            Icon(Icons.flag_outlined, color: Colors.white, size: 14),
                             SizedBox(width: 5),
                             Text(
                               'SIH 2024 • Smart India',
@@ -1156,7 +1156,7 @@ class _LoginScreenState extends State<LoginScreen>
                     ),
                     const SizedBox(height: 2),
                     Text(
-                      '📞 1800-180-1551 • Emergency Vet Assistance',
+                      'Toll-Free: 1800-180-1551 • Emergency Vet Assistance',
                       style: TextStyle(
                         fontSize: 11,
                         color: isDark

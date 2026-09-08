@@ -1,4 +1,4 @@
-// Government Cluster Screen — detect and manage outbreak clusters
+// Government Cluster Screen — detect, review and manage outbreak clusters
 
 import 'package:flutter/material.dart';
 import '../../services/farmer_data_service.dart';
@@ -13,36 +13,38 @@ class GovtClusterScreen extends StatelessWidget {
     return ListenableBuilder(
       listenable: dataService,
       builder: (context, _) {
-        final clusters = dataService.getAllClusters();
+        // Retrieve only High-Risk clusters from Government API / Service
+        final rawClusters = dataService.getGovernmentClusters();
+        // Mandatory requirement & extra frontend safety check: ONLY high-risk or escalated clusters
+        final clusters = rawClusters.where((c) => c.riskLevel == ClusterRisk.high || c.status == ClusterStatus.escalated).toList();
         final actions = dataService.getAllResponseActions();
 
         return Scaffold(
           backgroundColor: const Color(0xFFECF0F8),
           appBar: AppBar(
-            title: const Text('Outbreak Clusters', style: TextStyle(fontWeight: FontWeight.bold)),
+            title: const Text('High-Risk Outbreak Clusters', style: TextStyle(fontWeight: FontWeight.bold)),
             backgroundColor: const Color(0xFFB71C1C),
             foregroundColor: Colors.white,
           ),
           body: ListView(
             padding: const EdgeInsets.all(16),
             children: [
-              // Disclaimer
+              // Surveillance Disclaimer
               Container(
                 padding: const EdgeInsets.all(12),
                 decoration: BoxDecoration(
-                  color: Colors.amber.shade50,
+                  color: Colors.red.shade50,
                   borderRadius: BorderRadius.circular(12),
-                  border: Border.all(color: Colors.amber.shade300),
+                  border: Border.all(color: Colors.red.shade300),
                 ),
                 child: const Row(
                   children: [
-                    Icon(Icons.info_outline, color: Colors.amber, size: 18),
+                    Icon(Icons.shield_outlined, color: Color(0xFFB71C1C), size: 20),
                     SizedBox(width: 10),
                     Expanded(
                       child: Text(
-                        'Clusters are identified based on ≥3 reports, same village, similar species and symptoms within 7 days. '
-                        'These are PRELIMINARY SURVEILLANCE INDICATORS, not confirmed outbreaks.',
-                        style: TextStyle(fontSize: 12, color: Colors.black87),
+                        'Government Portal strictly monitors High-Risk Outbreak Clusters escalated from Veterinary surveillance & AI detection.',
+                        style: TextStyle(fontSize: 12, color: Colors.black87, fontWeight: FontWeight.w500),
                       ),
                     ),
                   ],
@@ -57,9 +59,11 @@ class GovtClusterScreen extends StatelessWidget {
                     padding: EdgeInsets.all(40),
                     child: Column(
                       children: [
-                        Icon(Icons.check_circle_outline, color: Colors.green, size: 64),
+                        Icon(Icons.verified_user, color: Colors.green, size: 64),
                         SizedBox(height: 12),
-                        Text('No clusters detected', style: TextStyle(color: Colors.grey, fontSize: 16)),
+                        Text('No High-Risk Clusters Active', style: TextStyle(color: Colors.black87, fontWeight: FontWeight.bold, fontSize: 16)),
+                        SizedBox(height: 4),
+                        Text('All regions are clear of critical high-risk outbreaks.', style: TextStyle(color: Colors.grey, fontSize: 12)),
                       ],
                     ),
                   ),
@@ -75,13 +79,8 @@ class GovtClusterScreen extends StatelessWidget {
     );
   }
 
-  Widget _clusterCard(BuildContext context, OutbreakCluster cluster, actions) {
-    final riskColor = switch (cluster.risk) {
-      ClusterRisk.critical => const Color(0xFFB71C1C),
-      ClusterRisk.high => const Color(0xFFE65100),
-      ClusterRisk.possible => const Color(0xFFF57F17),
-    };
-
+  Widget _clusterCard(BuildContext context, OutbreakCluster cluster, List<ResponseAction> actions) {
+    final riskColor = cluster.riskLevel.color;
     final clusterActions = actions.where((a) => a.clusterId == cluster.clusterId).toList();
 
     return Card(
@@ -103,9 +102,9 @@ class GovtClusterScreen extends StatelessWidget {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Text(cluster.risk.displayName,
+                      Text(cluster.riskLevel.displayName,
                           style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 15)),
-                      Text('${cluster.village} · ${cluster.block} · ${cluster.district}',
+                      Text('${cluster.name} · ${cluster.village}, ${cluster.district}',
                           style: const TextStyle(color: Colors.white70, fontSize: 12)),
                     ],
                   ),
@@ -124,9 +123,9 @@ class GovtClusterScreen extends StatelessWidget {
                 Row(
                   children: [
                     _stat('Reports', cluster.reportCount.toString()),
-                    _stat('Animals', cluster.affectedAnimals.toString()),
-                    _stat('Mortality', cluster.mortalityCount.toString()),
-                    _stat('Days', _daysSince(cluster.firstReportDate).toString()),
+                    _stat('Animals', cluster.animalCount.toString()),
+                    _stat('Mortality', cluster.mortality.toString()),
+                    _stat('Days', _daysSince(cluster.detectedAt).toString()),
                   ],
                 ),
 
@@ -134,16 +133,18 @@ class GovtClusterScreen extends StatelessWidget {
 
                 Text('Species: ${cluster.species}',
                     style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 13)),
+                Text('Suspected Disease: ${cluster.suspectedDisease}',
+                    style: TextStyle(fontSize: 12, color: Colors.grey.shade800)),
                 const SizedBox(height: 6),
 
-                // Common symptoms
+                // Symptoms
                 Wrap(
                   spacing: 6,
                   runSpacing: 4,
-                  children: cluster.commonSymptoms.map((s) => Chip(
+                  children: cluster.symptoms.map((s) => Chip(
                     label: Text(s, style: const TextStyle(fontSize: 11)),
-                    backgroundColor: Colors.red.shade50,
-                    side: BorderSide(color: Colors.red.shade100),
+                    backgroundColor: cluster.riskLevel.bgColor,
+                    side: BorderSide(color: riskColor.withValues(alpha: 0.3)),
                     visualDensity: VisualDensity.compact,
                     padding: EdgeInsets.zero,
                   )).toList(),
@@ -160,7 +161,7 @@ class GovtClusterScreen extends StatelessWidget {
                     padding: const EdgeInsets.only(bottom: 6),
                     child: Row(
                       children: [
-                        Text(a.type.emoji, style: const TextStyle(fontSize: 16)),
+                        Icon(a.type.icon, size: 16, color: Colors.blueGrey),
                         const SizedBox(width: 8),
                         Expanded(child: Text(a.title, style: const TextStyle(fontSize: 12))),
                         Container(
@@ -252,16 +253,11 @@ class GovtClusterScreen extends StatelessWidget {
               const SizedBox(height: 12),
               ...ClusterStatus.values.map((s) => ListTile(
                     title: Text(s.displayName),
-                    leading: Radio<ClusterStatus>(
-                      value: s,
-                      groupValue: cluster.status,
-                      onChanged: (v) {
-                        if (v != null) {
-                          dataService.updateClusterStatus(cluster.clusterId, v);
-                          Navigator.pop(ctx);
-                        }
-                      },
-                    ),
+                    selected: cluster.status == s,
+                    onTap: () {
+                      dataService.updateClusterStatus(cluster.clusterId, s);
+                      Navigator.pop(ctx);
+                    },
                   )),
             ],
           ),
@@ -297,8 +293,8 @@ class GovtClusterScreen extends StatelessWidget {
                 children: ResponseActionType.values.map((t) {
                   final sel = selectedType == t;
                   return ChoiceChip(
-                    label: Text('${t.emoji} ${t.displayName}',
-                        style: const TextStyle(fontSize: 12)),
+                    avatar: Icon(t.icon, size: 16),
+                    label: Text(t.displayName, style: const TextStyle(fontSize: 12)),
                     selected: sel,
                     onSelected: (_) => setModalState(() => selectedType = t),
                     selectedColor: Colors.purple.shade100,
@@ -339,7 +335,7 @@ class GovtClusterScreen extends StatelessWidget {
                     Navigator.pop(ctx);
                     ScaffoldMessenger.of(context).showSnackBar(
                       const SnackBar(
-                        content: Text('✅ Response action created'),
+                        content: Text('Response action created'),
                         backgroundColor: Colors.purple,
                       ),
                     );

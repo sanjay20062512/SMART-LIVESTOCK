@@ -78,7 +78,7 @@ class _VetVisitScreenState extends State<VetVisitScreen> {
         Navigator.pop(context);
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(
-            content: Text('✅ Visit recorded successfully'),
+            content: Text('Visit recorded successfully'),
             backgroundColor: Colors.green,
           ),
         );
@@ -105,7 +105,7 @@ class _VetVisitScreenState extends State<VetVisitScreen> {
             const SizedBox(height: 16),
 
             // Visit date
-            _card('📅 Visit Date & Time', [
+            _card('Visit Date & Time', [
               ListTile(
                 contentPadding: EdgeInsets.zero,
                 leading: const Icon(Icons.calendar_today, color: Color(0xFF1565C0)),
@@ -137,7 +137,7 @@ class _VetVisitScreenState extends State<VetVisitScreen> {
 
             const SizedBox(height: 12),
 
-            _card('🔍 Clinical Observations', [
+            _card('Clinical Observations', [
               _field(_observationsCtrl, 'General observations', maxLines: 3),
               const SizedBox(height: 10),
               _field(_animalsExaminedCtrl, 'Animals examined (e.g. 3 cows)'),
@@ -147,7 +147,7 @@ class _VetVisitScreenState extends State<VetVisitScreen> {
 
             const SizedBox(height: 12),
 
-            _card('📋 Assessment & Action', [
+            _card('Assessment & Action', [
               _field(_assessmentCtrl, 'Preliminary assessment', maxLines: 2),
               const SizedBox(height: 10),
               _field(_actionCtrl, 'Action taken', maxLines: 2),
@@ -157,7 +157,7 @@ class _VetVisitScreenState extends State<VetVisitScreen> {
 
             const SizedBox(height: 12),
 
-            _card('📅 Follow-up', [
+            _card('Follow-up Schedule', [
               ListTile(
                 contentPadding: EdgeInsets.zero,
                 leading: const Icon(Icons.event_repeat, color: Color(0xFF1565C0)),

@@ -70,7 +70,7 @@ class _VetSampleScreenState extends State<VetSampleScreen> {
         Navigator.pop(context);
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(
-            content: Text('✅ Sample recorded successfully'),
+            content: Text('Sample recorded successfully'),
             backgroundColor: Colors.green,
           ),
         );
@@ -120,7 +120,7 @@ class _VetSampleScreenState extends State<VetSampleScreen> {
 
             const SizedBox(height: 16),
 
-            _card('🔬 Sample Type', [
+            _card('Sample Type', [
               Wrap(
                 spacing: 8,
                 runSpacing: 8,
@@ -138,7 +138,7 @@ class _VetSampleScreenState extends State<VetSampleScreen> {
 
             const SizedBox(height: 12),
 
-            _card('📋 Reason for Collection', [
+            _card('Reason for Collection', [
               TextField(
                 controller: _reasonCtrl,
                 maxLines: 3,
@@ -152,7 +152,7 @@ class _VetSampleScreenState extends State<VetSampleScreen> {
 
             const SizedBox(height: 12),
 
-            _card('🏥 Laboratory', [
+            _card('Laboratory', [
               DropdownButtonFormField<String>(
                 value: _lab,
                 decoration: InputDecoration(
@@ -166,7 +166,7 @@ class _VetSampleScreenState extends State<VetSampleScreen> {
 
             const SizedBox(height: 12),
 
-            _card('📊 Initial Status', [
+            _card('Initial Status', [
               ...SampleStatus.values.map((s) => RadioListTile<SampleStatus>(
                     contentPadding: EdgeInsets.zero,
                     title: Text(s.displayName),

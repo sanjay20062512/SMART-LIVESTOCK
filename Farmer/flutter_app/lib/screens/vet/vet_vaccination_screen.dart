@@ -43,19 +43,19 @@ class VetVaccinationScreen extends StatelessWidget {
               const SizedBox(height: 20),
 
               if (due.isNotEmpty) ...[
-                _sectionHeader('⚠️ Due / Overdue', Colors.red),
+                _sectionHeader('Due / Overdue', Colors.red),
                 ...due.map((v) => _vaccinationCard(v)),
                 const SizedBox(height: 12),
               ],
 
               if (upcoming.isNotEmpty) ...[
-                _sectionHeader('📅 Upcoming', Colors.orange),
+                _sectionHeader('Upcoming', Colors.orange),
                 ...upcoming.map((v) => _vaccinationCard(v)),
                 const SizedBox(height: 12),
               ],
 
               if (completed.isNotEmpty) ...[
-                _sectionHeader('✅ Completed', Colors.green),
+                _sectionHeader('Completed', Colors.green),
                 ...completed.map((v) => _vaccinationCard(v)),
               ],
 

@@ -76,7 +76,7 @@ class VetCaseDetailScreen extends StatelessWidget {
                 const SizedBox(height: 16),
 
                 // Farmer & Farm info
-                _section('👨‍🌾 Farmer & Farm', [
+                _section('Farmer & Farm', [
                   _row('Farmer', c.farmerName),
                   _row('Farm', c.farmName),
                   _row('Village', c.village),
@@ -85,7 +85,7 @@ class VetCaseDetailScreen extends StatelessWidget {
                 ]),
 
                 // Animal details
-                _section('🐄 Animal Details', [
+                _section('Animal Details', [
                   _row('Species', c.species),
                   if (c.breed != null) _row('Breed', c.breed!),
                   if (c.age != null) _row('Age', c.age!),
@@ -94,7 +94,7 @@ class VetCaseDetailScreen extends StatelessWidget {
                 ]),
 
                 // Clinical info
-                _section('🩺 Clinical Information', [
+                _section('Clinical Information', [
                   _row('Symptoms', c.symptoms.join(', ')),
                   if (c.duration != null) _row('Duration', c.duration!),
                   if (c.affectedCount != null) _row('Animals Affected', c.affectedCount!),
@@ -106,36 +106,36 @@ class VetCaseDetailScreen extends StatelessWidget {
 
                 // Evidence
                 if (c.hasVoiceNote || c.hasPhoto || c.hasVideo)
-                  _section('📎 Evidence', [
-                    if (c.hasVoiceNote) _evidenceChip('🎤 Voice Note'),
-                    if (c.hasPhoto) _evidenceChip('📷 Photo'),
-                    if (c.hasVideo) _evidenceChip('🎥 Video'),
+                  _section('Evidence', [
+                    if (c.hasVoiceNote) _evidenceChip('Voice Note'),
+                    if (c.hasPhoto) _evidenceChip('Photo'),
+                    if (c.hasVideo) _evidenceChip('Video'),
                   ]),
 
                 // Clinical Observation (if added)
                 if (c.clinicalObservation != null)
-                  _section('📋 Clinical Observation', [
+                  _section('Clinical Observation', [
                     Text(c.clinicalObservation!,
                         style: const TextStyle(fontSize: 14, height: 1.4)),
                   ]),
 
                 // Treatment (if added)
                 if (c.treatmentSummary != null)
-                  _section('💊 Treatment', [
+                  _section('Treatment Summary', [
                     Text(c.treatmentSummary!,
                         style: const TextStyle(fontSize: 14, height: 1.4)),
                   ]),
 
                 // Samples
                 if (samples.isNotEmpty)
-                  _section('🔬 Samples', samples.map((s) => _sampleRow(s)).toList()),
+                  _section('Laboratory Samples', samples.map((s) => _sampleRow(s)).toList()),
 
                 // Visits
                 if (visits.isNotEmpty)
-                  _section('🏥 Visits', visits.map((v) => _visitRow(v)).toList()),
+                  _section('Field Visits', visits.map((v) => _visitRow(v)).toList()),
 
                 // Timeline
-                _section('📅 Case Timeline', c.timeline.map((e) => _timelineEvent(e)).toList()),
+                _section('Case Timeline', c.timeline.map((e) => _timelineEvent(e)).toList()),
 
                 const SizedBox(height: 100),
               ],

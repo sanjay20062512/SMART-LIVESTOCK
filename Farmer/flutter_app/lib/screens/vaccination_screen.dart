@@ -260,8 +260,8 @@ class _VaccinationScreenState extends State<VaccinationScreen>
                       'Date: ${v.date!.day}/${v.date!.month}/${v.date!.year}'),
                 if (v.veterinarian != null) Text('Vet: ${v.veterinarian}'),
                 if (v.isVerified)
-                  const Text('✓ Verified',
-                      style: TextStyle(color: Colors.green)),
+                  const Text('Verified',
+                      style: TextStyle(color: Colors.green, fontWeight: FontWeight.bold)),
               ],
             ),
             trailing: Container(
