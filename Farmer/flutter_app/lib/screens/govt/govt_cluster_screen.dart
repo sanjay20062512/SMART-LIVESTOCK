@@ -1,4 +1,8 @@
+<<<<<<< HEAD
 // Outbreak Management Screen — professional incident management interface
+=======
+// Government Cluster Screen — detect, review and manage outbreak clusters
+>>>>>>> 55319ae30cff216d4ba8b4ed880c5c5d2e6c7cf2
 
 import 'package:flutter/material.dart';
 import '../../services/farmer_data_service.dart';
@@ -34,6 +38,7 @@ class _GovtClusterScreenState extends State<GovtClusterScreen> with SingleTicker
     return ListenableBuilder(
       listenable: widget.dataService,
       builder: (context, _) {
+<<<<<<< HEAD
         final clusters = widget.dataService.getAllClusters();
         final active = clusters.where((c) => c.status == ClusterStatus.monitoring || c.status == ClusterStatus.escalated).toList();
         final investigating = clusters.where((c) => c.status == ClusterStatus.investigation).toList();
@@ -69,10 +74,47 @@ class _GovtClusterScreenState extends State<GovtClusterScreen> with SingleTicker
                     Tab(text: 'Investig. (${investigating.length})'),
                     Tab(text: 'Contained (${contained.length})'),
                     const Tab(text: 'Resolved (17)'),
+=======
+        // Retrieve only High-Risk clusters from Government API / Service
+        final rawClusters = dataService.getGovernmentClusters();
+        // Mandatory requirement & extra frontend safety check: ONLY high-risk or escalated clusters
+        final clusters = rawClusters.where((c) => c.riskLevel == ClusterRisk.high || c.status == ClusterStatus.escalated).toList();
+        final actions = dataService.getAllResponseActions();
+
+        return Scaffold(
+          backgroundColor: const Color(0xFFECF0F8),
+          appBar: AppBar(
+            title: const Text('High-Risk Outbreak Clusters', style: TextStyle(fontWeight: FontWeight.bold)),
+            backgroundColor: const Color(0xFFB71C1C),
+            foregroundColor: Colors.white,
+          ),
+          body: ListView(
+            padding: const EdgeInsets.all(16),
+            children: [
+              // Surveillance Disclaimer
+              Container(
+                padding: const EdgeInsets.all(12),
+                decoration: BoxDecoration(
+                  color: Colors.red.shade50,
+                  borderRadius: BorderRadius.circular(12),
+                  border: Border.all(color: Colors.red.shade300),
+                ),
+                child: const Row(
+                  children: [
+                    Icon(Icons.shield_outlined, color: Color(0xFFB71C1C), size: 20),
+                    SizedBox(width: 10),
+                    Expanded(
+                      child: Text(
+                        'Government Portal strictly monitors High-Risk Outbreak Clusters escalated from Veterinary surveillance & AI detection.',
+                        style: TextStyle(fontSize: 12, color: Colors.black87, fontWeight: FontWeight.w500),
+                      ),
+                    ),
+>>>>>>> 55319ae30cff216d4ba8b4ed880c5c5d2e6c7cf2
                   ],
                 ),
               ),
 
+<<<<<<< HEAD
               // Summary counts
               SliverToBoxAdapter(
                 child: Container(
@@ -85,6 +127,23 @@ class _GovtClusterScreenState extends State<GovtClusterScreen> with SingleTicker
                       _summaryBadge('Contained', contained.length, GovtColors.brand),
                       _summaryBadge('Resolved', 17, GovtColors.success),
                     ],
+=======
+              const SizedBox(height: 16),
+
+              if (clusters.isEmpty)
+                const Center(
+                  child: Padding(
+                    padding: EdgeInsets.all(40),
+                    child: Column(
+                      children: [
+                        Icon(Icons.verified_user, color: Colors.green, size: 64),
+                        SizedBox(height: 12),
+                        Text('No High-Risk Clusters Active', style: TextStyle(color: Colors.black87, fontWeight: FontWeight.bold, fontSize: 16)),
+                        SizedBox(height: 4),
+                        Text('All regions are clear of critical high-risk outbreaks.', style: TextStyle(color: Colors.grey, fontSize: 12)),
+                      ],
+                    ),
+>>>>>>> 55319ae30cff216d4ba8b4ed880c5c5d2e6c7cf2
                   ),
                 ),
               ),
@@ -111,7 +170,155 @@ class _GovtClusterScreenState extends State<GovtClusterScreen> with SingleTicker
     );
   }
 
+<<<<<<< HEAD
   Widget _summaryBadge(String label, int count, Color color) {
+=======
+  Widget _clusterCard(BuildContext context, OutbreakCluster cluster, List<ResponseAction> actions) {
+    final riskColor = cluster.riskLevel.color;
+    final clusterActions = actions.where((a) => a.clusterId == cluster.clusterId).toList();
+
+    return Card(
+      margin: const EdgeInsets.only(bottom: 16),
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+      clipBehavior: Clip.antiAlias,
+      elevation: 3,
+      child: Column(
+        children: [
+          // Header
+          Container(
+            color: riskColor,
+            padding: const EdgeInsets.all(16),
+            child: Row(
+              children: [
+                const Icon(Icons.warning_amber_rounded, color: Colors.white, size: 24),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(cluster.riskLevel.displayName,
+                          style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 15)),
+                      Text('${cluster.name} · ${cluster.village}, ${cluster.district}',
+                          style: const TextStyle(color: Colors.white70, fontSize: 12)),
+                    ],
+                  ),
+                ),
+                _statusBadge(cluster.status),
+              ],
+            ),
+          ),
+
+          Padding(
+            padding: const EdgeInsets.all(16),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                // Stats
+                Row(
+                  children: [
+                    _stat('Reports', cluster.reportCount.toString()),
+                    _stat('Animals', cluster.animalCount.toString()),
+                    _stat('Mortality', cluster.mortality.toString()),
+                    _stat('Days', _daysSince(cluster.detectedAt).toString()),
+                  ],
+                ),
+
+                const SizedBox(height: 12),
+
+                Text('Species: ${cluster.species}',
+                    style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 13)),
+                Text('Suspected Disease: ${cluster.suspectedDisease}',
+                    style: TextStyle(fontSize: 12, color: Colors.grey.shade800)),
+                const SizedBox(height: 6),
+
+                // Symptoms
+                Wrap(
+                  spacing: 6,
+                  runSpacing: 4,
+                  children: cluster.symptoms.map((s) => Chip(
+                    label: Text(s, style: const TextStyle(fontSize: 11)),
+                    backgroundColor: cluster.riskLevel.bgColor,
+                    side: BorderSide(color: riskColor.withValues(alpha: 0.3)),
+                    visualDensity: VisualDensity.compact,
+                    padding: EdgeInsets.zero,
+                  )).toList(),
+                ),
+
+                const SizedBox(height: 12),
+
+                // Existing response actions
+                if (clusterActions.isNotEmpty) ...[
+                  const Text('Response Actions:',
+                      style: TextStyle(fontWeight: FontWeight.bold, fontSize: 13)),
+                  const SizedBox(height: 6),
+                  ...clusterActions.map((a) => Padding(
+                    padding: const EdgeInsets.only(bottom: 6),
+                    child: Row(
+                      children: [
+                        Icon(a.type.icon, size: 16, color: Colors.blueGrey),
+                        const SizedBox(width: 8),
+                        Expanded(child: Text(a.title, style: const TextStyle(fontSize: 12))),
+                        Container(
+                          padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                          decoration: BoxDecoration(
+                            color: Colors.blueGrey.shade50,
+                            borderRadius: BorderRadius.circular(6),
+                          ),
+                          child: Text(a.status.name, style: const TextStyle(fontSize: 10)),
+                        ),
+                      ],
+                    ),
+                  )),
+                  const SizedBox(height: 8),
+                ],
+
+                // Action buttons
+                Row(
+                  children: [
+                    Expanded(
+                      child: OutlinedButton.icon(
+                        icon: const Icon(Icons.update, size: 16),
+                        label: const Text('Update Status'),
+                        onPressed: () => _updateStatus(context, cluster),
+                      ),
+                    ),
+                    const SizedBox(width: 10),
+                    Expanded(
+                      child: ElevatedButton.icon(
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: riskColor,
+                          foregroundColor: Colors.white,
+                        ),
+                        icon: const Icon(Icons.add_task, size: 16),
+                        label: const Text('Create Action'),
+                        onPressed: () => _createResponseAction(context, cluster),
+                      ),
+                    ),
+                  ],
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _statusBadge(ClusterStatus status) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+      decoration: BoxDecoration(
+        color: Colors.white.withValues(alpha: 0.25),
+        borderRadius: BorderRadius.circular(10),
+        border: Border.all(color: Colors.white54),
+      ),
+      child: Text(status.displayName,
+          style: const TextStyle(color: Colors.white, fontSize: 11, fontWeight: FontWeight.bold)),
+    );
+  }
+
+  Widget _stat(String label, String value) {
+>>>>>>> 55319ae30cff216d4ba8b4ed880c5c5d2e6c7cf2
     return Expanded(
       child: Column(
         children: [
@@ -133,6 +340,7 @@ class _GovtClusterScreenState extends State<GovtClusterScreen> with SingleTicker
     );
   }
 
+<<<<<<< HEAD
   Widget _incidentCard(BuildContext context, OutbreakCluster c) {
     final riskColor = c.risk.name.toUpperCase().riskColor;
     return GestureDetector(
@@ -227,6 +435,33 @@ class _GovtClusterScreenState extends State<GovtClusterScreen> with SingleTicker
               ),
             ),
           ],
+=======
+  void _updateStatus(BuildContext context, OutbreakCluster cluster) {
+    showModalBottomSheet(
+      context: context,
+      shape: const RoundedRectangleBorder(
+          borderRadius: BorderRadius.vertical(top: Radius.circular(20))),
+      builder: (ctx) => SafeArea(
+        child: Padding(
+          padding: const EdgeInsets.all(20),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              const Text('Update Cluster Status',
+                  style: TextStyle(fontWeight: FontWeight.bold, fontSize: 17)),
+              const SizedBox(height: 12),
+              ...ClusterStatus.values.map((s) => ListTile(
+                    title: Text(s.displayName),
+                    selected: cluster.status == s,
+                    onTap: () {
+                      dataService.updateClusterStatus(cluster.clusterId, s);
+                      Navigator.pop(ctx);
+                    },
+                  )),
+            ],
+          ),
+>>>>>>> 55319ae30cff216d4ba8b4ed880c5c5d2e6c7cf2
         ),
       ),
     );
@@ -245,6 +480,7 @@ class _GovtClusterScreenState extends State<GovtClusterScreen> with SingleTicker
     );
   }
 
+<<<<<<< HEAD
   Widget _resolvedList() {
     return ListView.builder(
       padding: const EdgeInsets.all(16),
@@ -256,6 +492,83 @@ class _GovtClusterScreenState extends State<GovtClusterScreen> with SingleTicker
           color: GovtColors.surface,
           borderRadius: GovtRadius.lgRadius,
           border: Border.all(color: GovtColors.border),
+=======
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      shape: const RoundedRectangleBorder(
+          borderRadius: BorderRadius.vertical(top: Radius.circular(20))),
+      builder: (ctx) => StatefulBuilder(
+        builder: (ctx, setModalState) => Padding(
+          padding: EdgeInsets.fromLTRB(20, 20, 20, MediaQuery.of(ctx).viewInsets.bottom + 20),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              const Text('Create Response Action',
+                  style: TextStyle(fontWeight: FontWeight.bold, fontSize: 17)),
+              const SizedBox(height: 16),
+              const Text('Action Type:', style: TextStyle(fontWeight: FontWeight.w600)),
+              const SizedBox(height: 8),
+              Wrap(
+                spacing: 8,
+                runSpacing: 8,
+                children: ResponseActionType.values.map((t) {
+                  final sel = selectedType == t;
+                  return ChoiceChip(
+                    avatar: Icon(t.icon, size: 16),
+                    label: Text(t.displayName, style: const TextStyle(fontSize: 12)),
+                    selected: sel,
+                    onSelected: (_) => setModalState(() => selectedType = t),
+                    selectedColor: Colors.purple.shade100,
+                  );
+                }).toList(),
+              ),
+              const SizedBox(height: 12),
+              TextField(
+                controller: ctrl,
+                decoration: const InputDecoration(
+                  labelText: 'Additional notes',
+                  border: OutlineInputBorder(),
+                ),
+              ),
+              const SizedBox(height: 16),
+              SizedBox(
+                width: double.infinity,
+                child: ElevatedButton(
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: const Color(0xFF4A148C),
+                    foregroundColor: Colors.white,
+                    padding: const EdgeInsets.symmetric(vertical: 14),
+                  ),
+                  onPressed: () {
+                    final action = ResponseAction(
+                      actionId: dataService.generateActionId(),
+                      clusterId: cluster.clusterId,
+                      type: selectedType,
+                      title: '${selectedType.displayName} — ${cluster.village}',
+                      description: ctrl.text.trim().isEmpty
+                          ? '${selectedType.displayName} in ${cluster.village}'
+                          : ctrl.text.trim(),
+                      location: '${cluster.village}, ${cluster.block}, ${cluster.district}',
+                      assignedTo: 'Dr. Rajesh Kumar',
+                      status: ResponseActionStatus.assigned,
+                    );
+                    dataService.addResponseAction(action);
+                    Navigator.pop(ctx);
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      const SnackBar(
+                        content: Text('Response action created'),
+                        backgroundColor: Colors.purple,
+                      ),
+                    );
+                  },
+                  child: const Text('CREATE ACTION', style: TextStyle(fontWeight: FontWeight.bold)),
+                ),
+              ),
+            ],
+          ),
+>>>>>>> 55319ae30cff216d4ba8b4ed880c5c5d2e6c7cf2
         ),
         child: Row(
           children: [

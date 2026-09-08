@@ -24,6 +24,7 @@ import '../models/sample.dart';
 import '../models/advisory.dart';
 import '../models/cluster.dart';
 import '../models/vet_visit.dart';
+import '../models/government_alert.dart';
 
 // Note: import case.dart types directly in screens that need them.
 
@@ -44,6 +45,7 @@ class FarmerDataService extends ChangeNotifier {
   final List<Sample> _samples = [];
   final List<Advisory> _advisories = [];
   final List<OutbreakCluster> _clusters = [];
+  final List<GovernmentAlert> _govtAlerts = [];
   final List<ResponseAction> _responseActions = [];
   final List<VetVisit> _vetVisits = [];
 
@@ -476,20 +478,210 @@ class FarmerDataService extends ChangeNotifier {
     notifyListeners();
   }
 
+  // ─── Government Alerts (Synchronized from High-Risk Clusters) ───────────────
+
+  // ─── Government Alerts (Synchronized from High-Risk Clusters) ───────────────
+
+  List<GovernmentAlert> getGovernmentAlerts() {
+    return List.unmodifiable(
+      _govtAlerts.where((a) => a.riskLevel == ClusterRisk.high).toList(),
+    );
+  }
+
+  GovernmentAlert? getGovernmentAlertByClusterId(String clusterId) {
+    try {
+      return _govtAlerts.firstWhere((a) => a.clusterId == clusterId);
+    } catch (_) {
+      return null;
+    }
+  }
+
+  void createGovernmentAlertIfNotExists(OutbreakCluster cluster) {
+    // Enforcement Rule: Only HIGH risk or Escalated clusters generate/maintain Government Alerts.
+    if (cluster.riskLevel != ClusterRisk.high && cluster.status != ClusterStatus.escalated) {
+      final initialLength = _govtAlerts.length;
+      _govtAlerts.removeWhere((a) => a.clusterId == cluster.clusterId);
+      if (_govtAlerts.length != initialLength) {
+        notifyListeners();
+      }
+      return;
+    }
+
+    final existingIndex = _govtAlerts.indexWhere((a) => a.clusterId == cluster.clusterId);
+    final alertTitle = cluster.name.toLowerCase().contains('high')
+        ? cluster.name
+        : 'HIGH RISK: ${cluster.name}';
+
+    if (existingIndex != -1) {
+      final existing = _govtAlerts[existingIndex];
+      existing.riskLevel = ClusterRisk.high;
+      existing.title = alertTitle;
+      existing.location = cluster.location;
+      existing.district = cluster.district;
+      existing.state = cluster.state;
+      existing.species = cluster.species;
+      existing.animalCount = cluster.animalCount;
+      existing.reportCount = cluster.reportCount;
+      existing.mortality = cluster.mortality;
+      existing.symptoms = List.from(cluster.symptoms);
+      existing.suspectedDisease = cluster.suspectedDisease;
+      existing.updatedAt = DateTime.now();
+    } else {
+      final alert = GovernmentAlert(
+        id: generateAlertId(),
+        clusterId: cluster.clusterId,
+        type: 'HIGH_RISK_OUTBREAK',
+        riskLevel: ClusterRisk.high,
+        title: alertTitle,
+        location: cluster.location,
+        district: cluster.district,
+        state: cluster.state,
+        species: cluster.species,
+        animalCount: cluster.animalCount,
+        reportCount: cluster.reportCount,
+        mortality: cluster.mortality,
+        symptoms: List.from(cluster.symptoms),
+        suspectedDisease: cluster.suspectedDisease,
+        status: GovernmentAlertStatus.newAlert,
+        createdAt: DateTime.now(),
+      );
+      _govtAlerts.insert(0, alert);
+    }
+    notifyListeners();
+  }
+
+  void acknowledgeGovernmentAlert(String alertId, {String? user}) {
+    try {
+      final alert = _govtAlerts.firstWhere((a) => a.id == alertId || a.clusterId == alertId);
+      alert.status = GovernmentAlertStatus.acknowledged;
+      alert.acknowledgedAt = DateTime.now();
+      alert.acknowledgedBy = user ?? 'District Health Officer';
+      alert.updatedAt = DateTime.now();
+      notifyListeners();
+    } catch (_) {}
+  }
+
+  void updateGovernmentAlertStatus(String alertId, GovernmentAlertStatus status) {
+    try {
+      final alert = _govtAlerts.firstWhere((a) => a.id == alertId || a.clusterId == alertId);
+      alert.status = status;
+      alert.updatedAt = DateTime.now();
+      notifyListeners();
+    } catch (_) {}
+  }
+
   // ─── Clusters ──────────────────────────────────────────────────────────────
 
-  List<OutbreakCluster> getAllClusters() => List.unmodifiable(_clusters);
+  List<OutbreakCluster> getAllClusters({
+    ClusterRisk? risk,
+    String? searchQuery,
+    String? species,
+    ClusterStatus? status,
+  }) {
+    return _clusters.where((c) {
+      if (risk != null && c.riskLevel != risk) return false;
+      if (status != null && c.status != status) return false;
+      if (species != null && species != 'All' && !c.species.toLowerCase().contains(species.toLowerCase())) {
+        return false;
+      }
+      if (searchQuery != null && searchQuery.trim().isNotEmpty) {
+        final q = searchQuery.trim().toLowerCase();
+        final matchName = c.name.toLowerCase().contains(q);
+        final matchLocation = c.location.toLowerCase().contains(q);
+        final matchVillage = c.village.toLowerCase().contains(q);
+        final matchDistrict = c.district.toLowerCase().contains(q);
+        if (!matchName && !matchLocation && !matchVillage && !matchDistrict) return false;
+      }
+      return true;
+    }).toList();
+  }
+
+  /// Government Portal Cluster Fetch — Returns STRICTLY HIGH-RISK or Escalated clusters
+  List<OutbreakCluster> getGovernmentClusters({
+    String? searchQuery,
+    String? species,
+    String? district,
+    ClusterStatus? status,
+  }) {
+    return _clusters.where((c) {
+      // Government Portal filter: ONLY HIGH RISK or Escalated clusters
+      if (c.riskLevel != ClusterRisk.high && c.status != ClusterStatus.escalated) {
+        return false;
+      }
+      if (status != null && c.status != status) return false;
+      if (district != null && district != 'All' && c.district.toLowerCase() != district.toLowerCase()) {
+        return false;
+      }
+      if (species != null && species != 'All' && !c.species.toLowerCase().contains(species.toLowerCase())) {
+        return false;
+      }
+      if (searchQuery != null && searchQuery.trim().isNotEmpty) {
+        final q = searchQuery.trim().toLowerCase();
+        final matchName = c.name.toLowerCase().contains(q);
+        final matchLocation = c.location.toLowerCase().contains(q);
+        final matchVillage = c.village.toLowerCase().contains(q);
+        final matchDistrict = c.district.toLowerCase().contains(q);
+        if (!matchName && !matchLocation && !matchVillage && !matchDistrict) return false;
+      }
+      return true;
+    }).toList();
+  }
+
+  OutbreakCluster? getClusterById(String id) {
+    try {
+      return _clusters.firstWhere((c) => c.clusterId == id);
+    } catch (_) {
+      return null;
+    }
+  }
 
   void addCluster(OutbreakCluster cluster) {
     _clusters.add(cluster);
+    createGovernmentAlertIfNotExists(cluster);
     notifyListeners();
   }
 
-  void updateClusterStatus(String clusterId, ClusterStatus status) {
-    final c = _clusters.firstWhere((c) => c.clusterId == clusterId);
-    c.status = status;
-    notifyListeners();
+  void updateCluster(OutbreakCluster updated) {
+    final idx = _clusters.indexWhere((c) => c.clusterId == updated.clusterId);
+    if (idx != -1) {
+      _clusters[idx] = updated;
+      createGovernmentAlertIfNotExists(updated);
+      notifyListeners();
+    }
   }
+
+  void updateClusterStatus(String clusterId, ClusterStatus status) {
+    final c = getClusterById(clusterId);
+    if (c != null) {
+      c.status = status;
+      c.updatedAt = DateTime.now();
+      createGovernmentAlertIfNotExists(c);
+      notifyListeners();
+    }
+  }
+
+  void updateClusterRisk(String clusterId, ClusterRisk newRisk) {
+    final c = getClusterById(clusterId);
+    if (c != null) {
+      c.riskLevel = newRisk;
+      c.updatedAt = DateTime.now();
+      createGovernmentAlertIfNotExists(c);
+      notifyListeners();
+    }
+  }
+
+  void escalateCluster(String clusterId) {
+    final c = getClusterById(clusterId);
+    if (c != null) {
+      c.status = ClusterStatus.escalated;
+      c.riskLevel = ClusterRisk.high;
+      c.updatedAt = DateTime.now();
+      createGovernmentAlertIfNotExists(c);
+      notifyListeners();
+    }
+  }
+
+  // ─── Response Actions ──────────────────────────────────────────────────────
 
   // ─── Response Actions ──────────────────────────────────────────────────────
 
@@ -690,7 +882,7 @@ class FarmerDataService extends ChangeNotifier {
       species: 'Cow',
       breed: 'Jersey',
       age: '2–5 years',
-      symptoms: ['🌡 Fever', '🍽 Not eating', '💩 Diarrhea'],
+      symptoms: ['Fever', 'Not eating', 'Diarrhea'],
       duration: '2–3 days',
       eatingStatus: 'Less than usual',
       drinkingStatus: 'Less than usual',
@@ -719,7 +911,7 @@ class FarmerDataService extends ChangeNotifier {
       breed: 'Jersey',
       age: '2–5 years',
       gender: 'Female',
-      symptoms: ['🌡 Fever', '🍽 Not eating', '💩 Diarrhea'],
+      symptoms: ['Fever', 'Not eating', 'Diarrhea'],
       duration: '2–3 days',
       affectedCount: '3',
       otherAnimalsAffected: 'Yes',
@@ -785,7 +977,7 @@ class FarmerDataService extends ChangeNotifier {
       breed: 'Sahiwal',
       age: '2–5 years',
       gender: 'Female',
-      symptoms: ['🌡 Fever', '💩 Diarrhea', '😴 Weakness'],
+      symptoms: ['Fever', 'Diarrhea', 'Weakness'],
       duration: '2–3 days',
       affectedCount: '2',
       otherAnimalsAffected: 'Yes',
@@ -828,7 +1020,7 @@ class FarmerDataService extends ChangeNotifier {
       breed: 'Murrah',
       age: '5–10 years',
       gender: 'Female',
-      symptoms: ['🌡 Fever', '🍽 Not eating'],
+      symptoms: ['Fever', 'Not eating'],
       duration: 'Today',
       affectedCount: '4',
       otherAnimalsAffected: 'Not sure',
@@ -895,24 +1087,70 @@ class FarmerDataService extends ChangeNotifier {
     );
     _vetVisits.add(visit1);
 
-    // ── Demo Cluster ───────────────────────────────────────────────────────
+    // ── Demo Clusters (High, Medium, Low) ──────────────────────────────────
     final cluster1 = OutbreakCluster(
       clusterId: 'CLU001',
+      name: 'Uruli Kanchan Livestock Cluster',
+      location: 'Uruli Kanchan, Pune',
       village: 'Uruli Kanchan',
       block: 'Haveli',
       district: 'Pune',
       state: 'Maharashtra',
-      species: 'Cattle (Cow/Buffalo)',
-      commonSymptoms: ['Fever', 'Diarrhea', 'Not eating'],
+      species: 'Cattle',
+      symptoms: ['Fever', 'Diarrhea', 'Not eating'],
+      suspectedDisease: 'Haemorrhagic Septicaemia',
+      description: 'High fever and diarrhoea outbreak reported in Uruli Kanchan village.',
       reportCount: 3,
-      affectedAnimals: 9,
-      mortalityCount: 0,
-      risk: ClusterRisk.high,
+      animalCount: 9,
+      mortality: 0,
+      riskLevel: ClusterRisk.high,
       status: ClusterStatus.investigation,
-      firstReportDate: DateTime.now().subtract(const Duration(hours: 20)),
+      detectedAt: DateTime.now().subtract(const Duration(hours: 20)),
       caseIds: ['CASE001', 'CASE002', 'CASE003'],
     );
-    _clusters.add(cluster1);
+    addCluster(cluster1);
+
+    final cluster2 = OutbreakCluster(
+      clusterId: 'CLU002',
+      name: 'Khed Cattle Cluster',
+      location: 'Khed, Pune',
+      village: 'Khed',
+      block: 'Khed',
+      district: 'Pune',
+      state: 'Maharashtra',
+      species: 'Cattle',
+      symptoms: ['Fever', 'Reduced appetite', 'Nasal discharge'],
+      suspectedDisease: 'Foot and Mouth Disease (FMD)',
+      description: 'Moderate fever and nasal discharge cases reported in Khed.',
+      reportCount: 5,
+      animalCount: 14,
+      mortality: 1,
+      riskLevel: ClusterRisk.medium,
+      status: ClusterStatus.monitoring,
+      detectedAt: DateTime.now().subtract(const Duration(days: 2)),
+    );
+    addCluster(cluster2);
+
+    final cluster3 = OutbreakCluster(
+      clusterId: 'CLU003',
+      name: 'Baramati Goat Cluster',
+      location: 'Baramati, Pune',
+      village: 'Baramati',
+      block: 'Baramati',
+      district: 'Pune',
+      state: 'Maharashtra',
+      species: 'Goat',
+      symptoms: ['Mild fever', 'Reduced activity'],
+      suspectedDisease: 'PPR (Peste des Petits Ruminants)',
+      description: 'Goat cluster with mild symptoms under observation in Baramati.',
+      reportCount: 2,
+      animalCount: 5,
+      mortality: 0,
+      riskLevel: ClusterRisk.low,
+      status: ClusterStatus.monitoring,
+      detectedAt: DateTime.now().subtract(const Duration(days: 4)),
+    );
+    addCluster(cluster3);
 
     // ── Demo Advisory ──────────────────────────────────────────────────────
     final advisory1 = Advisory(
@@ -960,7 +1198,7 @@ class FarmerDataService extends ChangeNotifier {
     addAlert(AppAlert(
       id: 'ALT002',
       category: AlertCategory.governmentAdvisory,
-      title: '🔔 Government Advisory — Haveli Block',
+      title: 'Government Advisory — Haveli Block',
       message: advisory1.message,
       severity: AlertSeverity.warning,
       relatedId: 'ADV001',
@@ -978,7 +1216,7 @@ class FarmerDataService extends ChangeNotifier {
     addAlert(AppAlert(
       id: 'ALT004',
       category: AlertCategory.veterinarianMessage,
-      title: '👨‍⚕️ Dr. Rajesh Kumar — Treatment Update',
+      title: 'Dr. Rajesh Kumar — Treatment Update',
       message: 'Visit completed. Treatment started. Follow-up in 3 days. Keep animals isolated.',
       severity: AlertSeverity.info,
       relatedId: 'CASE001',

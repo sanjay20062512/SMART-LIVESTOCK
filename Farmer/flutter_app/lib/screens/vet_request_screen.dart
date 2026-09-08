@@ -207,7 +207,7 @@ class _VetRequestScreenState extends State<VetRequestScreen> {
                       : const Icon(Icons.mic_rounded, size: 20),
                   label: Text(_isRecordingVoice
                       ? 'Listening...'
-                      : (_hasVoiceNote ? '✓ Voice Added' : '🎤 Speak Notes')),
+                      : (_hasVoiceNote ? 'Voice Added' : 'Speak Notes')),
                   onPressed: _isRecordingVoice ? null : _simulateVoiceRecording,
                 ),
                 if (_hasVoiceNote) ...[

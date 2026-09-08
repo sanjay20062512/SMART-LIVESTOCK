@@ -87,7 +87,7 @@ class _VaccinationScreenState extends State<VaccinationScreen>
               ),
               const SizedBox(height: 16),
               DropdownButtonFormField<Animal>(
-                initialValue: selectedAnimal,
+                value: selectedAnimal,
                 decoration: InputDecoration(
                   labelText: 'Select Animal *',
                   border: OutlineInputBorder(
@@ -122,7 +122,7 @@ class _VaccinationScreenState extends State<VaccinationScreen>
               ),
               const SizedBox(height: 12),
               DropdownButtonFormField<VaccinationStatus>(
-                initialValue: status,
+                value: status,
                 decoration: InputDecoration(
                   labelText: 'Status',
                   border: OutlineInputBorder(
@@ -239,6 +239,7 @@ class _VaccinationScreenState extends State<VaccinationScreen>
         final color = _statusColor(v.status);
         return Card(
           margin: const EdgeInsets.only(bottom: 10),
+          clipBehavior: Clip.antiAlias,
           shape:
               RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
           child: ListTile(
@@ -259,8 +260,8 @@ class _VaccinationScreenState extends State<VaccinationScreen>
                       'Date: ${v.date!.day}/${v.date!.month}/${v.date!.year}'),
                 if (v.veterinarian != null) Text('Vet: ${v.veterinarian}'),
                 if (v.isVerified)
-                  const Text('✓ Verified',
-                      style: TextStyle(color: Colors.green)),
+                  const Text('Verified',
+                      style: TextStyle(color: Colors.green, fontWeight: FontWeight.bold)),
               ],
             ),
             trailing: Container(

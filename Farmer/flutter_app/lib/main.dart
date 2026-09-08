@@ -170,7 +170,7 @@ class RoleSelectionScreen extends StatelessWidget {
               // Farmer role
               _roleCard(
                 context,
-                emoji: '👨‍🌾',
+                icon: Icons.person_rounded,
                 title: 'Farmer',
                 subtitle: 'Report animal problems, track cases, receive advisories',
                 color: const Color(0xFF2E7D32),
@@ -184,7 +184,7 @@ class RoleSelectionScreen extends StatelessWidget {
               // Veterinarian role
               _roleCard(
                 context,
-                emoji: '👨‍⚕️',
+                icon: Icons.medical_services_rounded,
                 title: 'Veterinarian',
                 subtitle: 'Review cases, schedule visits, collect samples, manage treatments',
                 color: const Color(0xFF1565C0),
@@ -198,7 +198,7 @@ class RoleSelectionScreen extends StatelessWidget {
               // Government role
               _roleCard(
                 context,
-                emoji: '🏛️',
+                icon: Icons.account_balance_rounded,
                 title: 'Government',
                 subtitle: 'Surveillance dashboard, cluster detection, advisories, response',
                 color: const Color(0xFF4A148C),
@@ -248,7 +248,7 @@ class RoleSelectionScreen extends StatelessWidget {
 
   Widget _roleCard(
     BuildContext context, {
-    required String emoji,
+    required IconData icon,
     required String title,
     required String subtitle,
     required Color color,
@@ -282,7 +282,14 @@ class RoleSelectionScreen extends StatelessWidget {
           ),
           child: Row(
             children: [
-              Text(emoji, style: const TextStyle(fontSize: 38)),
+              Container(
+                padding: const EdgeInsets.all(12),
+                decoration: BoxDecoration(
+                  color: Colors.white.withValues(alpha: 0.15),
+                  shape: BoxShape.circle,
+                ),
+                child: Icon(icon, size: 28, color: Colors.white),
+              ),
               const SizedBox(width: 16),
               Expanded(
                 child: Column(
