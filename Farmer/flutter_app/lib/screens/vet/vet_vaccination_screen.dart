@@ -103,8 +103,8 @@ class VetVaccinationScreen extends StatelessWidget {
       padding: const EdgeInsets.only(bottom: 10),
       child: Row(
         children: [
-          Container(width: 4, height: 18, color: color,
-              decoration: BoxDecoration(borderRadius: BorderRadius.circular(2))),
+          Container(width: 4, height: 18,
+              decoration: BoxDecoration(color: color, borderRadius: BorderRadius.circular(2))),
           const SizedBox(width: 8),
           Text(title,
               style: TextStyle(fontWeight: FontWeight.bold, fontSize: 15, color: color)),
