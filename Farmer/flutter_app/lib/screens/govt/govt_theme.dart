@@ -1,244 +1,228 @@
-// Government Module Design System
-// Clean, premium, white-first design for a national animal health surveillance platform.
+// Smart Livestock — Government Module Design System
+// Completely light, clean, trustworthy, and visually consistent with Farmer & Veterinary modules.
 
 import 'package:flutter/material.dart';
-
-// ─── Colour Palette ───────────────────────────────────────────────────────────
+import '../../theme/app_colors.dart';
 
 class GovtColors {
   GovtColors._();
 
-  // Backgrounds
-  static const Color pageBackground = Color(0xFFF7F9F8);
-  static const Color surface = Color(0xFFFFFFFF);
-  static const Color surfaceSubtle = Color(0xFFF1F5F4);
+  // Backgrounds & Surfaces (Clean Light Theme)
+  static const Color pageBackground = AppColors.background; // #F8FAFC
+  static const Color surface = AppColors.surface;           // #FFFFFF
+  static const Color surfaceSubtle = AppColors.surfaceSubtle; // #F1F5F9
 
-  // Text
-  static const Color textPrimary = Color(0xFF173F3A);
-  static const Color textSecondary = Color(0xFF65736F);
-  static const Color textDisabled = Color(0xFFA0ACA9);
+  // Text Hierarchy
+  static const Color textPrimary = AppColors.textPrimary;     // #111827
+  static const Color textSecondary = AppColors.textSecondary; // #4B5563
+  static const Color textMuted = AppColors.textMuted;         // #6B7280
+  static const Color textDisabled = AppColors.textDisabled;   // #9CA3AF
 
-  // Brand - Deep Navy & Government Teal (aligned to app primary)
-  static const Color navyPrimary = Color(0xFF0B192C);
-  static const Color navyDark = Color(0xFF060E18);
-  static const Color navyCard = Color(0xFF132743);
-  static const Color navyBorder = Color(0xFF1E3A5F);
-  static const Color brand = Color(0xFF0D9488);     // ← aligned to AppColors.primary
-  static const Color brandDark = Color(0xFF0F766E); // ← aligned to AppColors.primaryDark
-  static const Color brandLight = Color(0xFFCCFBF1);// ← aligned to AppColors.primaryLight
-  static const Color accent = Color(0xFF7D9E38);
-  static const Color accentLight = Color(0xFFEDF3D9);
+  // Institutional Brand (Teal - Shared with Farmer/Vet)
+  static const Color brand = AppColors.primary;               // #0D9488
+  static const Color brandDark = AppColors.primaryDark;       // #0F766E
+  static const Color brandLight = AppColors.primaryLight;     // #CCFBF1
+  static const Color brandFaint = AppColors.primaryFaint;     // #EFFEFD
 
-  // Semantic & Risk severity (Heat Scale: Low 0-20%, Moderate 21-40%, Elevated 41-60%, High 61-80%, Critical 81-100%)
-  static const Color riskLow = Color(0xFF2E7D5B);       // GREEN -> LOW (0–20%)
-  static const Color riskModerate = Color(0xFFD98B00);  // YELLOW -> MODERATE (21–40%)
-  static const Color riskElevated = Color(0xFFF57C00);  // ORANGE -> ELEVATED (41–60%)
-  static const Color riskHigh = Color(0xFFE65100);      // DEEP ORANGE -> HIGH (61–80%)
-  static const Color riskCritical = Color(0xFFC62828);  // RED -> CRITICAL (81–100%)
-  static const Color riskSevere = Color(0xFF8B0000);    // DARK RED -> SEVERE OUTBREAK
+  // 4-Tier Disease Risk Heat Scale (User Specified)
+  // LOW: 0–30% (Green)
+  static const Color riskLow = Color(0xFF16A34A);
+  static const Color riskLowLight = Color(0xFFDCFCE7);
+
+  // MEDIUM: 31–55% (Yellow/Amber)
+  static const Color riskMedium = Color(0xFFD97706);
+  static const Color riskModerate = riskMedium;
+  static const Color riskMediumLight = Color(0xFFFEF3C7);
+
+  // HIGH: 56–75% (Orange)
+  static const Color riskHigh = Color(0xFFE65100);
+  static const Color riskHighLight = Color(0xFFFFEDD5);
+
+  // CRITICAL: 76–100% (Red)
+  static const Color riskCritical = Color(0xFFDC2626);
+  static const Color riskCriticalLight = Color(0xFFFEE2E2);
 
   static Color getHeatmapColor(int score) {
-    if (score <= 20) return riskLow;
-    if (score <= 40) return riskModerate;
-    if (score <= 60) return riskElevated;
-    if (score <= 80) return riskHigh;
+    if (score <= 30) return riskLow;
+    if (score <= 55) return riskMedium;
+    if (score <= 75) return riskHigh;
     return riskCritical;
   }
 
+  static Color getHeatmapLightColor(int score) {
+    if (score <= 30) return riskLowLight;
+    if (score <= 55) return riskMediumLight;
+    if (score <= 75) return riskHighLight;
+    return riskCriticalLight;
+  }
+
   static String getSeverityLabel(int score) {
-    if (score <= 20) return 'LOW';
-    if (score <= 40) return 'MODERATE';
-    if (score <= 60) return 'ELEVATED';
-    if (score <= 80) return 'HIGH';
+    if (score <= 30) return 'LOW';
+    if (score <= 55) return 'MEDIUM';
+    if (score <= 75) return 'HIGH';
     return 'CRITICAL';
   }
 
-  static const Color critical = Color(0xFFC62828);
-  static const Color criticalLight = Color(0xFFFDECEC);
-  static const Color warning = Color(0xFFD98B00);
-  static const Color warningLight = Color(0xFFFFF8E1);
-  static const Color success = Color(0xFF2E7D5B);
-  static const Color successLight = Color(0xFFE8F5EE);
-  static const Color info = Color(0xFF1565C0);
-  static const Color infoLight = Color(0xFFE3EEF9);
+  // UI Chrome & Borders
+  static const Color border = AppColors.border;             // #E5E7EB
+  static const Color divider = AppColors.divider;           // #F3F4F6
+  static const Color shadow = Color(0x0A111827);
 
-  // UI chrome
-  static const Color border = Color(0xFFE3E9E7);
-  static const Color divider = Color(0xFFEDF1F0);
-  static const Color shadow = Color(0x0A173F3A);
+  // Semantics
+  static const Color critical = riskCritical;
+  static const Color criticalLight = riskCriticalLight;
+  static const Color warning = riskMedium;
+  static const Color warningLight = riskMediumLight;
+  static const Color success = riskLow;
+  static const Color successLight = riskLowLight;
+  static const Color info = AppColors.info;
+  static const Color infoLight = AppColors.infoLight;
+  // Legacy Compatibility Tokens
+  static const Color accent = brand;
+  static const Color riskSevere = riskCritical;
+  static const Color navyPrimary = Color(0xFF0F172A);
+  static const Color navyCard = Color(0xFF1E293B);
+  static const Color navyBorder = Color(0xFF334155);
 }
 
-// ─── Typography ────────────────────────────────────────────────────────────────
+extension GovtRiskStringExtension on String {
+  Color get riskColor {
+    final lower = toLowerCase();
+    if (lower.contains('critical') || lower.contains('severe') || lower.contains('red')) {
+      return GovtColors.riskCritical;
+    }
+    if (lower.contains('high') || lower.contains('orange')) {
+      return GovtColors.riskHigh;
+    }
+    if (lower.contains('medium') || lower.contains('moderate') || lower.contains('warning') || lower.contains('yellow')) {
+      return GovtColors.riskMedium;
+    }
+    return GovtColors.riskLow;
+  }
+
+  Color get riskBgColor {
+    final lower = toLowerCase();
+    if (lower.contains('critical') || lower.contains('severe') || lower.contains('red')) {
+      return GovtColors.riskCriticalLight;
+    }
+    if (lower.contains('high') || lower.contains('orange')) {
+      return GovtColors.riskHighLight;
+    }
+    if (lower.contains('medium') || lower.contains('moderate') || lower.contains('warning') || lower.contains('yellow')) {
+      return GovtColors.riskMediumLight;
+    }
+    return GovtColors.riskLowLight;
+  }
+}
 
 class GovtTypography {
   GovtTypography._();
 
   static const String fontFamily = 'Roboto';
 
-  // Page title: 28–32px Bold
+  // Page title: 24–28px, semibold/bold
   static const TextStyle pageTitle = TextStyle(
     fontFamily: fontFamily,
-    fontSize: 28,
+    fontSize: 24,
     fontWeight: FontWeight.w700,
     color: GovtColors.textPrimary,
-    letterSpacing: -0.4,
-    height: 1.2,
+    letterSpacing: -0.3,
+    height: 1.25,
   );
 
-  // Section heading: 17–20px Semi-bold
+  // Section title: 16–18px, semibold
   static const TextStyle sectionTitle = TextStyle(
     fontFamily: fontFamily,
-    fontSize: 18,
+    fontSize: 17,
     fontWeight: FontWeight.w600,
     color: GovtColors.textPrimary,
-    letterSpacing: -0.2,
+    letterSpacing: -0.1,
     height: 1.3,
   );
 
-  // Card title: 13–15px Medium/Semi-bold
+  // Card title: 14–16px, semibold
   static const TextStyle cardTitle = TextStyle(
     fontFamily: fontFamily,
-    fontSize: 14,
+    fontSize: 15,
     fontWeight: FontWeight.w600,
     color: GovtColors.textPrimary,
-    letterSpacing: 0.1,
-    height: 1.3,
+    letterSpacing: 0,
+    height: 1.35,
   );
 
-  // Large KPI: 26–34px Bold
+  // Large KPI Number: 20–26px, bold
   static const TextStyle metricValue = TextStyle(
     fontFamily: fontFamily,
-    fontSize: 30,
-    fontWeight: FontWeight.w700,
+    fontSize: 24,
+    fontWeight: FontWeight.w800,
     color: GovtColors.textPrimary,
-    letterSpacing: -0.6,
-    height: 1.1,
+    letterSpacing: -0.4,
+    height: 1.15,
   );
 
+  // KPI Label: 11–12px, semibold
   static const TextStyle metricLabel = TextStyle(
     fontFamily: fontFamily,
     fontSize: 11,
     fontWeight: FontWeight.w600,
-    color: GovtColors.textSecondary,
-    letterSpacing: 0.6,
+    color: GovtColors.textMuted,
+    letterSpacing: 0.5,
     height: 1.3,
   );
 
-  // Supporting text: 11–13px
+  // Body: 13–14px
   static const TextStyle body = TextStyle(
     fontFamily: fontFamily,
-    fontSize: 13,
+    fontSize: 13.5,
     fontWeight: FontWeight.w400,
     color: GovtColors.textPrimary,
-    height: 1.5,
+    height: 1.45,
   );
 
   static const TextStyle bodyMedium = TextStyle(
     fontFamily: fontFamily,
-    fontSize: 13,
+    fontSize: 13.5,
     fontWeight: FontWeight.w500,
     color: GovtColors.textPrimary,
-    height: 1.5,
+    height: 1.45,
   );
 
+  // Supporting text / Caption: 11–12px
   static const TextStyle caption = TextStyle(
     fontFamily: fontFamily,
-    fontSize: 12,
+    fontSize: 11.5,
     fontWeight: FontWeight.w400,
     color: GovtColors.textSecondary,
-    height: 1.4,
+    height: 1.35,
   );
 
-  static const TextStyle label = TextStyle(
-    fontFamily: fontFamily,
-    fontSize: 11,
-    fontWeight: FontWeight.w600,
-    color: GovtColors.textSecondary,
-    letterSpacing: 0.6,
-    height: 1.3,
-  );
-
+  // Button text
   static const TextStyle buttonText = TextStyle(
     fontFamily: fontFamily,
     fontSize: 13,
     fontWeight: FontWeight.w600,
-    letterSpacing: 0.4,
+    letterSpacing: 0.2,
     height: 1.2,
   );
 }
 
-// ─── Spacing ───────────────────────────────────────────────────────────────────
+class GovtRadius {
+  GovtRadius._();
+
+  static const double xs = 4.0;
+  static const double sm = 8.0;
+  static const double md = 12.0;
+  static const double lg = 16.0;
+
+  static final BorderRadius xsRadius = BorderRadius.circular(xs);
+  static final BorderRadius smRadius = BorderRadius.circular(sm);
+  static final BorderRadius mdRadius = BorderRadius.circular(md);
+  static final BorderRadius lgRadius = BorderRadius.circular(lg);
+}
 
 class GovtSpacing {
   GovtSpacing._();
 
-  static const double xs = 4;
-  static const double sm = 8;
-  static const double md = 16;
-  static const double lg = 24;
-  static const double xl = 32;
-
-  static const EdgeInsets cardPadding = EdgeInsets.all(16);
-  static const EdgeInsets cardPaddingCompact = EdgeInsets.all(12);
-  static const EdgeInsets pagePadding = EdgeInsets.symmetric(horizontal: 16);
-}
-
-// ─── Radius ────────────────────────────────────────────────────────────────────
-
-class GovtRadius {
-  GovtRadius._();
-
-  static const double sm = 8;
-  static const double md = 12;
-  static const double lg = 16;
-
-  static const BorderRadius smRadius = BorderRadius.all(Radius.circular(sm));
-  static const BorderRadius mdRadius = BorderRadius.all(Radius.circular(md));
-  static const BorderRadius lgRadius = BorderRadius.all(Radius.circular(lg));
-}
-
-// ─── Risk colour helpers ────────────────────────────────────────────────────────
-
-extension RiskLevelExt on String {
-  Color get riskColor {
-    switch (toUpperCase()) {
-      case 'CRITICAL':
-        return GovtColors.riskCritical;
-      case 'HIGH':
-        return GovtColors.riskHigh;
-      case 'MEDIUM':
-      case 'MODERATE':
-        return GovtColors.riskModerate;
-      default:
-        return GovtColors.riskLow;
-    }
-  }
-
-  Color get riskBgColor {
-    switch (toUpperCase()) {
-      case 'CRITICAL':
-        return GovtColors.criticalLight;
-      case 'HIGH':
-        return const Color(0xFFFFF3E0);
-      case 'MEDIUM':
-      case 'MODERATE':
-        return GovtColors.warningLight;
-      default:
-        return GovtColors.successLight;
-    }
-  }
-
-  IconData get riskIcon {
-    switch (toUpperCase()) {
-      case 'CRITICAL':
-        return Icons.crisis_alert_rounded;
-      case 'HIGH':
-        return Icons.warning_rounded;
-      case 'MEDIUM':
-      case 'MODERATE':
-        return Icons.info_rounded;
-      default:
-        return Icons.check_circle_rounded;
-    }
-  }
+  static const EdgeInsets pagePadding = EdgeInsets.symmetric(horizontal: 16, vertical: 14);
+  static const EdgeInsets cardPadding = EdgeInsets.all(14);
 }

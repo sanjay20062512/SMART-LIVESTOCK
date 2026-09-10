@@ -448,6 +448,11 @@ class DistrictRiskProfile {
   final int mortality;
   final int vaccinationCoverage;
   final String trend;
+  final String primaryDisease;
+  final List<String> whyHighRisk;
+  final String recommendedAction;
+  final double normX;
+  final double normY;
 
   const DistrictRiskProfile({
     required this.name,
@@ -458,6 +463,16 @@ class DistrictRiskProfile {
     required this.mortality,
     required this.vaccinationCoverage,
     required this.trend,
+    this.primaryDisease = 'FMD',
+    this.whyHighRisk = const [
+      'Increasing reported cases',
+      'Rising mortality rate',
+      'Low vaccination coverage',
+      'Recent historical pattern',
+    ],
+    this.recommendedAction = 'Prioritize field investigation and vaccination response.',
+    this.normX = 0.5,
+    this.normY = 0.5,
   });
 }
 
