@@ -1,12 +1,10 @@
-// My Cases Screen — Simple cards showing case #, status, animal, and details.
-// Replaces complicated reports view with straightforward case tracking for livestock farmers.
-
 import 'package:flutter/material.dart';
 import '../services/farmer_data_service.dart';
 import '../services/localization_service.dart';
 import '../models/health_report.dart';
 import '../models/mortality_report.dart';
 import '../models/vet_request.dart';
+import '../theme/app_theme.dart';
 import 'symptom_report_screen.dart';
 
 class MyReportsScreen extends StatefulWidget {
@@ -43,23 +41,26 @@ class _MyReportsScreenState extends State<MyReportsScreen>
     final healthReports = widget.dataService.getHealthReports();
     final mortalityReports = widget.dataService.getMortalityReports();
     final vetRequests = widget.dataService.getVetRequests();
-    final primary = Theme.of(context).colorScheme.primary;
 
     return Scaffold(
-      backgroundColor: const Color(0xFFF7FAF7),
+      backgroundColor: AppColors.background,
       appBar: AppBar(
-        backgroundColor: Colors.white,
+        backgroundColor: AppColors.primaryDark,
+        foregroundColor: Colors.white,
+        surfaceTintColor: Colors.transparent,
         elevation: 0,
         title: Text(
           context.tr('my_animals_cases'),
-          style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 20),
+          style: const TextStyle(fontWeight: FontWeight.w800, fontSize: 18, letterSpacing: -0.2),
         ),
         bottom: TabBar(
           controller: _tabController,
-          labelColor: primary,
-          unselectedLabelColor: Colors.grey,
-          indicatorColor: primary,
+          labelColor: Colors.white,
+          unselectedLabelColor: Colors.white.withValues(alpha: 0.65),
+          indicatorColor: Colors.white,
           indicatorWeight: 3,
+          labelStyle: const TextStyle(fontWeight: FontWeight.w700, fontSize: 13),
+          unselectedLabelStyle: const TextStyle(fontWeight: FontWeight.w500, fontSize: 13),
           tabs: [
             Tab(text: 'Health (${healthReports.length})'),
             Tab(text: 'Mortality (${mortalityReports.length})'),
@@ -76,10 +77,12 @@ class _MyReportsScreenState extends State<MyReportsScreen>
         ],
       ),
       floatingActionButton: FloatingActionButton.extended(
-        backgroundColor: const Color(0xFFC62828),
+        backgroundColor: AppColors.farmerEmergency,
         foregroundColor: Colors.white,
+        elevation: 3,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(AppRadius.button)),
         icon: const Icon(Icons.add_rounded),
-        label: const Text('Report New Problem', style: TextStyle(fontWeight: FontWeight.bold)),
+        label: const Text('Report New Problem', style: TextStyle(fontWeight: FontWeight.w700)),
         onPressed: () {
           Navigator.push(
             context,
@@ -99,16 +102,29 @@ class _MyReportsScreenState extends State<MyReportsScreen>
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            CircleAvatar(
-              radius: 36,
-              backgroundColor: Colors.grey.shade200,
-              child: const Icon(Icons.folder_open_rounded, size: 36, color: Colors.grey),
+            Container(
+              width: 72,
+              height: 72,
+              decoration: BoxDecoration(
+                color: AppColors.surfaceSubtle,
+                shape: BoxShape.circle,
+                border: Border.all(color: AppColors.border),
+              ),
+              child: const Icon(
+                Icons.folder_open_rounded,
+                size: 36,
+                color: AppColors.textTertiary,
+              ),
             ),
             const SizedBox(height: 16),
             Text(
               message,
               textAlign: TextAlign.center,
-              style: const TextStyle(color: Colors.grey, fontSize: 16),
+              style: const TextStyle(
+                color: AppColors.textPrimary,
+                fontSize: 15,
+                fontWeight: FontWeight.w600,
+              ),
             ),
           ],
         ),
@@ -190,18 +206,22 @@ class _MyReportsScreenState extends State<MyReportsScreen>
     required String status,
     required VoidCallback onTap,
   }) {
-    Color badgeColor = Colors.blue;
-    if (riskLevel == RiskLevel.low) badgeColor = Colors.green;
-    if (riskLevel == RiskLevel.medium) badgeColor = Colors.orange.shade800;
-    if (riskLevel == RiskLevel.high) badgeColor = Colors.deepOrange;
-    if (riskLevel == RiskLevel.critical) badgeColor = Colors.red.shade900;
+    Color badgeColor = AppColors.info;
+    if (riskLevel == RiskLevel.low) badgeColor = AppColors.riskLow;
+    if (riskLevel == RiskLevel.medium) badgeColor = AppColors.riskMedium;
+    if (riskLevel == RiskLevel.high) badgeColor = AppColors.riskHigh;
+    if (riskLevel == RiskLevel.critical) badgeColor = AppColors.riskCritical;
 
     return Card(
       margin: const EdgeInsets.only(bottom: 12),
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-      elevation: 2,
+      elevation: 0,
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(AppRadius.card),
+        side: const BorderSide(color: AppColors.border, width: 1),
+      ),
+      color: AppColors.surface,
       child: InkWell(
-        borderRadius: BorderRadius.circular(16),
+        borderRadius: BorderRadius.circular(AppRadius.card),
         onTap: onTap,
         child: Padding(
           padding: const EdgeInsets.all(16),
@@ -211,64 +231,73 @@ class _MyReportsScreenState extends State<MyReportsScreen>
               Row(
                 children: [
                   Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                    padding: const EdgeInsets.symmetric(horizontal: 9, vertical: 3),
                     decoration: BoxDecoration(
-                      color: Colors.grey.shade100,
-                      borderRadius: BorderRadius.circular(8),
+                      color: AppColors.surfaceSubtle,
+                      borderRadius: BorderRadius.circular(AppRadius.chip),
+                      border: Border.all(color: AppColors.border),
                     ),
                     child: Text(
                       caseId,
-                      style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 13),
+                      style: const TextStyle(
+                        fontWeight: FontWeight.w700,
+                        fontSize: 12,
+                        color: AppColors.textPrimary,
+                      ),
                     ),
                   ),
                   const Spacer(),
                   Text(
                     '${date.day}/${date.month}/${date.year}',
-                    style: const TextStyle(color: Colors.grey, fontSize: 12),
+                    style: const TextStyle(color: AppColors.textTertiary, fontSize: 12),
                   ),
                 ],
               ),
               const SizedBox(height: 10),
               Text(
                 title,
-                style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+                style: const TextStyle(
+                  fontSize: 15,
+                  fontWeight: FontWeight.w800,
+                  color: AppColors.textPrimary,
+                ),
               ),
               const SizedBox(height: 4),
               Text(
                 subtitle,
-                style: const TextStyle(color: Colors.grey, fontSize: 13),
+                style: const TextStyle(color: AppColors.textSecondary, fontSize: 13),
               ),
               const SizedBox(height: 12),
               Row(
                 children: [
                   if (riskLevel != null) ...[
                     Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
                       decoration: BoxDecoration(
                         color: badgeColor.withValues(alpha: 0.12),
-                        borderRadius: BorderRadius.circular(8),
+                        borderRadius: BorderRadius.circular(AppRadius.chip),
                         border: Border.all(color: badgeColor.withValues(alpha: 0.3)),
                       ),
                       child: Text(
                         'Risk: ${riskLevel.displayName}',
-                        style: TextStyle(color: badgeColor, fontWeight: FontWeight.bold, fontSize: 12),
+                        style: TextStyle(color: badgeColor, fontWeight: FontWeight.w700, fontSize: 11),
                       ),
                     ),
                     const SizedBox(width: 8),
                   ],
                   Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                    padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
                     decoration: BoxDecoration(
-                      color: Colors.blue.withValues(alpha: 0.1),
-                      borderRadius: BorderRadius.circular(8),
+                      color: AppColors.primaryLight,
+                      borderRadius: BorderRadius.circular(AppRadius.chip),
                     ),
                     child: Text(
                       status,
-                      style: const TextStyle(color: Colors.blue, fontWeight: FontWeight.bold, fontSize: 12),
+                      style: const TextStyle(color: AppColors.primary, fontWeight: FontWeight.w700, fontSize: 11),
                     ),
                   ),
                   const Spacer(),
-                  const Icon(Icons.arrow_forward_ios_rounded, size: 16, color: Colors.grey),
+                  const Icon(Icons.arrow_forward_ios_rounded, size: 14, color: AppColors.textTertiary),
                 ],
               ),
             ],

@@ -3,6 +3,7 @@
 import 'package:flutter/material.dart';
 import '../../services/farmer_data_service.dart';
 import '../../models/case.dart';
+import '../../theme/app_theme.dart';
 import 'vet_case_detail_screen.dart';
 
 class VetCaseQueueScreen extends StatefulWidget {
@@ -38,28 +39,36 @@ class _VetCaseQueueScreenState extends State<VetCaseQueueScreen> {
         });
 
         return Scaffold(
-          backgroundColor: const Color(0xFFF0F4FF),
+          backgroundColor: AppColors.background,
           appBar: AppBar(
-            title: const Text('Case Queue', style: TextStyle(fontWeight: FontWeight.bold)),
-            backgroundColor: const Color(0xFF1565C0),
+            title: const Text(
+              'Case Queue',
+              style: TextStyle(
+                fontWeight: FontWeight.w800,
+                fontSize: 18,
+                letterSpacing: -0.2,
+              ),
+            ),
+            backgroundColor: AppColors.primaryDark,
             foregroundColor: Colors.white,
             elevation: 0,
+            surfaceTintColor: Colors.transparent,
           ),
           body: Column(
             children: [
               // Filters
               Container(
-                color: const Color(0xFF1565C0),
+                color: AppColors.primaryDark,
                 child: SingleChildScrollView(
                   scrollDirection: Axis.horizontal,
-                  padding: const EdgeInsets.fromLTRB(16, 0, 16, 12),
+                  padding: const EdgeInsets.fromLTRB(16, 0, 16, 14),
                   child: Row(
                     children: [
                       _filterChip('All', _filterRisk, (v) => setState(() => _filterRisk = v)),
-                      _filterChip('CRITICAL', _filterRisk, (v) => setState(() => _filterRisk = v), color: Colors.red),
-                      _filterChip('HIGH', _filterRisk, (v) => setState(() => _filterRisk = v), color: Colors.orange),
-                      _filterChip('MEDIUM', _filterRisk, (v) => setState(() => _filterRisk = v), color: Colors.amber),
-                      _filterChip('LOW', _filterRisk, (v) => setState(() => _filterRisk = v), color: Colors.green),
+                      _filterChip('CRITICAL', _filterRisk, (v) => setState(() => _filterRisk = v), color: AppColors.error),
+                      _filterChip('HIGH', _filterRisk, (v) => setState(() => _filterRisk = v), color: AppColors.riskHigh),
+                      _filterChip('MEDIUM', _filterRisk, (v) => setState(() => _filterRisk = v), color: AppColors.warning),
+                      _filterChip('LOW', _filterRisk, (v) => setState(() => _filterRisk = v), color: AppColors.success),
                     ],
                   ),
                 ),
@@ -67,9 +76,25 @@ class _VetCaseQueueScreenState extends State<VetCaseQueueScreen> {
 
               Expanded(
                 child: cases.isEmpty
-                    ? const Center(child: Text('No cases match filter.', style: TextStyle(color: Colors.grey, fontSize: 16)))
+                    ? const Center(
+                        child: Column(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            Icon(Icons.inbox_rounded, size: 48, color: AppColors.textDisabled),
+                            SizedBox(height: 12),
+                            Text(
+                              'No cases match filter.',
+                              style: TextStyle(
+                                color: AppColors.textMuted,
+                                fontSize: 16,
+                                fontWeight: FontWeight.w500,
+                              ),
+                            ),
+                          ],
+                        ),
+                      )
                     : ListView.builder(
-                        padding: const EdgeInsets.all(12),
+                        padding: const EdgeInsets.all(14),
                         itemCount: cases.length,
                         itemBuilder: (ctx, i) => _buildCaseCard(ctx, cases[i]),
                       ),
@@ -102,109 +127,135 @@ class _VetCaseQueueScreenState extends State<VetCaseQueueScreen> {
   }
 
   Widget _buildCaseCard(BuildContext context, LivestockCase c) {
-    final (color, icon) = switch (c.riskLevel) {
-      'CRITICAL' => (const Color(0xFFB71C1C), Icons.emergency_rounded),
-      'HIGH' => (const Color(0xFFE65100), Icons.warning_rounded),
-      'MEDIUM' => (const Color(0xFFF57F17), Icons.info_rounded),
-      _ => (const Color(0xFF2E7D32), Icons.check_circle_outline),
-    };
+    final riskColor = AppColors.getRiskColor(c.riskLevel);
+    final riskIcon = AppColors.getRiskIcon(c.riskLevel);
 
-    return Card(
+    return Container(
       margin: const EdgeInsets.only(bottom: 10),
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
+      decoration: BoxDecoration(
+        color: AppColors.surface,
+        borderRadius: AppRadius.mdRadius,
+        border: Border.all(color: AppColors.border),
+        boxShadow: AppShadows.cardShadow,
+      ),
       clipBehavior: Clip.antiAlias,
-      child: InkWell(
-        onTap: () => Navigator.push(
-          context,
-          MaterialPageRoute(
-            builder: (_) => VetCaseDetailScreen(dataService: widget.dataService, lcase: c),
-          ),
-        ),
-        child: Column(
-          children: [
-            Container(
-              color: color,
-              padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
-              child: Row(
-                children: [
-                  Icon(icon, color: Colors.white, size: 18),
-                  const SizedBox(width: 8),
-                  Text('${c.riskLevel} RISK',
-                      style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 13)),
-                  const Spacer(),
-                  Text(c.caseId,
-                      style: const TextStyle(color: Colors.white70, fontSize: 12)),
-                ],
-              ),
+      child: Material(
+        color: Colors.transparent,
+        child: InkWell(
+          onTap: () => Navigator.push(
+            context,
+            MaterialPageRoute(
+              builder: (_) => VetCaseDetailScreen(dataService: widget.dataService, lcase: c),
             ),
-            Padding(
-              padding: const EdgeInsets.all(14),
-              child: Row(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
+          ),
+          child: Column(
+            children: [
+              // Risk level header strip
+              Container(
+                color: riskColor,
+                padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 9),
+                child: Row(
+                  children: [
+                    Icon(riskIcon, color: Colors.white, size: 16),
+                    const SizedBox(width: 8),
+                    Text(
+                      '${c.riskLevel} RISK',
+                      style: const TextStyle(
+                        color: Colors.white,
+                        fontWeight: FontWeight.w700,
+                        fontSize: 12,
+                        letterSpacing: 0.5,
+                      ),
+                    ),
+                    const Spacer(),
+                    Text(
+                      c.caseId,
+                      style: TextStyle(
+                        color: Colors.white.withValues(alpha: 0.75),
+                        fontSize: 11,
+                        fontWeight: FontWeight.w500,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              // Card body
+              Padding(
+                padding: const EdgeInsets.all(14),
+                child: Row(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text('${c.species} · ${c.animalTag}',
+                              style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 15)),
+                          Text(c.farmerName,
+                              style: const TextStyle(color: Colors.grey, fontSize: 12)),
+                          const SizedBox(height: 6),
+                          Wrap(
+                            spacing: 6,
+                            runSpacing: 4,
+                            children: c.symptoms.take(3).map((s) => Container(
+                              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                              decoration: BoxDecoration(
+                                color: AppColors.primaryFaint,
+                                borderRadius: BorderRadius.circular(8),
+                                border: Border.all(color: AppColors.primaryLight),
+                              ),
+                              child: Text(s, style: const TextStyle(fontSize: 11, color: AppColors.primaryDark)),
+                            )).toList(),
+                          ),
+                          const SizedBox(height: 6),
+                          Row(
+                            children: [
+                              const Icon(Icons.location_on, size: 13, color: AppColors.textMuted),
+                              const SizedBox(width: 2),
+                              Text('${c.village}, ${c.district}',
+                                  style: const TextStyle(fontSize: 12, color: AppColors.textMuted)),
+                              const SizedBox(width: 12),
+                              const Icon(Icons.people, size: 13, color: AppColors.textMuted),
+                              const SizedBox(width: 2),
+                              Text(c.affectedCount != null ? '${c.affectedCount} animals' : '—',
+                                  style: const TextStyle(fontSize: 12, color: AppColors.textMuted)),
+                            ],
+                          ),
+                        ],
+                      ),
+                    ),
+                    Column(
+                      crossAxisAlignment: CrossAxisAlignment.end,
                       children: [
-                        Text('${c.species} · ${c.animalTag}',
-                            style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 15)),
-                        Text(c.farmerName,
-                            style: const TextStyle(color: Colors.grey, fontSize: 12)),
-                        const SizedBox(height: 6),
-                        Wrap(
-                          spacing: 6,
-                          runSpacing: 4,
-                          children: c.symptoms.take(3).map((s) => Container(
-                            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
-                            decoration: BoxDecoration(
-                              color: Colors.blue.shade50,
-                              borderRadius: BorderRadius.circular(8),
-                            ),
-                            child: Text(s, style: const TextStyle(fontSize: 11)),
-                          )).toList(),
+                        Container(
+                          padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                          decoration: BoxDecoration(
+                            color: AppColors.surfaceSubtle,
+                            borderRadius: AppRadius.xsRadius,
+                            border: Border.all(color: AppColors.border),
+                          ),
+                          child: Text(c.status.displayName,
+                              style: const TextStyle(
+                                fontSize: 11,
+                                fontWeight: FontWeight.w600,
+                                color: AppColors.textSecondary,
+                              )),
                         ),
-                        const SizedBox(height: 6),
-                        Row(
-                          children: [
-                            const Icon(Icons.location_on, size: 13, color: Colors.grey),
-                            const SizedBox(width: 2),
-                            Text('${c.village}, ${c.district}',
-                                style: const TextStyle(fontSize: 12, color: Colors.grey)),
-                            const SizedBox(width: 12),
-                            const Icon(Icons.people, size: 13, color: Colors.grey),
-                            const SizedBox(width: 2),
-                            Text(c.affectedCount != null ? '${c.affectedCount} animals' : '—',
-                                style: const TextStyle(fontSize: 12, color: Colors.grey)),
-                          ],
-                        ),
+                        const SizedBox(height: 4),
+                        Text(_formatDate(c.createdAt),
+                            style: const TextStyle(fontSize: 11, color: AppColors.textMuted)),
+                        if (c.assignedVetName != null) ...[
+                          const SizedBox(height: 4),
+                          const Text('Assigned',
+                              style: TextStyle(fontSize: 11, color: AppColors.success, fontWeight: FontWeight.w600)),
+                        ],
                       ],
                     ),
-                  ),
-                  Column(
-                    crossAxisAlignment: CrossAxisAlignment.end,
-                    children: [
-                      Container(
-                        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
-                        decoration: BoxDecoration(
-                          color: Colors.blueGrey.shade50,
-                          borderRadius: BorderRadius.circular(8),
-                        ),
-                        child: Text(c.status.displayName,
-                            style: const TextStyle(fontSize: 11, fontWeight: FontWeight.bold, color: Colors.blueGrey)),
-                      ),
-                      const SizedBox(height: 4),
-                      Text(_formatDate(c.createdAt),
-                          style: const TextStyle(fontSize: 11, color: Colors.grey)),
-                      if (c.assignedVetName != null) ...[
-                        const SizedBox(height: 4),
-                        Text('Assigned', style: TextStyle(fontSize: 11, color: Colors.green.shade700)),
-                      ],
-                    ],
-                  ),
-                ],
+                  ],
+                ),
               ),
-            ),
-          ],
+            ],
+          ),
         ),
       ),
     );

@@ -45,17 +45,17 @@ class _GovtResourcesScreenState extends State<GovtResourcesScreen> {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             // Header
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                const Column(
+            LayoutBuilder(
+              builder: (context, constraints) {
+                final isWide = constraints.maxWidth >= 650;
+                final titleCol = Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
+                  children: const [
                     Text('DATA HEALTH & FIELD CONNECTIVITY', style: GovtTypography.pageTitle),
                     Text('Operational telemetry, offline syncing & data quality verification', style: TextStyle(fontSize: 12, color: GovtColors.textSecondary)),
                   ],
-                ),
-                ElevatedButton.icon(
+                );
+                final syncBtn = ElevatedButton.icon(
                   style: ElevatedButton.styleFrom(
                     backgroundColor: GovtColors.brand,
                     foregroundColor: Colors.white,
@@ -68,8 +68,28 @@ class _GovtResourcesScreenState extends State<GovtResourcesScreen> {
                       : const Icon(Icons.sync_rounded, size: 16),
                   label: Text(_isSyncing ? 'SYNCING...' : 'FORCE CLOUD SYNC'),
                   onPressed: _isSyncing ? null : _triggerManualSync,
-                ),
-              ],
+                );
+
+                if (isWide) {
+                  return Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Expanded(child: titleCol),
+                      const SizedBox(width: 12),
+                      syncBtn,
+                    ],
+                  );
+                } else {
+                  return Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      titleCol,
+                      const SizedBox(height: 12),
+                      syncBtn,
+                    ],
+                  );
+                }
+              },
             ),
             const SizedBox(height: 20),
 
@@ -104,15 +124,17 @@ class _GovtResourcesScreenState extends State<GovtResourcesScreen> {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              const Row(
-                children: [
-                  Icon(Icons.wifi_tethering_rounded, size: 18, color: GovtColors.brand),
-                  SizedBox(width: 8),
-                  Text('FIELD CONNECTIVITY STATUS', style: TextStyle(fontSize: 13, fontWeight: FontWeight.w800, letterSpacing: 0.6, color: GovtColors.textPrimary)),
-                ],
+              const Icon(Icons.wifi_tethering_rounded, size: 18, color: GovtColors.brand),
+              const SizedBox(width: 8),
+              const Expanded(
+                child: Text(
+                  'FIELD CONNECTIVITY STATUS',
+                  style: TextStyle(fontSize: 13, fontWeight: FontWeight.w800, letterSpacing: 0.6, color: GovtColors.textPrimary),
+                  overflow: TextOverflow.ellipsis,
+                ),
               ),
+              const SizedBox(width: 8),
               Container(
                 padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
                 decoration: BoxDecoration(
@@ -124,20 +146,35 @@ class _GovtResourcesScreenState extends State<GovtResourcesScreen> {
             ],
           ),
           const SizedBox(height: 14),
-          Row(
-            children: [
-              Expanded(
-                child: _metricBox('Online Field Devices', '${_connectivity.onlinePercent}%', '82 active units connected', GovtColors.brand),
-              ),
-              const SizedBox(width: 12),
-              Expanded(
-                child: _metricBox('Offline Field Units', '${_connectivity.offlinePercent}%', '18 units in low-signal zones', GovtColors.warning),
-              ),
-              const SizedBox(width: 12),
-              Expanded(
-                child: _metricBox('Pending Sync Queue', '${_connectivity.pendingSyncCount} records', 'Encrypted local cache waiting', GovtColors.riskHigh),
-              ),
-            ],
+          LayoutBuilder(
+            builder: (context, constraints) {
+              final isWide = constraints.maxWidth >= 600;
+              final b1 = _metricBox('Online Field Devices', '${_connectivity.onlinePercent}%', '82 active units connected', GovtColors.brand);
+              final b2 = _metricBox('Offline Field Units', '${_connectivity.offlinePercent}%', '18 units in low-signal zones', GovtColors.warning);
+              final b3 = _metricBox('Pending Sync Queue', '${_connectivity.pendingSyncCount} records', 'Encrypted local cache waiting', GovtColors.riskHigh);
+
+              if (isWide) {
+                return Row(
+                  children: [
+                    Expanded(child: b1),
+                    const SizedBox(width: 12),
+                    Expanded(child: b2),
+                    const SizedBox(width: 12),
+                    Expanded(child: b3),
+                  ],
+                );
+              } else {
+                return Column(
+                  children: [
+                    b1,
+                    const SizedBox(height: 8),
+                    b2,
+                    const SizedBox(height: 8),
+                    b3,
+                  ],
+                );
+              }
+            },
           ),
           const SizedBox(height: 14),
           ClipRRect(
@@ -173,11 +210,17 @@ class _GovtResourcesScreenState extends State<GovtResourcesScreen> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const Row(
-            children: [
+          Row(
+            children: const [
               Icon(Icons.health_and_safety_rounded, size: 18, color: GovtColors.brand),
               SizedBox(width: 8),
-              Text('DATA HEALTH MONITORING', style: TextStyle(fontSize: 13, fontWeight: FontWeight.w800, letterSpacing: 0.6, color: GovtColors.textPrimary)),
+              Flexible(
+                child: Text(
+                  'DATA HEALTH MONITORING',
+                  style: TextStyle(fontSize: 13, fontWeight: FontWeight.w800, letterSpacing: 0.6, color: GovtColors.textPrimary),
+                  overflow: TextOverflow.ellipsis,
+                ),
+              ),
             ],
           ),
           const SizedBox(height: 14),
@@ -258,17 +301,19 @@ class _GovtResourcesScreenState extends State<GovtResourcesScreen> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              Row(
-                children: [
-                  Icon(Icons.timer_rounded, size: 18, color: GovtColors.brand),
-                  SizedBox(width: 8),
-                  Text('RESPONSE TIME INTELLIGENCE', style: TextStyle(fontSize: 13, fontWeight: FontWeight.w800, letterSpacing: 0.6, color: GovtColors.textPrimary)),
-                ],
+          Row(
+            children: const [
+              Icon(Icons.timer_rounded, size: 18, color: GovtColors.brand),
+              SizedBox(width: 8),
+              Expanded(
+                child: Text(
+                  'RESPONSE TIME INTELLIGENCE',
+                  style: TextStyle(fontSize: 13, fontWeight: FontWeight.w800, letterSpacing: 0.6, color: GovtColors.textPrimary),
+                  overflow: TextOverflow.ellipsis,
+                ),
               ),
-              Text('Demonstrated Latency Reduction: -64%', style: TextStyle(fontSize: 11, fontWeight: FontWeight.w800, color: GovtColors.brand)),
+              SizedBox(width: 8),
+              Text('Latency: -64%', style: TextStyle(fontSize: 11, fontWeight: FontWeight.w800, color: GovtColors.brand)),
             ],
           ),
           // Metrics summary
@@ -285,23 +330,26 @@ class _GovtResourcesScreenState extends State<GovtResourcesScreen> {
           const SizedBox(height: 14),
 
           // Lifecycle steps
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceAround,
-            children: [
-              _timeStep('Report Received', '0.0h', Icons.mark_email_read_rounded, isStart: true),
-              _arrow(),
-              _timeStep('AI/Rule Triage', '+0.2h', Icons.auto_awesome_rounded),
-              _arrow(),
-              _timeStep('Vet Assigned', '+1.6h', Icons.person_pin_rounded),
-              _arrow(),
-              _timeStep('Sample Collected', '+4.2h', Icons.biotech_rounded),
-              _arrow(),
-              _timeStep('Lab Result', '+14.5h', Icons.science_rounded),
-              _arrow(),
-              _timeStep('Action & Cordon', '+18.0h', Icons.security_rounded),
-              _arrow(),
-              _timeStep('Contained', '3.2 Days', Icons.check_circle_rounded, isEnd: true),
-            ],
+          SingleChildScrollView(
+            scrollDirection: Axis.horizontal,
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.spaceAround,
+              children: [
+                _timeStep('Report Received', '0.0h', Icons.mark_email_read_rounded, isStart: true),
+                _arrow(),
+                _timeStep('AI/Rule Triage', '+0.2h', Icons.auto_awesome_rounded),
+                _arrow(),
+                _timeStep('Vet Assigned', '+1.6h', Icons.person_pin_rounded),
+                _arrow(),
+                _timeStep('Sample Collected', '+4.2h', Icons.biotech_rounded),
+                _arrow(),
+                _timeStep('Lab Result', '+14.5h', Icons.science_rounded),
+                _arrow(),
+                _timeStep('Action & Cordon', '+18.0h', Icons.security_rounded),
+                _arrow(),
+                _timeStep('Contained', '3.2 Days', Icons.check_circle_rounded, isEnd: true),
+              ],
+            ),
           ),
           const SizedBox(height: 16),
           Container(

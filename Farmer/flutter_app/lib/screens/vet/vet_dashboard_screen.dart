@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import '../../services/farmer_data_service.dart';
 import '../../models/case.dart';
 import '../../models/alert.dart';
+import '../../theme/app_theme.dart';
 import 'vet_case_detail_screen.dart';
 import 'vet_case_queue_screen.dart';
 
@@ -33,18 +34,19 @@ class VetDashboardScreen extends StatelessWidget {
         final vetAlerts = dataService.getVetAlerts();
 
         return Scaffold(
-          backgroundColor: const Color(0xFFF0F4FF),
+          backgroundColor: AppColors.background,
           body: CustomScrollView(
             slivers: [
               SliverAppBar(
                 expandedHeight: 130,
                 pinned: true,
-                backgroundColor: const Color(0xFF1565C0),
+                backgroundColor: AppColors.primaryDark,
+                surfaceTintColor: Colors.transparent,
                 flexibleSpace: FlexibleSpaceBar(
                   background: Container(
                     decoration: const BoxDecoration(
                       gradient: LinearGradient(
-                        colors: [Color(0xFF1565C0), Color(0xFF0D47A1)],
+                        colors: [AppColors.primary, AppColors.primaryDark],
                         begin: Alignment.topLeft,
                         end: Alignment.bottomRight,
                       ),
@@ -56,7 +58,7 @@ class VetDashboardScreen extends StatelessWidget {
                       children: [
                         Row(
                           children: [
-                            const Icon(Icons.medical_services, color: Colors.white70, size: 20),
+                            const Icon(Icons.medical_services, color: Colors.white70, size: 16),
                             const SizedBox(width: 8),
                             Text(
                               'Dr. Rajesh Kumar · Veterinary Officer',
@@ -69,8 +71,9 @@ class VetDashboardScreen extends StatelessWidget {
                           'Veterinary Dashboard',
                           style: TextStyle(
                             color: Colors.white,
-                            fontSize: 24,
-                            fontWeight: FontWeight.bold,
+                            fontSize: 22,
+                            fontWeight: FontWeight.w800,
+                            letterSpacing: -0.3,
                           ),
                         ),
                       ],

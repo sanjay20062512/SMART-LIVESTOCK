@@ -1,8 +1,7 @@
-// Alerts Screen — dynamic list of all alerts.
-
 import 'package:flutter/material.dart';
 import '../services/farmer_data_service.dart';
 import '../models/alert.dart';
+import '../theme/app_theme.dart';
 
 class AlertsScreen extends StatefulWidget {
   final FarmerDataService dataService;
@@ -31,34 +30,34 @@ class _AlertsScreenState extends State<AlertsScreen> {
   Color _severityColor(AlertSeverity s) {
     switch (s) {
       case AlertSeverity.info:
-        return Colors.blue;
+        return AppColors.info;
       case AlertSeverity.warning:
-        return Colors.orange;
+        return AppColors.warning;
       case AlertSeverity.high:
-        return Colors.red;
+        return AppColors.error;
       case AlertSeverity.critical:
-        return Colors.red.shade900;
+        return AppColors.riskCritical;
     }
   }
 
   IconData _categoryIcon(AlertCategory c) {
     switch (c) {
       case AlertCategory.diseaseAlert:
-        return Icons.coronavirus;
+        return Icons.coronavirus_outlined;
       case AlertCategory.vaccinationReminder:
-        return Icons.vaccines;
+        return Icons.vaccines_outlined;
       case AlertCategory.followUpReminder:
-        return Icons.calendar_today;
+        return Icons.calendar_today_outlined;
       case AlertCategory.weatherRisk:
-        return Icons.cloud;
+        return Icons.cloud_outlined;
       case AlertCategory.governmentAdvisory:
-        return Icons.policy;
+        return Icons.policy_outlined;
       case AlertCategory.veterinarianMessage:
-        return Icons.local_hospital;
+        return Icons.local_hospital_outlined;
       case AlertCategory.mortalityAlert:
-        return Icons.warning;
+        return Icons.warning_amber_rounded;
       case AlertCategory.highRiskHealthAlert:
-        return Icons.health_and_safety;
+        return Icons.health_and_safety_outlined;
     }
   }
 
@@ -68,38 +67,77 @@ class _AlertsScreenState extends State<AlertsScreen> {
     final unread = widget.dataService.unreadAlertCount;
 
     return Scaffold(
+      backgroundColor: AppColors.background,
       appBar: AppBar(
         title: const Text(
           'Alerts & Advisories',
-          style: TextStyle(fontWeight: FontWeight.bold),
+          style: TextStyle(
+            fontWeight: FontWeight.w800,
+            fontSize: 18,
+            letterSpacing: -0.2,
+          ),
         ),
+        backgroundColor: AppColors.primaryDark,
+        foregroundColor: Colors.white,
+        elevation: 0,
+        surfaceTintColor: Colors.transparent,
         actions: [
           if (unread > 0)
-            TextButton(
-              onPressed: () => widget.dataService.markAllAlertsRead(),
-              child: const Text('Mark All Read'),
+            Padding(
+              padding: const EdgeInsets.only(right: 8),
+              child: TextButton.icon(
+                onPressed: () => widget.dataService.markAllAlertsRead(),
+                icon: const Icon(Icons.done_all_rounded, size: 16, color: Colors.white),
+                label: const Text(
+                  'Mark All Read',
+                  style: TextStyle(
+                    color: Colors.white,
+                    fontWeight: FontWeight.w600,
+                    fontSize: 12,
+                  ),
+                ),
+              ),
             ),
         ],
       ),
       body: alerts.isEmpty
-          ? const Center(
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  Icon(Icons.notifications_none,
-                      size: 60, color: Colors.grey),
-                  SizedBox(height: 16),
-                  Text(
-                    'No alerts yet.',
-                    style: TextStyle(color: Colors.grey, fontSize: 16),
-                  ),
-                  SizedBox(height: 8),
-                  Text(
-                    'Alerts will appear here when health reports,\nmortality events, or advisories are created.',
-                    textAlign: TextAlign.center,
-                    style: TextStyle(color: Colors.grey),
-                  ),
-                ],
+          ? Center(
+              child: Padding(
+                padding: const EdgeInsets.all(32),
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Container(
+                      width: 72,
+                      height: 72,
+                      decoration: BoxDecoration(
+                        color: AppColors.surfaceSubtle,
+                        shape: BoxShape.circle,
+                        border: Border.all(color: AppColors.border),
+                      ),
+                      child: const Icon(
+                        Icons.notifications_none_rounded,
+                        size: 36,
+                        color: AppColors.textTertiary,
+                      ),
+                    ),
+                    const SizedBox(height: 16),
+                    const Text(
+                      'No alerts yet',
+                      style: TextStyle(
+                        color: AppColors.textPrimary,
+                        fontSize: 16,
+                        fontWeight: FontWeight.w700,
+                      ),
+                    ),
+                    const SizedBox(height: 8),
+                    const Text(
+                      'Alerts will appear here when health reports,\nmortality events, or advisories are created.',
+                      textAlign: TextAlign.center,
+                      style: TextStyle(color: AppColors.textSecondary, fontSize: 13, height: 1.4),
+                    ),
+                  ],
+                ),
               ),
             )
           : ListView.builder(
@@ -115,52 +153,62 @@ class _AlertsScreenState extends State<AlertsScreen> {
                   background: Container(
                     alignment: Alignment.centerLeft,
                     padding: const EdgeInsets.only(left: 20),
-                    color: Colors.green,
-                    child: const Icon(Icons.check, color: Colors.white),
+                    decoration: BoxDecoration(
+                      color: AppColors.success,
+                      borderRadius: BorderRadius.circular(AppRadius.card),
+                    ),
+                    child: const Icon(Icons.check_rounded, color: Colors.white),
                   ),
                   onDismissed: (_) {
                     widget.dataService.markAlertRead(alert.id);
                   },
                   child: Card(
                     margin: const EdgeInsets.only(bottom: 10),
+                    elevation: 0,
                     shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(12),
+                      borderRadius: BorderRadius.circular(AppRadius.card),
                       side: BorderSide(
                         color: alert.isRead
-                            ? Colors.transparent
-                            : color.withValues(alpha: 0.4),
-                        width: 1.5,
+                            ? AppColors.border
+                            : color.withValues(alpha: 0.5),
+                        width: alert.isRead ? 1 : 1.5,
                       ),
                     ),
-                    color: alert.isRead ? null : color.withValues(alpha: 0.04),
+                    color: alert.isRead ? AppColors.surface : color.withValues(alpha: 0.03),
                     child: InkWell(
                       onTap: () {
                         widget.dataService.markAlertRead(alert.id);
                         _showAlertDetails(context, alert, color);
                       },
-                      borderRadius: BorderRadius.circular(12),
+                      borderRadius: BorderRadius.circular(AppRadius.card),
                       child: Padding(
-                        padding: const EdgeInsets.all(12),
+                        padding: const EdgeInsets.all(14),
                         child: Row(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
                             Stack(
                               children: [
                                 CircleAvatar(
-                                  backgroundColor: color.withValues(alpha: 0.15),
+                                  radius: 20,
+                                  backgroundColor: color.withValues(alpha: 0.12),
                                   child: Icon(
                                     _categoryIcon(alert.category),
                                     color: color,
-                                    size: 22,
+                                    size: 20,
                                   ),
                                 ),
                                 if (!alert.isRead)
                                   Positioned(
                                     top: 0,
                                     right: 0,
-                                    child: CircleAvatar(
-                                      radius: 5,
-                                      backgroundColor: color,
+                                    child: Container(
+                                      width: 9,
+                                      height: 9,
+                                      decoration: BoxDecoration(
+                                        color: color,
+                                        shape: BoxShape.circle,
+                                        border: Border.all(color: Colors.white, width: 1.5),
+                                      ),
                                     ),
                                   ),
                               ],
@@ -178,19 +226,20 @@ class _AlertsScreenState extends State<AlertsScreen> {
                                           alert.title,
                                           style: TextStyle(
                                             fontWeight: alert.isRead
-                                                ? FontWeight.normal
-                                                : FontWeight.bold,
+                                                ? FontWeight.w600
+                                                : FontWeight.w800,
                                             fontSize: 14,
+                                            color: AppColors.textPrimary,
                                           ),
                                         ),
                                       ),
                                       Container(
                                         padding: const EdgeInsets.symmetric(
-                                            horizontal: 6, vertical: 2),
+                                            horizontal: 7, vertical: 2),
                                         decoration: BoxDecoration(
-                                          color: color.withValues(alpha: 0.15),
+                                          color: color.withValues(alpha: 0.12),
                                           borderRadius:
-                                              BorderRadius.circular(6),
+                                              BorderRadius.circular(AppRadius.chip),
                                         ),
                                         child: Text(
                                           alert.severity.displayName
@@ -198,7 +247,7 @@ class _AlertsScreenState extends State<AlertsScreen> {
                                           style: TextStyle(
                                             color: color,
                                             fontSize: 10,
-                                            fontWeight: FontWeight.bold,
+                                            fontWeight: FontWeight.w700,
                                           ),
                                         ),
                                       ),
@@ -208,22 +257,26 @@ class _AlertsScreenState extends State<AlertsScreen> {
                                   Text(
                                     alert.category.displayName,
                                     style: const TextStyle(
-                                      color: Colors.grey,
+                                      color: AppColors.textSecondary,
                                       fontSize: 12,
                                     ),
                                   ),
-                                  const SizedBox(height: 4),
+                                  const SizedBox(height: 5),
                                   Text(
                                     alert.message,
                                     maxLines: 2,
                                     overflow: TextOverflow.ellipsis,
-                                    style: const TextStyle(fontSize: 13),
+                                    style: const TextStyle(
+                                      fontSize: 13,
+                                      color: AppColors.textPrimary,
+                                      height: 1.3,
+                                    ),
                                   ),
-                                  const SizedBox(height: 4),
+                                  const SizedBox(height: 6),
                                   Text(
                                     _formatDate(alert.date),
                                     style: const TextStyle(
-                                        color: Colors.grey, fontSize: 11),
+                                        color: AppColors.textTertiary, fontSize: 11),
                                   ),
                                 ],
                               ),
@@ -244,13 +297,20 @@ class _AlertsScreenState extends State<AlertsScreen> {
     showDialog(
       context: context,
       builder: (ctx) => AlertDialog(
+        backgroundColor: AppColors.surface,
+        surfaceTintColor: Colors.transparent,
         shape:
-            RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+            RoundedRectangleBorder(borderRadius: BorderRadius.circular(AppRadius.dialog)),
         title: Row(
           children: [
-            Icon(_categoryIcon(alert.category), color: color),
+            Icon(_categoryIcon(alert.category), color: color, size: 22),
             const SizedBox(width: 10),
-            Expanded(child: Text(alert.title)),
+            Expanded(
+              child: Text(
+                alert.title,
+                style: const TextStyle(fontWeight: FontWeight.w800, fontSize: 16),
+              ),
+            ),
           ],
         ),
         content: Column(
@@ -261,32 +321,33 @@ class _AlertsScreenState extends State<AlertsScreen> {
               padding:
                   const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
               decoration: BoxDecoration(
-                color: color.withValues(alpha: 0.15),
-                borderRadius: BorderRadius.circular(8),
+                color: color.withValues(alpha: 0.12),
+                borderRadius: BorderRadius.circular(AppRadius.chip),
               ),
               child: Text(
                 alert.severity.displayName.toUpperCase(),
                 style: TextStyle(
-                    color: color, fontWeight: FontWeight.bold),
+                    color: color, fontWeight: FontWeight.w800, fontSize: 11),
               ),
             ),
             const SizedBox(height: 12),
-            Text(alert.message),
+            Text(alert.message, style: const TextStyle(fontSize: 14, height: 1.4, color: AppColors.textPrimary)),
             const SizedBox(height: 12),
             Text(
               alert.category.displayName,
-              style: const TextStyle(color: Colors.grey, fontSize: 13),
+              style: const TextStyle(color: AppColors.textSecondary, fontSize: 12),
             ),
+            const SizedBox(height: 2),
             Text(
               _formatDate(alert.date),
-              style: const TextStyle(color: Colors.grey, fontSize: 13),
+              style: const TextStyle(color: AppColors.textTertiary, fontSize: 12),
             ),
           ],
         ),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(ctx),
-            child: const Text('Close'),
+            child: const Text('Close', style: TextStyle(color: AppColors.primary, fontWeight: FontWeight.w700)),
           ),
         ],
       ),

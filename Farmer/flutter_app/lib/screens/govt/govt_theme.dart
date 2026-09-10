@@ -18,14 +18,14 @@ class GovtColors {
   static const Color textSecondary = Color(0xFF65736F);
   static const Color textDisabled = Color(0xFFA0ACA9);
 
-  // Brand - Deep Navy & Government Teal
+  // Brand - Deep Navy & Government Teal (aligned to app primary)
   static const Color navyPrimary = Color(0xFF0B192C);
   static const Color navyDark = Color(0xFF060E18);
   static const Color navyCard = Color(0xFF132743);
   static const Color navyBorder = Color(0xFF1E3A5F);
-  static const Color brand = Color(0xFF087F73);
-  static const Color brandDark = Color(0xFF065E55);
-  static const Color brandLight = Color(0xFFE0F2F0);
+  static const Color brand = Color(0xFF0D9488);     // ← aligned to AppColors.primary
+  static const Color brandDark = Color(0xFF0F766E); // ← aligned to AppColors.primaryDark
+  static const Color brandLight = Color(0xFFCCFBF1);// ← aligned to AppColors.primaryLight
   static const Color accent = Color(0xFF7D9E38);
   static const Color accentLight = Color(0xFFEDF3D9);
 

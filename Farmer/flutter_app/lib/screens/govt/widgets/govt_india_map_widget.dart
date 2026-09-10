@@ -135,30 +135,23 @@ class _IndiaDiseaseIntelligenceMapState extends State<IndiaDiseaseIntelligenceMa
 
   Widget _buildHeaderBar() {
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
       decoration: const BoxDecoration(
         color: GovtColors.navyPrimary,
         border: Border(bottom: BorderSide(color: GovtColors.navyBorder)),
       ),
-      child: Row(
-        children: [
-          Container(
-            padding: const EdgeInsets.all(6),
-            decoration: BoxDecoration(
-              color: GovtColors.brand.withValues(alpha: 0.25),
-              borderRadius: BorderRadius.circular(6),
-              border: Border.all(color: GovtColors.brand.withValues(alpha: 0.5)),
-            ),
-            child: const Icon(Icons.public_rounded, size: 18, color: Colors.white),
-          ),
-          const SizedBox(width: 10),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Row(
-                  children: [
-                    const Text(
+      child: LayoutBuilder(
+        builder: (context, constraints) {
+          final isWide = constraints.maxWidth >= 640;
+
+          final titleContent = Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Row(
+                children: [
+                  const Flexible(
+                    child: Text(
                       'INDIA LIVESTOCK DISEASE INTELLIGENCE MAP',
                       style: TextStyle(
                         fontSize: 13,
@@ -166,33 +159,36 @@ class _IndiaDiseaseIntelligenceMapState extends State<IndiaDiseaseIntelligenceMa
                         letterSpacing: 0.8,
                         color: Colors.white,
                       ),
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
                     ),
-                    const SizedBox(width: 8),
-                    Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 1.5),
-                      decoration: BoxDecoration(
-                        color: GovtColors.riskHigh.withValues(alpha: 0.25),
-                        borderRadius: BorderRadius.circular(4),
-                        border: Border.all(color: GovtColors.riskHigh),
-                      ),
-                      child: const Text(
-                        'NATIONAL GIS LEVEL 1',
-                        style: TextStyle(fontSize: 9, fontWeight: FontWeight.w800, color: Colors.orangeAccent),
-                      ),
+                  ),
+                  const SizedBox(width: 8),
+                  Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 1.5),
+                    decoration: BoxDecoration(
+                      color: GovtColors.riskHigh.withValues(alpha: 0.25),
+                      borderRadius: BorderRadius.circular(4),
+                      border: Border.all(color: GovtColors.riskHigh),
                     ),
-                  ],
-                ),
-                const SizedBox(height: 2),
-                const Text(
-                  'Real-time geographic distribution of reported and suspected animal-health events',
-                  style: TextStyle(fontSize: 11, color: Color(0xFFB0BEC5)),
-                ),
-              ],
-            ),
-          ),
+                    child: const Text(
+                      'NATIONAL GIS LEVEL 1',
+                      style: TextStyle(fontSize: 9, fontWeight: FontWeight.w800, color: Colors.orangeAccent),
+                    ),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 2),
+              const Text(
+                'Real-time geographic distribution of reported and suspected animal-health events',
+                style: TextStyle(fontSize: 11, color: Color(0xFFB0BEC5)),
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+              ),
+            ],
+          );
 
-          // Breadcrumb Trail / Switcher
-          Container(
+          final breadcrumb = Container(
             padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
             decoration: BoxDecoration(
               color: GovtColors.navyCard,
@@ -236,8 +232,52 @@ class _IndiaDiseaseIntelligenceMapState extends State<IndiaDiseaseIntelligenceMa
                 ],
               ],
             ),
-          ),
-        ],
+          );
+
+          if (isWide) {
+            return Row(
+              children: [
+                Container(
+                  padding: const EdgeInsets.all(6),
+                  decoration: BoxDecoration(
+                    color: GovtColors.brand.withValues(alpha: 0.25),
+                    borderRadius: BorderRadius.circular(6),
+                    border: Border.all(color: GovtColors.brand.withValues(alpha: 0.5)),
+                  ),
+                  child: const Icon(Icons.public_rounded, size: 18, color: Colors.white),
+                ),
+                const SizedBox(width: 10),
+                Expanded(child: titleContent),
+                const SizedBox(width: 10),
+                breadcrumb,
+              ],
+            );
+          } else {
+            return Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Row(
+                  children: [
+                    Container(
+                      padding: const EdgeInsets.all(6),
+                      decoration: BoxDecoration(
+                        color: GovtColors.brand.withValues(alpha: 0.25),
+                        borderRadius: BorderRadius.circular(6),
+                        border: Border.all(color: GovtColors.brand.withValues(alpha: 0.5)),
+                      ),
+                      child: const Icon(Icons.public_rounded, size: 18, color: Colors.white),
+                    ),
+                    const SizedBox(width: 10),
+                    Expanded(child: titleContent),
+                  ],
+                ),
+                const SizedBox(height: 8),
+                breadcrumb,
+              ],
+            );
+          }
+        },
       ),
     );
   }
@@ -404,24 +444,32 @@ class _IndiaDiseaseIntelligenceMapState extends State<IndiaDiseaseIntelligenceMa
         Positioned(
           top: 12,
           left: 12,
-          child: Container(
-            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
-            decoration: BoxDecoration(
-              color: Colors.white.withValues(alpha: 0.95),
-              borderRadius: BorderRadius.circular(6),
-              border: Border.all(color: GovtColors.border),
-              boxShadow: const [BoxShadow(color: GovtColors.shadow, blurRadius: 4)],
-            ),
-            child: Row(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                Container(width: 8, height: 8, decoration: const BoxDecoration(color: GovtColors.riskCritical, shape: BoxShape.circle)),
-                const SizedBox(width: 6),
-                const Text(
-                  'INDIA NATIONAL SURVEILLANCE • 10 STATES ACTIVE',
-                  style: TextStyle(fontSize: 10, fontWeight: FontWeight.w800, color: GovtColors.textPrimary, letterSpacing: 0.5),
-                ),
-              ],
+          right: 54,
+          child: Align(
+            alignment: Alignment.topLeft,
+            child: Container(
+              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+              decoration: BoxDecoration(
+                color: Colors.white.withValues(alpha: 0.95),
+                borderRadius: BorderRadius.circular(6),
+                border: Border.all(color: GovtColors.border),
+                boxShadow: const [BoxShadow(color: GovtColors.shadow, blurRadius: 4)],
+              ),
+              child: Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Container(width: 8, height: 8, decoration: const BoxDecoration(color: GovtColors.riskCritical, shape: BoxShape.circle)),
+                  const SizedBox(width: 6),
+                  const Flexible(
+                    child: Text(
+                      'INDIA NATIONAL SURVEILLANCE • 10 STATES ACTIVE',
+                      style: TextStyle(fontSize: 10, fontWeight: FontWeight.w800, color: GovtColors.textPrimary, letterSpacing: 0.5),
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                  ),
+                ],
+              ),
             ),
           ),
         ),
@@ -652,8 +700,24 @@ class _IndiaDiseaseIntelligenceMapState extends State<IndiaDiseaseIntelligenceMa
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
-          Text(label, style: const TextStyle(fontSize: 10, color: GovtColors.textSecondary)),
-          Text(value, style: TextStyle(fontSize: 11, fontWeight: FontWeight.w700, color: color)),
+          Expanded(
+            child: Text(
+              label,
+              style: const TextStyle(fontSize: 10, color: GovtColors.textSecondary),
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+            ),
+          ),
+          const SizedBox(width: 6),
+          Flexible(
+            child: Text(
+              value,
+              style: TextStyle(fontSize: 11, fontWeight: FontWeight.w700, color: color),
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+              textAlign: TextAlign.right,
+            ),
+          ),
         ],
       ),
     );
@@ -668,16 +732,23 @@ class _IndiaDiseaseIntelligenceMapState extends State<IndiaDiseaseIntelligenceMa
         color: Colors.white.withValues(alpha: 0.95),
         border: const Border(top: BorderSide(color: GovtColors.border)),
       ),
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceAround,
-        children: [
-          _legendItem('LOW', GovtColors.riskLow),
-          _legendItem('MODERATE', GovtColors.riskModerate),
-          _legendItem('HIGH', GovtColors.riskHigh),
-          _legendItem('CRITICAL', GovtColors.riskCritical),
-          _legendItem('SEVERE OUTBREAK', GovtColors.riskSevere),
-          const Text('• Tap state for telemetry & district drilldown', style: TextStyle(fontSize: 10, color: GovtColors.textSecondary, fontStyle: FontStyle.italic)),
-        ],
+      child: SingleChildScrollView(
+        scrollDirection: Axis.horizontal,
+        child: Row(
+          children: [
+            _legendItem('LOW', GovtColors.riskLow),
+            const SizedBox(width: 14),
+            _legendItem('MODERATE', GovtColors.riskModerate),
+            const SizedBox(width: 14),
+            _legendItem('HIGH', GovtColors.riskHigh),
+            const SizedBox(width: 14),
+            _legendItem('CRITICAL', GovtColors.riskCritical),
+            const SizedBox(width: 14),
+            _legendItem('SEVERE OUTBREAK', GovtColors.riskSevere),
+            const SizedBox(width: 14),
+            const Text('• Tap state for telemetry & district drilldown', style: TextStyle(fontSize: 10, color: GovtColors.textSecondary, fontStyle: FontStyle.italic)),
+          ],
+        ),
       ),
     );
   }

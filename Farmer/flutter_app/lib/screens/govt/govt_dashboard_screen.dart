@@ -137,13 +137,17 @@ class _GovtDashboardScreenState extends State<GovtDashboardScreen>
                     ),
                   ),
                   const SizedBox(width: 8),
-                  const Text(
-                    'ANIMAL HEALTH INTELLIGENCE COMMAND CENTER',
-                    style: TextStyle(
-                      fontSize: 14,
-                      fontWeight: FontWeight.w800,
-                      letterSpacing: 0.6,
-                      color: GovtColors.textPrimary,
+                  const Expanded(
+                    child: Text(
+                      'ANIMAL HEALTH INTELLIGENCE COMMAND CENTER',
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: TextStyle(
+                        fontSize: 14,
+                        fontWeight: FontWeight.w800,
+                        letterSpacing: 0.6,
+                        color: GovtColors.textPrimary,
+                      ),
                     ),
                   ),
                 ],
@@ -168,13 +172,17 @@ class _GovtDashboardScreenState extends State<GovtDashboardScreen>
               children: [
                 const Icon(Icons.hub_rounded, size: 14, color: GovtColors.brand),
                 const SizedBox(width: 6),
-                Text(
-                  'INDIA / $_selectedState / $_selectedDistrict / PERUNDURAI',
-                  style: const TextStyle(
-                    fontSize: 10,
-                    fontWeight: FontWeight.w800,
-                    letterSpacing: 0.5,
-                    color: GovtColors.textPrimary,
+                Flexible(
+                  child: Text(
+                    'INDIA / $_selectedState / $_selectedDistrict / PERUNDURAI',
+                    style: const TextStyle(
+                      fontSize: 10,
+                      fontWeight: FontWeight.w800,
+                      letterSpacing: 0.5,
+                      color: GovtColors.textPrimary,
+                    ),
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
                   ),
                 ),
               ],
@@ -231,7 +239,7 @@ class _GovtDashboardScreenState extends State<GovtDashboardScreen>
           physics: const NeverScrollableScrollPhysics(),
           mainAxisSpacing: 10,
           crossAxisSpacing: 10,
-          childAspectRatio: count == 6 ? 1.35 : (count == 3 ? 1.55 : 1.4),
+          childAspectRatio: count == 6 ? 1.35 : (count == 3 ? 1.45 : 1.15),
           children: kpis,
         );
       },
@@ -240,7 +248,7 @@ class _GovtDashboardScreenState extends State<GovtDashboardScreen>
 
   Widget _kpiCard(String title, String val, String sub, Color color, IconData icon) {
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
       decoration: BoxDecoration(
         color: Colors.white,
         borderRadius: GovtRadius.mdRadius,
@@ -254,18 +262,36 @@ class _GovtDashboardScreenState extends State<GovtDashboardScreen>
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              Text(title, style: const TextStyle(fontSize: 10, fontWeight: FontWeight.w700, letterSpacing: 0.5, color: GovtColors.textSecondary)),
-              Icon(icon, size: 16, color: color),
+              Expanded(
+                child: Text(
+                  title,
+                  style: const TextStyle(fontSize: 10, fontWeight: FontWeight.w700, letterSpacing: 0.3, color: GovtColors.textSecondary),
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                ),
+              ),
+              const SizedBox(width: 4),
+              Icon(icon, size: 15, color: color),
             ],
           ),
-          Text(val, style: const TextStyle(fontSize: 26, fontWeight: FontWeight.w800, color: GovtColors.textPrimary, letterSpacing: -0.5)),
+          Text(
+            val,
+            style: const TextStyle(fontSize: 22, fontWeight: FontWeight.w800, color: GovtColors.textPrimary, letterSpacing: -0.5),
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
+          ),
           Container(
             padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
             decoration: BoxDecoration(
               color: color.withValues(alpha: 0.1),
               borderRadius: BorderRadius.circular(4),
             ),
-            child: Text(sub, style: TextStyle(fontSize: 10, fontWeight: FontWeight.w700, color: color)),
+            child: Text(
+              sub,
+              style: TextStyle(fontSize: 9, fontWeight: FontWeight.w700, color: color),
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+            ),
           ),
         ],
       ),
@@ -326,13 +352,23 @@ class _GovtDashboardScreenState extends State<GovtDashboardScreen>
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              const Row(
-                children: [
-                  Icon(Icons.shield_outlined, size: 16, color: GovtColors.brand),
-                  SizedBox(width: 6),
-                  Text('Risk Intelligence', style: TextStyle(fontSize: 13, fontWeight: FontWeight.w800, letterSpacing: 0.6, color: GovtColors.textPrimary)),
-                ],
+              const Expanded(
+                child: Row(
+                  children: [
+                    Icon(Icons.shield_outlined, size: 16, color: GovtColors.brand),
+                    SizedBox(width: 6),
+                    Expanded(
+                      child: Text(
+                        'Risk Intelligence',
+                        style: TextStyle(fontSize: 13, fontWeight: FontWeight.w800, letterSpacing: 0.6, color: GovtColors.textPrimary),
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                    ),
+                  ],
+                ),
               ),
+              const SizedBox(width: 8),
               Container(
                 padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
                 decoration: BoxDecoration(color: GovtColors.criticalLight, borderRadius: BorderRadius.circular(4)),
@@ -358,7 +394,15 @@ class _GovtDashboardScreenState extends State<GovtDashboardScreen>
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
-                    Text(_whyRisk.areaName, style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w800, color: GovtColors.textPrimary)),
+                    Expanded(
+                      child: Text(
+                        _whyRisk.areaName,
+                        style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w800, color: GovtColors.textPrimary),
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                    ),
+                    const SizedBox(width: 8),
                     Text('${_whyRisk.dominantDisease} • ${_whyRisk.trend}', style: const TextStyle(fontSize: 11, fontWeight: FontWeight.w700, color: GovtColors.riskCritical)),
                   ],
                 ),
@@ -385,7 +429,15 @@ class _GovtDashboardScreenState extends State<GovtDashboardScreen>
           const Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              Text('WHY RISK = 87%', style: TextStyle(fontSize: 11, fontWeight: FontWeight.w800, letterSpacing: 0.5, color: GovtColors.textPrimary)),
+              Expanded(
+                child: Text(
+                  'WHY RISK = 87%',
+                  style: TextStyle(fontSize: 11, fontWeight: FontWeight.w800, letterSpacing: 0.5, color: GovtColors.textPrimary),
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                ),
+              ),
+              SizedBox(width: 8),
               Text('Decision Support Metric', style: TextStyle(fontSize: 9, fontStyle: FontStyle.italic, color: GovtColors.textSecondary)),
             ],
           ),
@@ -400,7 +452,15 @@ class _GovtDashboardScreenState extends State<GovtDashboardScreen>
                   Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
-                      Text(c.factor, style: const TextStyle(fontSize: 10, fontWeight: FontWeight.w600, color: GovtColors.textPrimary)),
+                      Expanded(
+                        child: Text(
+                          c.factor,
+                          style: const TextStyle(fontSize: 10, fontWeight: FontWeight.w600, color: GovtColors.textPrimary),
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                      ),
+                      const SizedBox(width: 8),
                       Text('${c.percentage}%', style: TextStyle(fontSize: 10, fontWeight: FontWeight.w800, color: c.percentage >= 85 ? GovtColors.riskCritical : GovtColors.riskHigh)),
                     ],
                   ),
@@ -533,92 +593,113 @@ class _GovtDashboardScreenState extends State<GovtDashboardScreen>
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              const Row(
-                children: [
-                  Icon(Icons.hub_outlined, size: 18, color: GovtColors.riskCritical),
-                  SizedBox(width: 8),
-                  Text('ACTIVE OUTBREAKS — SURVEILLANCE & CONTAINMENT', style: TextStyle(fontSize: 13, fontWeight: FontWeight.w800, letterSpacing: 0.6, color: GovtColors.textPrimary)),
-                ],
-              ),
-              Text('${_outbreaks.length} Ongoing Field Investigations', style: const TextStyle(fontSize: 11, color: GovtColors.textSecondary)),
-            ],
-          ),
-          const SizedBox(height: 14),
-
-          // Table Header
-          Container(
-            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-            decoration: BoxDecoration(
-              color: GovtColors.surfaceSubtle,
-              borderRadius: BorderRadius.circular(6),
-              border: Border.all(color: GovtColors.border),
-            ),
-            child: const Row(
-              children: [
-                SizedBox(width: 75, child: Text('OUTBREAK', style: TextStyle(fontSize: 10, fontWeight: FontWeight.w800, color: GovtColors.textSecondary))),
-                SizedBox(width: 90, child: Text('LOCATION', style: TextStyle(fontSize: 10, fontWeight: FontWeight.w800, color: GovtColors.textSecondary))),
-                SizedBox(width: 75, child: Text('DISEASE', style: TextStyle(fontSize: 10, fontWeight: FontWeight.w800, color: GovtColors.textSecondary))),
-                SizedBox(width: 85, child: Text('RISK', style: TextStyle(fontSize: 10, fontWeight: FontWeight.w800, color: GovtColors.textSecondary))),
-                SizedBox(width: 60, child: Text('CASES', style: TextStyle(fontSize: 10, fontWeight: FontWeight.w800, color: GovtColors.textSecondary))),
-                SizedBox(width: 70, child: Text('MORTALITY', style: TextStyle(fontSize: 10, fontWeight: FontWeight.w800, color: GovtColors.textSecondary))),
-                SizedBox(width: 60, child: Text('TREND', style: TextStyle(fontSize: 10, fontWeight: FontWeight.w800, color: GovtColors.textSecondary))),
-                Expanded(child: Text('STATUS', style: TextStyle(fontSize: 10, fontWeight: FontWeight.w800, color: GovtColors.textSecondary))),
-                SizedBox(width: 70, child: Text('ACTION', style: TextStyle(fontSize: 10, fontWeight: FontWeight.w800, color: GovtColors.textSecondary), textAlign: TextAlign.right)),
-              ],
-            ),
-          ),
-          const SizedBox(height: 4),
-
-          // Table Rows
-          ..._outbreaks.map((ob) {
-            final isCritical = ob.riskLevel == 'CRITICAL';
-            final isHigh = ob.riskLevel == 'HIGH';
-            final color = isCritical ? GovtColors.riskCritical : (isHigh ? GovtColors.riskHigh : GovtColors.riskModerate);
-
-            return InkWell(
-              onTap: () => _showOutbreakDrawer(ob),
-              child: Container(
-                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
-                decoration: const BoxDecoration(
-                  border: Border(bottom: BorderSide(color: GovtColors.divider)),
-                ),
+              const Expanded(
                 child: Row(
                   children: [
-                    SizedBox(width: 75, child: Text(ob.clusterId, style: const TextStyle(fontSize: 11, fontWeight: FontWeight.w800, color: GovtColors.textPrimary))),
-                    SizedBox(width: 90, child: Text(ob.location, style: const TextStyle(fontSize: 11, fontWeight: FontWeight.w600))),
-                    SizedBox(width: 75, child: Text(ob.disease, style: const TextStyle(fontSize: 11, fontWeight: FontWeight.w700, color: GovtColors.brandDark))),
-                    SizedBox(
-                      width: 85,
-                      child: Container(
-                        padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
-                        decoration: BoxDecoration(color: color.withValues(alpha: 0.12), borderRadius: BorderRadius.circular(4)),
-                        child: Text(ob.riskLevel, style: TextStyle(fontSize: 9, fontWeight: FontWeight.w800, color: color), textAlign: TextAlign.center),
-                      ),
-                    ),
-                    SizedBox(width: 60, child: Text('${ob.cases}', style: const TextStyle(fontSize: 11, fontWeight: FontWeight.w700))),
-                    SizedBox(width: 70, child: Text('${ob.mortality}', style: const TextStyle(fontSize: 11, fontWeight: FontWeight.w700, color: GovtColors.riskCritical))),
-                    SizedBox(width: 60, child: Text(ob.trend, style: TextStyle(fontSize: 11, fontWeight: FontWeight.w800, color: ob.trend.contains('↑') ? GovtColors.riskCritical : GovtColors.riskLow))),
-                    Expanded(child: Text(ob.status, style: const TextStyle(fontSize: 11, fontWeight: FontWeight.w600, color: GovtColors.textSecondary))),
-                    SizedBox(
-                      width: 70,
-                      child: Align(
-                        alignment: Alignment.centerRight,
-                        child: OutlinedButton(
-                          style: OutlinedButton.styleFrom(
-                            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
-                            minimumSize: Size.zero,
-                            tapTargetSize: MaterialTapTargetSize.shrinkWrap,
-                          ),
-                          onPressed: () => _showOutbreakDrawer(ob),
-                          child: const Text('VIEW', style: TextStyle(fontSize: 10, fontWeight: FontWeight.w800)),
-                        ),
+                    Icon(Icons.hub_outlined, size: 18, color: GovtColors.riskCritical),
+                    SizedBox(width: 8),
+                    Expanded(
+                      child: Text(
+                        'ACTIVE OUTBREAKS — SURVEILLANCE & CONTAINMENT',
+                        style: TextStyle(fontSize: 13, fontWeight: FontWeight.w800, letterSpacing: 0.6, color: GovtColors.textPrimary),
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
                       ),
                     ),
                   ],
                 ),
               ),
-            );
-          }),
+              const SizedBox(width: 8),
+              Text('${_outbreaks.length} Ongoing Investigations', style: const TextStyle(fontSize: 11, color: GovtColors.textSecondary)),
+            ],
+          ),
+          const SizedBox(height: 14),
+
+          // Horizontally Scrollable Table for all screen sizes
+          SingleChildScrollView(
+            scrollDirection: Axis.horizontal,
+            child: SizedBox(
+              width: 780,
+              child: Column(
+                children: [
+                  // Table Header
+                  Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                    decoration: BoxDecoration(
+                      color: GovtColors.surfaceSubtle,
+                      borderRadius: BorderRadius.circular(6),
+                      border: Border.all(color: GovtColors.border),
+                    ),
+                    child: const Row(
+                      children: [
+                        SizedBox(width: 75, child: Text('OUTBREAK', style: TextStyle(fontSize: 10, fontWeight: FontWeight.w800, color: GovtColors.textSecondary))),
+                        SizedBox(width: 90, child: Text('LOCATION', style: TextStyle(fontSize: 10, fontWeight: FontWeight.w800, color: GovtColors.textSecondary))),
+                        SizedBox(width: 75, child: Text('DISEASE', style: TextStyle(fontSize: 10, fontWeight: FontWeight.w800, color: GovtColors.textSecondary))),
+                        SizedBox(width: 85, child: Text('RISK', style: TextStyle(fontSize: 10, fontWeight: FontWeight.w800, color: GovtColors.textSecondary))),
+                        SizedBox(width: 60, child: Text('CASES', style: TextStyle(fontSize: 10, fontWeight: FontWeight.w800, color: GovtColors.textSecondary))),
+                        SizedBox(width: 70, child: Text('MORTALITY', style: TextStyle(fontSize: 10, fontWeight: FontWeight.w800, color: GovtColors.textSecondary))),
+                        SizedBox(width: 60, child: Text('TREND', style: TextStyle(fontSize: 10, fontWeight: FontWeight.w800, color: GovtColors.textSecondary))),
+                        Expanded(child: Text('STATUS', style: TextStyle(fontSize: 10, fontWeight: FontWeight.w800, color: GovtColors.textSecondary))),
+                        SizedBox(width: 70, child: Text('ACTION', style: TextStyle(fontSize: 10, fontWeight: FontWeight.w800, color: GovtColors.textSecondary), textAlign: TextAlign.right)),
+                      ],
+                    ),
+                  ),
+                  const SizedBox(height: 4),
+
+                  // Table Rows
+                  ..._outbreaks.map((ob) {
+                    final isCritical = ob.riskLevel == 'CRITICAL';
+                    final isHigh = ob.riskLevel == 'HIGH';
+                    final color = isCritical ? GovtColors.riskCritical : (isHigh ? GovtColors.riskHigh : GovtColors.riskModerate);
+
+                    return InkWell(
+                      onTap: () => _showOutbreakDrawer(ob),
+                      child: Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+                        decoration: const BoxDecoration(
+                          border: Border(bottom: BorderSide(color: GovtColors.divider)),
+                        ),
+                        child: Row(
+                          children: [
+                            SizedBox(width: 75, child: Text(ob.clusterId, style: const TextStyle(fontSize: 11, fontWeight: FontWeight.w800, color: GovtColors.textPrimary))),
+                            SizedBox(width: 90, child: Text(ob.location, style: const TextStyle(fontSize: 11, fontWeight: FontWeight.w600))),
+                            SizedBox(width: 75, child: Text(ob.disease, style: const TextStyle(fontSize: 11, fontWeight: FontWeight.w700, color: GovtColors.brandDark))),
+                            SizedBox(
+                              width: 85,
+                              child: Container(
+                                padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                                decoration: BoxDecoration(color: color.withValues(alpha: 0.12), borderRadius: BorderRadius.circular(4)),
+                                child: Text(ob.riskLevel, style: TextStyle(fontSize: 9, fontWeight: FontWeight.w800, color: color), textAlign: TextAlign.center),
+                              ),
+                            ),
+                            SizedBox(width: 60, child: Text('${ob.cases}', style: const TextStyle(fontSize: 11, fontWeight: FontWeight.w700))),
+                            SizedBox(width: 70, child: Text('${ob.mortality}', style: const TextStyle(fontSize: 11, fontWeight: FontWeight.w700, color: GovtColors.riskCritical))),
+                            SizedBox(width: 60, child: Text(ob.trend, style: TextStyle(fontSize: 11, fontWeight: FontWeight.w800, color: ob.trend.contains('↑') ? GovtColors.riskCritical : GovtColors.riskLow))),
+                            Expanded(child: Text(ob.status, style: const TextStyle(fontSize: 11, fontWeight: FontWeight.w600, color: GovtColors.textSecondary))),
+                            SizedBox(
+                              width: 70,
+                              child: Align(
+                                alignment: Alignment.centerRight,
+                                child: OutlinedButton(
+                                  style: OutlinedButton.styleFrom(
+                                    padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+                                    minimumSize: Size.zero,
+                                    tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                                  ),
+                                  onPressed: () => _showOutbreakDrawer(ob),
+                                  child: const Text('VIEW', style: TextStyle(fontSize: 10, fontWeight: FontWeight.w800)),
+                                ),
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    );
+                  }),
+                ],
+              ),
+            ),
+          ),
         ],
       ),
     );
@@ -649,13 +730,15 @@ class _GovtDashboardScreenState extends State<GovtDashboardScreen>
                 child: Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
-                    Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text('OUTBREAK INTELLIGENCE DOSSIER — ${ob.clusterId}', style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w800, color: Colors.white, letterSpacing: 0.6)),
-                        const SizedBox(height: 2),
-                        Text('${ob.disease} • ${ob.location} District • Risk Score ${ob.riskScore}% (${ob.riskLevel})', style: const TextStyle(fontSize: 11, color: GovtColors.brandLight)),
-                      ],
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text('OUTBREAK INTELLIGENCE DOSSIER — ${ob.clusterId}', style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w800, color: Colors.white, letterSpacing: 0.6), maxLines: 1, overflow: TextOverflow.ellipsis),
+                          const SizedBox(height: 2),
+                          Text('${ob.disease} • ${ob.location} District • Risk Score ${ob.riskScore}% (${ob.riskLevel})', style: const TextStyle(fontSize: 11, color: GovtColors.brandLight), maxLines: 1, overflow: TextOverflow.ellipsis),
+                        ],
+                      ),
                     ),
                     IconButton(
                       icon: const Icon(Icons.close, color: Colors.white, size: 20),
@@ -723,13 +806,16 @@ class _GovtDashboardScreenState extends State<GovtDashboardScreen>
                         child: Row(
                           mainAxisAlignment: MainAxisAlignment.spaceBetween,
                           children: [
-                            Row(
-                              children: [
-                                Icon(isDone ? Icons.check_circle : Icons.radio_button_unchecked, size: 14, color: isDone ? GovtColors.riskLow : GovtColors.warning),
-                                const SizedBox(width: 8),
-                                Text(item.title, style: const TextStyle(fontSize: 11, fontWeight: FontWeight.w600)),
-                              ],
+                            Expanded(
+                              child: Row(
+                                children: [
+                                  Icon(isDone ? Icons.check_circle : Icons.radio_button_unchecked, size: 14, color: isDone ? GovtColors.riskLow : GovtColors.warning),
+                                  const SizedBox(width: 8),
+                                  Expanded(child: Text(item.title, style: const TextStyle(fontSize: 11, fontWeight: FontWeight.w600), maxLines: 1, overflow: TextOverflow.ellipsis)),
+                                ],
+                              ),
                             ),
+                            const SizedBox(width: 8),
                             Container(
                               padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
                               decoration: BoxDecoration(color: isDone ? GovtColors.riskLow.withValues(alpha: 0.1) : GovtColors.warning.withValues(alpha: 0.1), borderRadius: BorderRadius.circular(4)),
@@ -821,17 +907,32 @@ class _GovtDashboardScreenState extends State<GovtDashboardScreen>
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              Wrap(
+                alignment: WrapAlignment.spaceBetween,
+                crossAxisAlignment: WrapCrossAlignment.center,
+                spacing: 8,
+                runSpacing: 8,
                 children: [
-                  const Row(
-                    children: [
-                      Icon(Icons.show_chart_rounded, size: 18, color: GovtColors.brand),
-                      SizedBox(width: 8),
-                      Text('DISEASE CASES OVER TIME', style: TextStyle(fontSize: 13, fontWeight: FontWeight.w800, letterSpacing: 0.6, color: GovtColors.textPrimary)),
-                    ],
+                  ConstrainedBox(
+                    constraints: BoxConstraints(maxWidth: constraints.maxWidth - 32),
+                    child: const Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Icon(Icons.show_chart_rounded, size: 18, color: GovtColors.brand),
+                        SizedBox(width: 8),
+                        Flexible(
+                          child: Text(
+                            'DISEASE CASES OVER TIME',
+                            style: TextStyle(fontSize: 12, fontWeight: FontWeight.w800, color: GovtColors.textPrimary),
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                          ),
+                        ),
+                      ],
+                    ),
                   ),
                   Row(
+                    mainAxisSize: MainAxisSize.min,
                     children: ['7 DAYS', '30 DAYS', '90 DAYS', '1 YEAR'].map((tf) {
                       final isSelected = _selectedTrendTimeframe == tf;
                       return Padding(
@@ -894,7 +995,15 @@ class _GovtDashboardScreenState extends State<GovtDashboardScreen>
               const Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
-                  Text('TOP DISEASES THIS MONTH', style: TextStyle(fontSize: 13, fontWeight: FontWeight.w800, letterSpacing: 0.6, color: GovtColors.textPrimary)),
+                  Expanded(
+                    child: Text(
+                      'TOP DISEASES THIS MONTH',
+                      style: TextStyle(fontSize: 13, fontWeight: FontWeight.w800, letterSpacing: 0.6, color: GovtColors.textPrimary),
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                  ),
+                  SizedBox(width: 8),
                   Text('Proportionate Prevalence', style: TextStyle(fontSize: 10, color: GovtColors.textSecondary)),
                 ],
               ),
@@ -939,7 +1048,15 @@ class _GovtDashboardScreenState extends State<GovtDashboardScreen>
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              Text(name, style: const TextStyle(fontSize: 11, fontWeight: FontWeight.w600, color: GovtColors.textPrimary)),
+              Expanded(
+                child: Text(
+                  name,
+                  style: const TextStyle(fontSize: 11, fontWeight: FontWeight.w600, color: GovtColors.textPrimary),
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                ),
+              ),
+              const SizedBox(width: 8),
               Text('$percent%', style: TextStyle(fontSize: 11, fontWeight: FontWeight.w800, color: color)),
             ],
           ),
@@ -979,14 +1096,24 @@ class _GovtDashboardScreenState extends State<GovtDashboardScreen>
               const Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
-                  Row(
-                    children: [
-                      Icon(Icons.cloud_sync_rounded, size: 18, color: GovtColors.brand),
-                      SizedBox(width: 8),
-                      Text('WEATHER & DISEASE RISK', style: TextStyle(fontSize: 13, fontWeight: FontWeight.w800, letterSpacing: 0.6, color: GovtColors.textPrimary)),
-                    ],
+                  Expanded(
+                    child: Row(
+                      children: [
+                        Icon(Icons.cloud_sync_rounded, size: 18, color: GovtColors.brand),
+                        SizedBox(width: 8),
+                        Expanded(
+                          child: Text(
+                            'WEATHER & DISEASE RISK',
+                            style: TextStyle(fontSize: 13, fontWeight: FontWeight.w800, letterSpacing: 0.6, color: GovtColors.textPrimary),
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                          ),
+                        ),
+                      ],
+                    ),
                   ),
-                  Text('Environmental Surveillance Signal', style: TextStyle(fontSize: 10, color: GovtColors.textSecondary)),
+                  SizedBox(width: 8),
+                  Text('Environmental Signal', style: TextStyle(fontSize: 10, color: GovtColors.textSecondary)),
                 ],
               ),
               const SizedBox(height: 12),
@@ -1034,8 +1161,16 @@ class _GovtDashboardScreenState extends State<GovtDashboardScreen>
               const Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
-                  Text('VACCINATION INTELLIGENCE', style: TextStyle(fontSize: 13, fontWeight: FontWeight.w800, letterSpacing: 0.6, color: GovtColors.textPrimary)),
-                  Text('Coverage: 76.4% • Target: 90%', style: TextStyle(fontSize: 10, fontWeight: FontWeight.w700, color: GovtColors.brand)),
+                  Expanded(
+                    child: Text(
+                      'VACCINATION INTELLIGENCE',
+                      style: TextStyle(fontSize: 13, fontWeight: FontWeight.w800, letterSpacing: 0.6, color: GovtColors.textPrimary),
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                  ),
+                  SizedBox(width: 8),
+                  Text('Coverage: 76.4%', style: TextStyle(fontSize: 10, fontWeight: FontWeight.w700, color: GovtColors.brand)),
                 ],
               ),
               const SizedBox(height: 12),
@@ -1077,13 +1212,16 @@ class _GovtDashboardScreenState extends State<GovtDashboardScreen>
         child: Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
-            Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(district, style: const TextStyle(fontSize: 11, fontWeight: FontWeight.w700, color: GovtColors.textPrimary)),
-                Text(note, style: TextStyle(fontSize: 9, fontWeight: FontWeight.w600, color: color)),
-              ],
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(district, style: const TextStyle(fontSize: 11, fontWeight: FontWeight.w700, color: GovtColors.textPrimary), maxLines: 1, overflow: TextOverflow.ellipsis),
+                  Text(note, style: TextStyle(fontSize: 9, fontWeight: FontWeight.w600, color: color), maxLines: 1, overflow: TextOverflow.ellipsis),
+                ],
+              ),
             ),
+            const SizedBox(width: 8),
             Text(coverage, style: TextStyle(fontSize: 14, fontWeight: FontWeight.w800, color: color)),
           ],
         ),
@@ -1112,20 +1250,27 @@ class _GovtDashboardScreenState extends State<GovtDashboardScreen>
               const Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
-                  Text('LABORATORY MONITORING PIPELINE', style: TextStyle(fontSize: 13, fontWeight: FontWeight.w800, letterSpacing: 0.6, color: GovtColors.textPrimary)),
+                  Expanded(
+                    child: Text(
+                      'LABORATORY MONITORING PIPELINE',
+                      style: TextStyle(fontSize: 13, fontWeight: FontWeight.w800, letterSpacing: 0.6, color: GovtColors.textPrimary),
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                  ),
+                  SizedBox(width: 8),
                   Text('Avg Turnaround: 18 hrs', style: TextStyle(fontSize: 10, fontWeight: FontWeight.w700, color: GovtColors.brand)),
                 ],
               ),
               const SizedBox(height: 12),
               // Lab Pipeline Counts
               Row(
-                mainAxisAlignment: MainAxisAlignment.spaceAround,
                 children: [
-                  _labStatChip('Collected', '128', GovtColors.brand),
-                  _labStatChip('In Transit', '23', GovtColors.info),
-                  _labStatChip('Testing', '41', GovtColors.warning),
-                  _labStatChip('Positive', '18', GovtColors.riskCritical),
-                  _labStatChip('Negative', '46', GovtColors.riskLow),
+                  Expanded(child: _labStatChip('Collected', '128', GovtColors.brand)),
+                  Expanded(child: _labStatChip('In Transit', '23', GovtColors.info)),
+                  Expanded(child: _labStatChip('Testing', '41', GovtColors.warning)),
+                  Expanded(child: _labStatChip('Positive', '18', GovtColors.riskCritical)),
+                  Expanded(child: _labStatChip('Negative', '46', GovtColors.riskLow)),
                 ],
               ),
               const SizedBox(height: 14),
@@ -1133,21 +1278,23 @@ class _GovtDashboardScreenState extends State<GovtDashboardScreen>
               Container(
                 padding: const EdgeInsets.all(8),
                 decoration: BoxDecoration(color: GovtColors.surfaceSubtle, borderRadius: BorderRadius.circular(6)),
-                child: const Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    Text('SUSPECTED', style: TextStyle(fontSize: 9, fontWeight: FontWeight.w800, color: GovtColors.textSecondary)),
-                    Icon(Icons.arrow_forward, size: 10, color: GovtColors.textSecondary),
-                    Text('COLLECTED', style: TextStyle(fontSize: 9, fontWeight: FontWeight.w800, color: GovtColors.brand)),
-                    Icon(Icons.arrow_forward, size: 10, color: GovtColors.textSecondary),
-                    Text('LAB RCVD', style: TextStyle(fontSize: 9, fontWeight: FontWeight.w800, color: GovtColors.info)),
-                    Icon(Icons.arrow_forward, size: 10, color: GovtColors.textSecondary),
-                    Text('TESTING', style: TextStyle(fontSize: 9, fontWeight: FontWeight.w800, color: GovtColors.warning)),
-                    Icon(Icons.arrow_forward, size: 10, color: GovtColors.textSecondary),
-                    Text('RESULT', style: TextStyle(fontSize: 9, fontWeight: FontWeight.w800, color: GovtColors.riskCritical)),
-                    Icon(Icons.arrow_forward, size: 10, color: GovtColors.textSecondary),
-                    Text('ACTION', style: TextStyle(fontSize: 9, fontWeight: FontWeight.w800, color: GovtColors.brandDark)),
-                  ],
+                child: const SingleChildScrollView(
+                  scrollDirection: Axis.horizontal,
+                  child: Row(
+                    children: [
+                      Text('SUSPECTED', style: TextStyle(fontSize: 9, fontWeight: FontWeight.w800, color: GovtColors.textSecondary)),
+                      Padding(padding: EdgeInsets.symmetric(horizontal: 4), child: Icon(Icons.arrow_forward, size: 10, color: GovtColors.textSecondary)),
+                      Text('COLLECTED', style: TextStyle(fontSize: 9, fontWeight: FontWeight.w800, color: GovtColors.brand)),
+                      Padding(padding: EdgeInsets.symmetric(horizontal: 4), child: Icon(Icons.arrow_forward, size: 10, color: GovtColors.textSecondary)),
+                      Text('LAB RCVD', style: TextStyle(fontSize: 9, fontWeight: FontWeight.w800, color: GovtColors.info)),
+                      Padding(padding: EdgeInsets.symmetric(horizontal: 4), child: Icon(Icons.arrow_forward, size: 10, color: GovtColors.textSecondary)),
+                      Text('TESTING', style: TextStyle(fontSize: 9, fontWeight: FontWeight.w800, color: GovtColors.warning)),
+                      Padding(padding: EdgeInsets.symmetric(horizontal: 4), child: Icon(Icons.arrow_forward, size: 10, color: GovtColors.textSecondary)),
+                      Text('RESULT', style: TextStyle(fontSize: 9, fontWeight: FontWeight.w800, color: GovtColors.riskCritical)),
+                      Padding(padding: EdgeInsets.symmetric(horizontal: 4), child: Icon(Icons.arrow_forward, size: 10, color: GovtColors.textSecondary)),
+                      Text('ACTION', style: TextStyle(fontSize: 9, fontWeight: FontWeight.w800, color: GovtColors.brandDark)),
+                    ],
+                  ),
                 ),
               ),
             ],
@@ -1168,18 +1315,25 @@ class _GovtDashboardScreenState extends State<GovtDashboardScreen>
               const Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
-                  Text('FIELD RESPONSE — VETERINARY SQUADS', style: TextStyle(fontSize: 13, fontWeight: FontWeight.w800, letterSpacing: 0.6, color: GovtColors.textPrimary)),
+                  Expanded(
+                    child: Text(
+                      'FIELD RESPONSE — VETERINARY SQUADS',
+                      style: TextStyle(fontSize: 13, fontWeight: FontWeight.w800, letterSpacing: 0.6, color: GovtColors.textPrimary),
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                  ),
+                  SizedBox(width: 8),
                   Text('63 Total Personnel', style: TextStyle(fontSize: 10, color: GovtColors.textSecondary)),
                 ],
               ),
               const SizedBox(height: 12),
               Row(
-                mainAxisAlignment: MainAxisAlignment.spaceAround,
                 children: [
-                  _labStatChip('Available', '12', GovtColors.brand),
-                  _labStatChip('Deployed', '28', GovtColors.info),
-                  _labStatChip('Investigating', '09', GovtColors.riskCritical),
-                  _labStatChip('Vaccinating', '14', GovtColors.warning),
+                  Expanded(child: _labStatChip('Available', '12', GovtColors.brand)),
+                  Expanded(child: _labStatChip('Deployed', '28', GovtColors.info)),
+                  Expanded(child: _labStatChip('Investigating', '09', GovtColors.riskCritical)),
+                  Expanded(child: _labStatChip('Vaccinating', '14', GovtColors.warning)),
                 ],
               ),
               const SizedBox(height: 12),
@@ -1228,11 +1382,29 @@ class _GovtDashboardScreenState extends State<GovtDashboardScreen>
         padding: const EdgeInsets.all(6),
         decoration: BoxDecoration(color: GovtColors.surfaceSubtle, borderRadius: BorderRadius.circular(4)),
         child: Row(
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
-            Text(team, style: const TextStyle(fontSize: 10, fontWeight: FontWeight.w700)),
-            Text(loc, style: const TextStyle(fontSize: 10, color: GovtColors.textSecondary)),
+            Expanded(
+              child: Row(
+                children: [
+                  Flexible(
+                    child: Text(
+                      team,
+                      style: const TextStyle(fontSize: 10, fontWeight: FontWeight.w700),
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                  ),
+                  const SizedBox(width: 4),
+                  Text(
+                    '($loc)',
+                    style: const TextStyle(fontSize: 9, color: GovtColors.textSecondary),
+                  ),
+                ],
+              ),
+            ),
+            const SizedBox(width: 6),
             Row(
+              mainAxisSize: MainAxisSize.min,
               children: [
                 Container(width: 6, height: 6, decoration: BoxDecoration(color: color, shape: BoxShape.circle)),
                 const SizedBox(width: 4),
@@ -1266,11 +1438,14 @@ class _GovtDashboardScreenState extends State<GovtDashboardScreen>
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
-                  Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
-                    decoration: BoxDecoration(color: GovtColors.warningLight, borderRadius: BorderRadius.circular(4)),
-                    child: const Text('⚠ EARLY WARNING #EW-018', style: TextStyle(fontSize: 10, fontWeight: FontWeight.w800, color: GovtColors.warning)),
+                  Flexible(
+                    child: Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                      decoration: BoxDecoration(color: GovtColors.warningLight, borderRadius: BorderRadius.circular(4)),
+                      child: const Text('⚠ EARLY WARNING #EW-018', style: TextStyle(fontSize: 10, fontWeight: FontWeight.w800, color: GovtColors.warning), maxLines: 1, overflow: TextOverflow.ellipsis),
+                    ),
                   ),
+                  const SizedBox(width: 6),
                   const Text('Detected 2 hours ago', style: TextStyle(fontSize: 10, color: GovtColors.textSecondary)),
                 ],
               ),
@@ -1282,8 +1457,10 @@ class _GovtDashboardScreenState extends State<GovtDashboardScreen>
               const Text('• +18% adult dairy cow mortality logged in field registry', style: TextStyle(fontSize: 11)),
               const Text('• -14% vaccination coverage deficit against district mandate', style: TextStyle(fontSize: 11)),
               const SizedBox(height: 10),
-              Row(
-                mainAxisAlignment: MainAxisAlignment.end,
+              Wrap(
+                alignment: WrapAlignment.end,
+                spacing: 8,
+                runSpacing: 6,
                 children: [
                   OutlinedButton(
                     style: OutlinedButton.styleFrom(visualDensity: VisualDensity.compact),
@@ -1292,7 +1469,6 @@ class _GovtDashboardScreenState extends State<GovtDashboardScreen>
                     },
                     child: const Text('Investigate', style: TextStyle(fontSize: 11, fontWeight: FontWeight.w700)),
                   ),
-                  const SizedBox(width: 8),
                   ElevatedButton(
                     style: ElevatedButton.styleFrom(backgroundColor: GovtColors.brand, foregroundColor: Colors.white, visualDensity: VisualDensity.compact),
                     onPressed: () {
@@ -1320,17 +1496,26 @@ class _GovtDashboardScreenState extends State<GovtDashboardScreen>
               const Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
-                  Text('GOVERNMENT ALERT CENTER', style: TextStyle(fontSize: 13, fontWeight: FontWeight.w800, letterSpacing: 0.6, color: GovtColors.textPrimary)),
+                  Expanded(
+                    child: Text(
+                      'GOVERNMENT ALERT CENTER',
+                      style: TextStyle(fontSize: 13, fontWeight: FontWeight.w800, letterSpacing: 0.6, color: GovtColors.textPrimary),
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                  ),
+                  SizedBox(width: 8),
                   Text('Active Feeds', style: TextStyle(fontSize: 10, color: GovtColors.textSecondary)),
                 ],
               ),
               const SizedBox(height: 12),
               Row(
-                mainAxisAlignment: MainAxisAlignment.spaceAround,
                 children: [
-                  _alertBadge('Critical', '6', GovtColors.riskCritical),
-                  _alertBadge('Warning', '14', GovtColors.warning),
-                  _alertBadge('Information', '28', GovtColors.info),
+                  Expanded(child: _alertBadge('Critical', '6', GovtColors.riskCritical)),
+                  const SizedBox(width: 8),
+                  Expanded(child: _alertBadge('Warning', '14', GovtColors.warning)),
+                  const SizedBox(width: 8),
+                  Expanded(child: _alertBadge('Information', '28', GovtColors.info)),
                 ],
               ),
               const SizedBox(height: 12),
@@ -1365,12 +1550,12 @@ class _GovtDashboardScreenState extends State<GovtDashboardScreen>
 
   Widget _alertBadge(String label, String count, Color color) {
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 6),
+      padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 6),
       decoration: BoxDecoration(color: color.withValues(alpha: 0.1), borderRadius: BorderRadius.circular(6), border: Border.all(color: color.withValues(alpha: 0.3))),
       child: Column(
         children: [
           Text(count, style: TextStyle(fontSize: 16, fontWeight: FontWeight.w800, color: color)),
-          Text(label, style: TextStyle(fontSize: 9, fontWeight: FontWeight.w700, color: color)),
+          Text(label, style: TextStyle(fontSize: 9, fontWeight: FontWeight.w700, color: color), maxLines: 1, overflow: TextOverflow.ellipsis),
         ],
       ),
     );
@@ -1420,7 +1605,15 @@ class _GovtDashboardScreenState extends State<GovtDashboardScreen>
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
-                  const Text('RISK INTELLIGENCE ENGINE', style: TextStyle(fontSize: 13, fontWeight: FontWeight.w800, letterSpacing: 0.6, color: GovtColors.textPrimary)),
+                  const Expanded(
+                    child: Text(
+                      'RISK INTELLIGENCE ENGINE',
+                      style: TextStyle(fontSize: 13, fontWeight: FontWeight.w800, letterSpacing: 0.6, color: GovtColors.textPrimary),
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                  ),
+                  const SizedBox(width: 8),
                   Container(
                     padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
                     decoration: BoxDecoration(color: GovtColors.brandLight, borderRadius: BorderRadius.circular(4)),
@@ -1429,7 +1622,8 @@ class _GovtDashboardScreenState extends State<GovtDashboardScreen>
                 ],
               ),
               const SizedBox(height: 8),
-              const Row(
+              const Wrap(
+                crossAxisAlignment: WrapCrossAlignment.center,
                 children: [
                   Text('OVERALL RISK: ', style: TextStyle(fontSize: 12, fontWeight: FontWeight.w600, color: GovtColors.textSecondary)),
                   Text('87% — CRITICAL', style: TextStyle(fontSize: 13, fontWeight: FontWeight.w800, color: GovtColors.riskCritical)),
@@ -1469,7 +1663,15 @@ class _GovtDashboardScreenState extends State<GovtDashboardScreen>
               const Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
-                  Text('GOVERNMENT REPORTING CENTER', style: TextStyle(fontSize: 13, fontWeight: FontWeight.w800, letterSpacing: 0.6, color: GovtColors.textPrimary)),
+                  Expanded(
+                    child: Text(
+                      'GOVERNMENT REPORTING CENTER',
+                      style: TextStyle(fontSize: 13, fontWeight: FontWeight.w800, letterSpacing: 0.6, color: GovtColors.textPrimary),
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                  ),
+                  SizedBox(width: 8),
                   Text('Surveillance Exports', style: TextStyle(fontSize: 10, color: GovtColors.textSecondary)),
                 ],
               ),

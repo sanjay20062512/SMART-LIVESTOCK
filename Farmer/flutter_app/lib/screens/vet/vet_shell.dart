@@ -2,6 +2,7 @@
 
 import 'package:flutter/material.dart';
 import '../../services/farmer_data_service.dart';
+import '../../theme/app_theme.dart';
 import 'vet_dashboard_screen.dart';
 import 'vet_case_queue_screen.dart';
 import 'vet_cluster_screen.dart';
@@ -56,12 +57,12 @@ class _VetShellState extends State<VetShell> {
         children: _pages,
       ),
       floatingActionButton: _refreshing
-          ? const FloatingActionButton(
+          ? FloatingActionButton(
               onPressed: null,
-              backgroundColor: Color(0xFF1565C0),
-              child: SizedBox(
-                width: 24,
-                height: 24,
+              backgroundColor: AppColors.primary,
+              child: const SizedBox(
+                width: 22,
+                height: 22,
                 child: CircularProgressIndicator(
                   color: Colors.white,
                   strokeWidth: 2.5,
@@ -70,32 +71,37 @@ class _VetShellState extends State<VetShell> {
             )
           : FloatingActionButton(
               onPressed: _refresh,
-              backgroundColor: const Color(0xFF1565C0),
+              backgroundColor: AppColors.primary,
               tooltip: 'Refresh cases & alerts',
               child: const Icon(Icons.refresh_rounded, color: Colors.white),
             ),
       bottomNavigationBar: NavigationBar(
         selectedIndex: _selectedIndex,
         onDestinationSelected: (i) => setState(() => _selectedIndex = i),
+        backgroundColor: AppColors.surface,
+        indicatorColor: AppColors.primaryLight,
+        elevation: 3,
+        shadowColor: AppColors.border,
+        surfaceTintColor: Colors.transparent,
         destinations: const [
           NavigationDestination(
             icon: Icon(Icons.dashboard_outlined),
-            selectedIcon: Icon(Icons.dashboard),
+            selectedIcon: Icon(Icons.dashboard_rounded, color: AppColors.primary),
             label: 'Dashboard',
           ),
           NavigationDestination(
             icon: Icon(Icons.queue_outlined),
-            selectedIcon: Icon(Icons.queue),
+            selectedIcon: Icon(Icons.queue_rounded, color: AppColors.primary),
             label: 'Cases',
           ),
           NavigationDestination(
             icon: Icon(Icons.warning_amber_outlined),
-            selectedIcon: Icon(Icons.warning_amber),
+            selectedIcon: Icon(Icons.warning_amber_rounded, color: AppColors.primary),
             label: 'Clusters',
           ),
           NavigationDestination(
             icon: Icon(Icons.vaccines_outlined),
-            selectedIcon: Icon(Icons.vaccines),
+            selectedIcon: Icon(Icons.vaccines_rounded, color: AppColors.primary),
             label: 'Vaccination',
           ),
         ],

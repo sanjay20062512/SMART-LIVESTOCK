@@ -1,8 +1,7 @@
-// Treatment Screen — view treatment records.
-
 import 'package:flutter/material.dart';
 import '../services/farmer_data_service.dart';
 import '../models/treatment_record.dart';
+import '../theme/app_theme.dart';
 
 class TreatmentScreen extends StatefulWidget {
   final FarmerDataService dataService;
@@ -31,13 +30,13 @@ class _TreatmentScreenState extends State<TreatmentScreen> {
   Color _statusColor(TreatmentStatus s) {
     switch (s) {
       case TreatmentStatus.notStarted:
-        return Colors.grey;
+        return AppColors.textTertiary;
       case TreatmentStatus.ongoing:
-        return Colors.blue;
+        return AppColors.info;
       case TreatmentStatus.followUpDue:
-        return Colors.orange;
+        return AppColors.warning;
       case TreatmentStatus.completed:
-        return Colors.green;
+        return AppColors.success;
     }
   }
 
@@ -46,31 +45,60 @@ class _TreatmentScreenState extends State<TreatmentScreen> {
     final treatments = widget.dataService.getTreatments();
 
     return Scaffold(
+      backgroundColor: AppColors.background,
       appBar: AppBar(
         title: const Text(
           'Treatment Records',
-          style: TextStyle(fontWeight: FontWeight.bold),
+          style: TextStyle(
+            fontWeight: FontWeight.w800,
+            fontSize: 18,
+            letterSpacing: -0.2,
+          ),
         ),
+        backgroundColor: AppColors.primaryDark,
+        foregroundColor: Colors.white,
+        elevation: 0,
+        surfaceTintColor: Colors.transparent,
       ),
       body: treatments.isEmpty
-          ? const Center(
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  Icon(Icons.medical_services, size: 56, color: Colors.grey),
-                  SizedBox(height: 16),
-                  Text(
-                    'No treatment records yet.',
-                    style: TextStyle(color: Colors.grey, fontSize: 16),
-                  ),
-                  SizedBox(height: 8),
-                  Text(
-                    'Treatment records are created by the veterinarian\n'
-                    'through the veterinarian module.',
-                    textAlign: TextAlign.center,
-                    style: TextStyle(color: Colors.grey),
-                  ),
-                ],
+          ? Center(
+              child: Padding(
+                padding: const EdgeInsets.all(32),
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Container(
+                      width: 72,
+                      height: 72,
+                      decoration: BoxDecoration(
+                        color: AppColors.surfaceSubtle,
+                        shape: BoxShape.circle,
+                        border: Border.all(color: AppColors.border),
+                      ),
+                      child: const Icon(
+                        Icons.medical_services_outlined,
+                        size: 36,
+                        color: AppColors.textTertiary,
+                      ),
+                    ),
+                    const SizedBox(height: 16),
+                    const Text(
+                      'No treatment records yet',
+                      style: TextStyle(
+                        color: AppColors.textPrimary,
+                        fontSize: 16,
+                        fontWeight: FontWeight.w700,
+                      ),
+                    ),
+                    const SizedBox(height: 8),
+                    const Text(
+                      'Treatment records are created by the veterinarian\n'
+                      'through the veterinarian module.',
+                      textAlign: TextAlign.center,
+                      style: TextStyle(color: AppColors.textSecondary, fontSize: 13, height: 1.4),
+                    ),
+                  ],
+                ),
               ),
             )
           : ListView.builder(
@@ -81,11 +109,12 @@ class _TreatmentScreenState extends State<TreatmentScreen> {
                 final color = _statusColor(t.status);
                 return Card(
                   margin: const EdgeInsets.only(bottom: 12),
+                  elevation: 0,
                   shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(12),
-                    side: BorderSide(
-                        color: color.withValues(alpha: 0.4), width: 1.5),
+                    borderRadius: BorderRadius.circular(AppRadius.card),
+                    side: const BorderSide(color: AppColors.border, width: 1),
                   ),
+                  color: AppColors.surface,
                   child: Padding(
                     padding: const EdgeInsets.all(16),
                     child: Column(
@@ -97,31 +126,36 @@ class _TreatmentScreenState extends State<TreatmentScreen> {
                               child: Text(
                                 t.condition,
                                 style: const TextStyle(
-                                    fontWeight: FontWeight.bold,
-                                    fontSize: 16),
+                                  fontWeight: FontWeight.w800,
+                                  fontSize: 15,
+                                  color: AppColors.textPrimary,
+                                ),
                               ),
                             ),
                             Container(
                               padding: const EdgeInsets.symmetric(
-                                  horizontal: 8, vertical: 4),
+                                  horizontal: 8, vertical: 3),
                               decoration: BoxDecoration(
-                                color: color.withValues(alpha: 0.15),
-                                borderRadius: BorderRadius.circular(8),
+                                color: color.withValues(alpha: 0.12),
+                                borderRadius: BorderRadius.circular(AppRadius.chip),
                               ),
                               child: Text(
                                 t.status.displayName,
                                 style: TextStyle(
-                                    color: color,
-                                    fontWeight: FontWeight.bold,
-                                    fontSize: 12),
+                                  color: color,
+                                  fontWeight: FontWeight.w700,
+                                  fontSize: 11,
+                                ),
                               ),
                             ),
                           ],
                         ),
                         const SizedBox(height: 4),
-                        Text('Animal: ${t.animalTag}',
-                            style: const TextStyle(color: Colors.grey)),
-                        const Divider(height: 20),
+                        Text(
+                          'Animal Tag: ${t.animalTag}',
+                          style: const TextStyle(color: AppColors.textSecondary, fontSize: 12),
+                        ),
+                        const Divider(height: 24, color: AppColors.borderLight),
                         _row('Treatment', t.treatment),
                         _row('Medicine', t.medicine),
                         if (t.veterinarian != null)
@@ -139,20 +173,28 @@ class _TreatmentScreenState extends State<TreatmentScreen> {
                           const SizedBox(height: 12),
                           const Text(
                             'Instructions:',
-                            style: TextStyle(fontWeight: FontWeight.bold),
+                            style: TextStyle(
+                              fontWeight: FontWeight.w700,
+                              fontSize: 12,
+                              color: AppColors.textPrimary,
+                            ),
                           ),
-                          const SizedBox(height: 4),
+                          const SizedBox(height: 6),
                           Container(
+                            width: double.infinity,
                             padding: const EdgeInsets.all(12),
                             decoration: BoxDecoration(
-                              color: Colors.blue.withValues(alpha: 0.05),
-                              borderRadius: BorderRadius.circular(8),
-                              border: Border.all(
-                                  color: Colors.blue.withValues(alpha: 0.2)),
+                              color: AppColors.surfaceSubtle,
+                              borderRadius: BorderRadius.circular(AppRadius.input),
+                              border: Border.all(color: AppColors.border),
                             ),
                             child: Text(
                               t.instructions!,
-                              style: const TextStyle(fontSize: 13),
+                              style: const TextStyle(
+                                fontSize: 13,
+                                color: AppColors.textPrimary,
+                                height: 1.3,
+                              ),
                             ),
                           ),
                         ],
@@ -167,18 +209,24 @@ class _TreatmentScreenState extends State<TreatmentScreen> {
 
   Widget _row(String label, String value) {
     return Padding(
-      padding: const EdgeInsets.only(bottom: 4),
+      padding: const EdgeInsets.only(bottom: 6),
       child: Row(
         children: [
           SizedBox(
-            width: 120,
-            child: Text(label,
-                style: const TextStyle(color: Colors.grey, fontSize: 13)),
+            width: 110,
+            child: Text(
+              label,
+              style: const TextStyle(color: AppColors.textSecondary, fontSize: 13),
+            ),
           ),
           Expanded(
             child: Text(
               value,
-              style: const TextStyle(fontWeight: FontWeight.w500, fontSize: 13),
+              style: const TextStyle(
+                fontWeight: FontWeight.w600,
+                fontSize: 13,
+                color: AppColors.textPrimary,
+              ),
             ),
           ),
         ],

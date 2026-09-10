@@ -1,8 +1,7 @@
-// Veterinary Cluster Screen — view possible outbreak clusters, create clusters, and escalate
-
 import 'package:flutter/material.dart';
 import '../../services/farmer_data_service.dart';
 import '../../models/cluster.dart';
+import '../../theme/app_theme.dart';
 
 class VetClusterScreen extends StatefulWidget {
   final FarmerDataService dataService;
@@ -71,24 +70,33 @@ class _VetClusterScreenState extends State<VetClusterScreen> {
         );
 
         return Scaffold(
-          backgroundColor: const Color(0xFFF0F4FF),
+          backgroundColor: AppColors.background,
           appBar: AppBar(
-            title: const Text('Possible Clusters', style: TextStyle(fontWeight: FontWeight.bold)),
-            backgroundColor: Colors.deepOrange,
+            title: const Text(
+              'Possible Clusters',
+              style: TextStyle(
+                fontWeight: FontWeight.w800,
+                fontSize: 18,
+                letterSpacing: -0.2,
+              ),
+            ),
+            backgroundColor: AppColors.primaryDark,
             foregroundColor: Colors.white,
+            elevation: 0,
+            surfaceTintColor: Colors.transparent,
             actions: [
               Padding(
                 padding: const EdgeInsets.only(right: 12),
                 child: ElevatedButton.icon(
                   style: ElevatedButton.styleFrom(
                     backgroundColor: Colors.white,
-                    foregroundColor: Colors.deepOrange,
+                    foregroundColor: AppColors.primaryDark,
                     elevation: 0,
                     padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(AppRadius.button)),
                   ),
-                  icon: const Icon(Icons.add_location_alt_rounded, size: 18),
-                  label: const Text('Create Cluster', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 13)),
+                  icon: const Icon(Icons.add_location_alt_rounded, size: 16),
+                  label: const Text('Create Cluster', style: TextStyle(fontWeight: FontWeight.w700, fontSize: 12)),
                   onPressed: () => _openCreateClusterModal(context),
                 ),
               ),
@@ -98,20 +106,20 @@ class _VetClusterScreenState extends State<VetClusterScreen> {
             children: [
               // Top KPI Summary Cards & Filters Container
               Container(
-                color: Colors.white,
-                padding: const EdgeInsets.fromLTRB(16, 16, 16, 12),
+                color: AppColors.surface,
+                padding: const EdgeInsets.fromLTRB(16, 14, 16, 12),
                 child: Column(
                   children: [
                     // Summary KPI Cards Row
                     Row(
                       children: [
-                        _summaryKpiCard('Total Clusters', totalCount.toString(), Colors.blueGrey, const Color(0xFFECEFF1)),
+                        _summaryKpiCard('Total Clusters', totalCount.toString(), AppColors.primary, AppColors.surfaceSubtle),
                         const SizedBox(width: 8),
-                        _summaryKpiCard('High Risk', highCount.toString(), const Color(0xFFB71C1C), const Color(0xFFFFEBEE)),
+                        _summaryKpiCard('High Risk', highCount.toString(), AppColors.riskCritical, AppColors.errorLight),
                         const SizedBox(width: 8),
-                        _summaryKpiCard('Medium Risk', mediumCount.toString(), const Color(0xFFE65100), const Color(0xFFFFF3E0)),
+                        _summaryKpiCard('Medium Risk', mediumCount.toString(), AppColors.riskMedium, AppColors.warningLight),
                         const SizedBox(width: 8),
-                        _summaryKpiCard('Low Risk', lowCount.toString(), const Color(0xFF2E7D32), const Color(0xFFE8F5E9)),
+                        _summaryKpiCard('Low Risk', lowCount.toString(), AppColors.riskLow, AppColors.successLight),
                       ],
                     ),
 

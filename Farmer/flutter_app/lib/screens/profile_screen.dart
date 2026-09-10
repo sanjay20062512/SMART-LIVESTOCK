@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import '../services/farmer_data_service.dart';
 import '../services/localization_service.dart';
 import '../models/vet_visit.dart';
+import '../theme/app_theme.dart';
 import 'language_selection_screen.dart';
 
 class ProfileScreen extends StatefulWidget {
@@ -302,17 +303,22 @@ class _ProfileScreenState extends State<ProfileScreen> {
   @override
   Widget build(BuildContext context) {
     final profile = widget.dataService.profile;
-    final primary = Theme.of(context).colorScheme.primary;
     final visits = widget.dataService.getFarmerVisits();
 
     return Scaffold(
-      backgroundColor: const Color(0xFFF7FAF7),
+      backgroundColor: AppColors.background,
       appBar: AppBar(
-        backgroundColor: Colors.white,
+        backgroundColor: AppColors.primaryDark,
+        foregroundColor: Colors.white,
+        surfaceTintColor: Colors.transparent,
         elevation: 0,
         title: const Text(
           'Farmer Profile',
-          style: TextStyle(fontWeight: FontWeight.bold, fontSize: 20),
+          style: TextStyle(
+            fontWeight: FontWeight.w800,
+            fontSize: 18,
+            letterSpacing: -0.2,
+          ),
         ),
       ),
       body: SingleChildScrollView(
@@ -325,11 +331,12 @@ class _ProfileScreenState extends State<ProfileScreen> {
               padding: const EdgeInsets.all(20),
               decoration: BoxDecoration(
                 gradient: const LinearGradient(
-                  colors: [Color(0xFF1B5E20), Color(0xFF2E7D32)],
+                  colors: [AppColors.primaryDark, AppColors.primary],
                   begin: Alignment.topLeft,
                   end: Alignment.bottomRight,
                 ),
-                borderRadius: BorderRadius.circular(18),
+                borderRadius: BorderRadius.circular(AppRadius.banner),
+                boxShadow: AppShadows.card,
               ),
               child: Row(
                 children: [
@@ -338,7 +345,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                     backgroundColor: Colors.white,
                     child: Text(
                       profile.fullName.isNotEmpty ? profile.fullName[0].toUpperCase() : 'F',
-                      style: TextStyle(fontSize: 28, fontWeight: FontWeight.bold, color: primary),
+                      style: const TextStyle(fontSize: 28, fontWeight: FontWeight.w800, color: AppColors.primaryDark),
                     ),
                   ),
                   const SizedBox(width: 16),
@@ -348,18 +355,18 @@ class _ProfileScreenState extends State<ProfileScreen> {
                       children: [
                         Text(
                           profile.fullName,
-                          style: const TextStyle(color: Colors.white, fontSize: 20, fontWeight: FontWeight.bold),
+                          style: const TextStyle(color: Colors.white, fontSize: 18, fontWeight: FontWeight.w800),
                         ),
-                        const SizedBox(height: 2),
+                        const SizedBox(height: 3),
                         Text(
                           '📱 ${profile.mobileNumber}',
-                          style: const TextStyle(color: Colors.white70, fontSize: 14),
+                          style: TextStyle(color: Colors.white.withValues(alpha: 0.85), fontSize: 13),
                         ),
                         if (profile.farmName != null) ...[
                           const SizedBox(height: 2),
                           Text(
                             '🏡 ${profile.farmName}',
-                            style: const TextStyle(color: Colors.white70, fontSize: 13),
+                            style: TextStyle(color: Colors.white.withValues(alpha: 0.85), fontSize: 13),
                           ),
                         ],
                       ],
@@ -368,14 +375,18 @@ class _ProfileScreenState extends State<ProfileScreen> {
                 ],
               ),
             ),
-            const SizedBox(height: 18),
+            const SizedBox(height: 16),
 
             // ==============================================================
             // SECTION 1 — FARMER DETAILS
             // ==============================================================
             Card(
-              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-              elevation: 2,
+              elevation: 0,
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(AppRadius.card),
+                side: const BorderSide(color: AppColors.border, width: 1),
+              ),
+              color: AppColors.surface,
               child: Padding(
                 padding: const EdgeInsets.all(18),
                 child: Column(
@@ -384,24 +395,24 @@ class _ProfileScreenState extends State<ProfileScreen> {
                     Row(
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
-                        Row(
+                        const Row(
                           children: [
-                            Icon(Icons.person_rounded, color: primary, size: 22),
-                            const SizedBox(width: 8),
-                            const Text(
+                            Icon(Icons.person_rounded, color: AppColors.primary, size: 20),
+                            SizedBox(width: 8),
+                            Text(
                               'SECTION 1 — FARMER DETAILS',
-                              style: TextStyle(fontWeight: FontWeight.bold, fontSize: 14, letterSpacing: 0.5),
+                              style: TextStyle(fontWeight: FontWeight.w800, fontSize: 12, letterSpacing: 0.5, color: AppColors.textPrimary),
                             ),
                           ],
                         ),
                         TextButton.icon(
-                          icon: const Icon(Icons.edit_rounded, size: 16),
-                          label: const Text('Edit'),
+                          icon: const Icon(Icons.edit_rounded, size: 15, color: AppColors.primary),
+                          label: const Text('Edit', style: TextStyle(color: AppColors.primary, fontWeight: FontWeight.w700)),
                           onPressed: _editFarmerDetails,
                         ),
                       ],
                     ),
-                    const Divider(height: 16),
+                    const Divider(height: 16, color: AppColors.borderLight),
                     _buildRow('Name', profile.fullName),
                     _buildRow('Mobile', profile.mobileNumber),
                     _buildRow('Email', profile.email ?? '—'),
@@ -410,14 +421,18 @@ class _ProfileScreenState extends State<ProfileScreen> {
                 ),
               ),
             ),
-            const SizedBox(height: 16),
+            const SizedBox(height: 14),
 
             // ==============================================================
             // SECTION 2 — FARM DETAILS
             // ==============================================================
             Card(
-              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-              elevation: 2,
+              elevation: 0,
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(AppRadius.card),
+                side: const BorderSide(color: AppColors.border, width: 1),
+              ),
+              color: AppColors.surface,
               child: Padding(
                 padding: const EdgeInsets.all(18),
                 child: Column(
@@ -426,24 +441,24 @@ class _ProfileScreenState extends State<ProfileScreen> {
                     Row(
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
-                        Row(
+                        const Row(
                           children: [
-                            Icon(Icons.agriculture_rounded, color: primary, size: 22),
-                            const SizedBox(width: 8),
-                            const Text(
+                            Icon(Icons.agriculture_rounded, color: AppColors.primary, size: 20),
+                            SizedBox(width: 8),
+                            Text(
                               'SECTION 2 — FARM DETAILS',
-                              style: TextStyle(fontWeight: FontWeight.bold, fontSize: 14, letterSpacing: 0.5),
+                              style: TextStyle(fontWeight: FontWeight.w800, fontSize: 12, letterSpacing: 0.5, color: AppColors.textPrimary),
                             ),
                           ],
                         ),
                         TextButton.icon(
-                          icon: const Icon(Icons.edit_rounded, size: 16),
-                          label: const Text('Edit'),
+                          icon: const Icon(Icons.edit_rounded, size: 15, color: AppColors.primary),
+                          label: const Text('Edit', style: TextStyle(color: AppColors.primary, fontWeight: FontWeight.w700)),
                           onPressed: _editFarmDetails,
                         ),
                       ],
                     ),
-                    const Divider(height: 16),
+                    const Divider(height: 16, color: AppColors.borderLight),
                     _buildRow('Farm Name', profile.farmName ?? '—'),
                     _buildRow('Farm Size', '${profile.farmSize ?? "—"} ${profile.farmSizeUnit ?? "Acres"}'),
                     _buildRow('Location Mode', profile.farmLocationMode ?? '📍 Current Location'),
@@ -456,14 +471,18 @@ class _ProfileScreenState extends State<ProfileScreen> {
                 ),
               ),
             ),
-            const SizedBox(height: 18),
+            const SizedBox(height: 14),
 
             // ==============================================================
             // SECTION 3 — SCHEDULED VET VISITS & APPOINTMENTS
             // ==============================================================
             Card(
-              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-              elevation: 2,
+              elevation: 0,
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(AppRadius.card),
+                side: const BorderSide(color: AppColors.border, width: 1),
+              ),
+              color: AppColors.surface,
               child: Padding(
                 padding: const EdgeInsets.all(18),
                 child: Column(
@@ -472,93 +491,97 @@ class _ProfileScreenState extends State<ProfileScreen> {
                     Row(
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
-                        Row(
+                        const Row(
                           children: [
-                            Icon(Icons.calendar_month_rounded, color: primary, size: 22),
-                            const SizedBox(width: 8),
-                            const Text(
+                            Icon(Icons.calendar_month_rounded, color: AppColors.primary, size: 20),
+                            SizedBox(width: 8),
+                            Text(
                               'SECTION 3 — SCHEDULED VET VISITS',
-                              style: TextStyle(fontWeight: FontWeight.bold, fontSize: 14, letterSpacing: 0.5),
+                              style: TextStyle(fontWeight: FontWeight.w800, fontSize: 12, letterSpacing: 0.5, color: AppColors.textPrimary),
                             ),
                           ],
                         ),
                         Container(
-                          padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 3),
+                          padding: const EdgeInsets.symmetric(horizontal: 9, vertical: 3),
                           decoration: BoxDecoration(
-                            color: visits.isNotEmpty ? Colors.blue.shade50 : Colors.grey.shade100,
-                            borderRadius: BorderRadius.circular(12),
-                            border: Border.all(color: visits.isNotEmpty ? Colors.blue.shade200 : Colors.grey.shade300),
+                            color: visits.isNotEmpty ? AppColors.primaryLight : AppColors.surfaceSubtle,
+                            borderRadius: BorderRadius.circular(AppRadius.chip),
+                            border: Border.all(color: visits.isNotEmpty ? AppColors.primary.withValues(alpha: 0.3) : AppColors.border),
                           ),
                           child: Text(
                             '${visits.length} Visit${visits.length == 1 ? "" : "s"}',
                             style: TextStyle(
-                              fontSize: 12,
-                              fontWeight: FontWeight.bold,
-                              color: visits.isNotEmpty ? const Color(0xFF1565C0) : Colors.grey.shade600,
+                              fontSize: 11,
+                              fontWeight: FontWeight.w700,
+                              color: visits.isNotEmpty ? AppColors.primary : AppColors.textSecondary,
                             ),
                           ),
                         ),
                       ],
                     ),
-                    const Divider(height: 16),
+                    const Divider(height: 16, color: AppColors.borderLight),
                     if (visits.isEmpty)
                       Container(
                         padding: const EdgeInsets.symmetric(vertical: 20, horizontal: 12),
                         alignment: Alignment.center,
-                        child: Column(
+                        child: const Column(
                           children: [
-                            Icon(Icons.event_available_outlined, size: 36, color: Colors.grey.shade400),
-                            const SizedBox(height: 8),
-                            const Text(
+                            Icon(Icons.event_available_outlined, size: 36, color: AppColors.textTertiary),
+                            SizedBox(height: 8),
+                            Text(
                               'No vet visits scheduled yet',
-                              style: TextStyle(color: Colors.grey, fontWeight: FontWeight.w600, fontSize: 14),
+                              style: TextStyle(color: AppColors.textPrimary, fontWeight: FontWeight.w700, fontSize: 14),
                             ),
-                            const SizedBox(height: 4),
+                            SizedBox(height: 4),
                             Text(
                               'When a veterinarian accepts your case and schedules a visit, details and dates will appear here.',
                               textAlign: TextAlign.center,
-                              style: TextStyle(color: Colors.grey.shade500, fontSize: 12),
+                              style: TextStyle(color: AppColors.textSecondary, fontSize: 12),
                             ),
                           ],
                         ),
                       )
                     else
-                      ...visits.map((v) => _buildVisitItem(v, primary)),
+                      ...visits.map((v) => _buildVisitItem(v, AppColors.primary)),
                   ],
                 ),
               ),
             ),
-            const SizedBox(height: 18),
+            const SizedBox(height: 14),
 
             // Demo Actions & Logout
             Card(
-              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-              elevation: 2,
+              elevation: 0,
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(AppRadius.card),
+                side: const BorderSide(color: AppColors.border, width: 1),
+              ),
+              color: AppColors.surface,
               child: Column(
                 children: [
                   ListTile(
                     leading: const CircleAvatar(
-                      backgroundColor: Color(0xFFE8F5E9),
-                      child: Icon(Icons.science_rounded, color: Color(0xFF2E7D32)),
+                      backgroundColor: AppColors.primaryLight,
+                      child: Icon(Icons.science_rounded, color: AppColors.primary),
                     ),
-                    title: const Text('Load Demo Records', style: TextStyle(fontWeight: FontWeight.bold)),
-                    subtitle: const Text('Populate animals and alerts for testing', style: TextStyle(fontSize: 12)),
-                    trailing: const Icon(Icons.chevron_right_rounded),
+                    title: const Text('Load Demo Records', style: TextStyle(fontWeight: FontWeight.w700, fontSize: 14)),
+                    subtitle: const Text('Populate animals and alerts for testing', style: TextStyle(fontSize: 12, color: AppColors.textSecondary)),
+                    trailing: const Icon(Icons.chevron_right_rounded, color: AppColors.textTertiary),
                     onTap: () {
                       widget.dataService.seedDemoData(force: true);
                       ScaffoldMessenger.of(context).showSnackBar(
-                        const SnackBar(content: Text('✓ Demo data loaded.'), backgroundColor: Colors.green),
+                        const SnackBar(content: Text('✓ Demo data loaded.'), backgroundColor: AppColors.success),
                       );
                     },
                   ),
-                  const Divider(height: 1),
+                  const Divider(height: 1, color: AppColors.borderLight),
                   ListTile(
-                    leading: CircleAvatar(
-                      backgroundColor: Colors.red.shade50,
-                      child: const Icon(Icons.logout_rounded, color: Colors.red),
+                    leading: const CircleAvatar(
+                      backgroundColor: AppColors.errorLight,
+                      child: Icon(Icons.logout_rounded, color: AppColors.error),
                     ),
-                    title: const Text('Logout', style: TextStyle(color: Colors.red, fontWeight: FontWeight.bold)),
-                    trailing: const Icon(Icons.chevron_right_rounded, color: Colors.grey),
+                    title: const Text('Logout', style: TextStyle(color: AppColors.error, fontWeight: FontWeight.w700, fontSize: 14)),
+                    trailing: const Icon(Icons.chevron_right_rounded, color: AppColors.textTertiary),
                     onTap: _logout,
                   ),
                 ],

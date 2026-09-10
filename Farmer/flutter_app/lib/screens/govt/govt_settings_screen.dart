@@ -37,19 +37,19 @@ class _GovtSettingsScreenState extends State<GovtSettingsScreen> {
             flexibleSpace: FlexibleSpaceBar(
               background: Container(
                 color: GovtColors.brand,
-                padding: const EdgeInsets.fromLTRB(16, 60, 16, 16),
+                padding: const EdgeInsets.fromLTRB(16, 36, 16, 12),
                 child: Row(
                   crossAxisAlignment: CrossAxisAlignment.end,
                   children: [
                     Container(
-                      width: 64,
-                      height: 64,
+                      width: 56,
+                      height: 56,
                       decoration: BoxDecoration(
                         color: Colors.white.withValues(alpha: 0.15),
                         borderRadius: GovtRadius.lgRadius,
                       ),
                       child: const Center(
-                        child: Text('KM', style: TextStyle(fontSize: 22, fontWeight: FontWeight.w800, color: Colors.white)),
+                        child: Text('KM', style: TextStyle(fontSize: 20, fontWeight: FontWeight.w800, color: Colors.white)),
                       ),
                     ),
                     const SizedBox(width: 14),
@@ -57,12 +57,13 @@ class _GovtSettingsScreenState extends State<GovtSettingsScreen> {
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         mainAxisAlignment: MainAxisAlignment.end,
+                        mainAxisSize: MainAxisSize.min,
                         children: [
-                          Text('Dr. K. Murugan', style: TextStyle(fontSize: 18, fontWeight: FontWeight.w700, color: Colors.white)),
+                          Text('Dr. K. Murugan', style: TextStyle(fontSize: 17, fontWeight: FontWeight.w700, color: Colors.white), maxLines: 1, overflow: TextOverflow.ellipsis),
                           SizedBox(height: 2),
-                          Text('District Animal Husbandry Officer', style: TextStyle(fontSize: 12, color: Colors.white70)),
+                          Text('District Animal Husbandry Officer', style: TextStyle(fontSize: 12, color: Colors.white70), maxLines: 1, overflow: TextOverflow.ellipsis),
                           SizedBox(height: 2),
-                          Text('Dept. of Animal Husbandry · Erode', style: TextStyle(fontSize: 11, color: Colors.white54)),
+                          Text('Dept. of Animal Husbandry · Erode', style: TextStyle(fontSize: 11, color: Colors.white54), maxLines: 1, overflow: TextOverflow.ellipsis),
                         ],
                       ),
                     ),

@@ -59,7 +59,7 @@ class _GovtVaccinationScreenState extends State<GovtVaccinationScreen> {
                     physics: const NeverScrollableScrollPhysics(),
                     crossAxisSpacing: 10,
                     mainAxisSpacing: 10,
-                    childAspectRatio: 1.65,
+                    childAspectRatio: 1.25,
                     children: [
                       GovernmentMetricCard(label: 'ELIGIBLE ANIMALS', value: '${(totalTarget / 1000).toStringAsFixed(0)}K', icon: Icons.pets_rounded, color: GovtColors.textPrimary),
                       GovernmentMetricCard(label: 'VACCINATED', value: '${(totalVaccinated / 1000).toStringAsFixed(0)}K', icon: Icons.vaccines_rounded, color: GovtColors.success),
@@ -101,9 +101,9 @@ class _GovtVaccinationScreenState extends State<GovtVaccinationScreen> {
                               const SizedBox(height: 6),
                               Row(
                                 children: [
-                                  Text('$totalVaccinated vaccinated', style: const TextStyle(fontSize: 11, color: GovtColors.success)),
-                                  const Spacer(),
-                                  Text('${totalTarget - totalVaccinated} pending', style: const TextStyle(fontSize: 11, color: GovtColors.warning)),
+                                  Flexible(child: Text('$totalVaccinated vaccinated', style: const TextStyle(fontSize: 11, color: GovtColors.success), overflow: TextOverflow.ellipsis)),
+                                  const SizedBox(width: 8),
+                                  Flexible(child: Text('${totalTarget - totalVaccinated} pending', style: const TextStyle(fontSize: 11, color: GovtColors.warning), overflow: TextOverflow.ellipsis)),
                                 ],
                               ),
                             ],
@@ -210,9 +210,9 @@ class _GovtVaccinationScreenState extends State<GovtVaccinationScreen> {
                 const SizedBox(height: 6),
                 Row(
                   children: [
-                    Text('${c.vaccinatedAnimals.toString().padLeft(5)} vaccinated', style: const TextStyle(fontSize: 11, color: GovtColors.success)),
-                    const Spacer(),
-                    Text('${c.pendingAnimals} pending', style: const TextStyle(fontSize: 11, color: GovtColors.warning)),
+                    Flexible(child: Text('${c.vaccinatedAnimals.toString().padLeft(5)} vaccinated', style: const TextStyle(fontSize: 11, color: GovtColors.success), overflow: TextOverflow.ellipsis)),
+                    const SizedBox(width: 8),
+                    Flexible(child: Text('${c.pendingAnimals} pending', style: const TextStyle(fontSize: 11, color: GovtColors.warning), overflow: TextOverflow.ellipsis)),
                   ],
                 ),
                 const SizedBox(height: 10),
@@ -220,8 +220,8 @@ class _GovtVaccinationScreenState extends State<GovtVaccinationScreen> {
                   children: [
                     const Icon(Icons.calendar_today_rounded, size: 12, color: GovtColors.textDisabled),
                     const SizedBox(width: 4),
-                    Text('${_fmt(c.startDate)} – ${_fmt(c.endDate)}', style: GovtTypography.caption),
-                    const Spacer(),
+                    Flexible(child: Text('${_fmt(c.startDate)} – ${_fmt(c.endDate)}', style: GovtTypography.caption, overflow: TextOverflow.ellipsis)),
+                    const SizedBox(width: 8),
                     Text('VIEW DETAILS →', style: TextStyle(fontSize: 11, fontWeight: FontWeight.w700, color: statusColor)),
                   ],
                 ),

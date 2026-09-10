@@ -6,6 +6,7 @@ import 'package:flutter/material.dart';
 import '../services/farmer_data_service.dart';
 import '../services/localization_service.dart';
 import '../models/dashboard_stats.dart';
+import '../theme/app_theme.dart';
 import 'symptom_report_screen.dart';
 import 'vet_request_screen.dart';
 
@@ -28,27 +29,30 @@ class FarmerDashboard extends StatelessWidget {
     final colorScheme = theme.colorScheme;
 
     return Scaffold(
-      backgroundColor: const Color(0xFFF7FAF7),
+      backgroundColor: AppColors.background,
       appBar: AppBar(
-        backgroundColor: Colors.white,
+        backgroundColor: AppColors.surface,
         elevation: 0,
+        scrolledUnderElevation: 1,
+        shadowColor: AppColors.border,
         title: Row(
           children: [
             Container(
-              padding: const EdgeInsets.all(6),
+              padding: const EdgeInsets.all(7),
               decoration: BoxDecoration(
-                color: colorScheme.primaryContainer,
-                borderRadius: BorderRadius.circular(10),
+                color: AppColors.primaryLight,
+                borderRadius: AppRadius.smRadius,
               ),
-              child: Icon(Icons.agriculture_rounded, color: colorScheme.primary, size: 24),
+              child: const Icon(Icons.agriculture_rounded, color: AppColors.primary, size: 22),
             ),
             const SizedBox(width: 10),
             Text(
               context.tr('app_title'),
-              style: TextStyle(
-                fontWeight: FontWeight.bold,
-                fontSize: 20,
-                color: colorScheme.primary,
+              style: const TextStyle(
+                fontWeight: FontWeight.w800,
+                fontSize: 19,
+                color: AppColors.primary,
+                letterSpacing: -0.3,
               ),
             ),
           ],
@@ -56,48 +60,49 @@ class FarmerDashboard extends StatelessWidget {
         actions: [
           // Online Indicator
           Container(
-            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+            margin: const EdgeInsets.only(right: 4),
             decoration: BoxDecoration(
-              color: Colors.green.shade50,
-              borderRadius: BorderRadius.circular(20),
-              border: Border.all(color: Colors.green.shade300),
+              color: AppColors.successLight,
+              borderRadius: AppRadius.fullRadius,
+              border: Border.all(color: AppColors.success.withValues(alpha: 0.35)),
             ),
             child: Row(
               mainAxisSize: MainAxisSize.min,
               children: [
                 Container(
-                  width: 8,
-                  height: 8,
+                  width: 7,
+                  height: 7,
                   decoration: const BoxDecoration(
-                    color: Colors.green,
+                    color: AppColors.success,
                     shape: BoxShape.circle,
                   ),
                 ),
-                const SizedBox(width: 6),
+                const SizedBox(width: 5),
                 Text(
                   context.tr('online'),
-                  style: TextStyle(
-                    fontSize: 12,
-                    fontWeight: FontWeight.bold,
-                    color: Colors.green.shade900,
+                  style: const TextStyle(
+                    fontSize: 11,
+                    fontWeight: FontWeight.w700,
+                    color: AppColors.successDark,
                   ),
                 ),
               ],
             ),
           ),
-          const SizedBox(width: 8),
 
           // Alerts Icon with Badge
           IconButton(
             icon: Badge(
               isLabelVisible: dataService.unreadAlertCount > 0,
               label: Text('${dataService.unreadAlertCount}'),
-              child: const Icon(Icons.notifications_outlined, size: 26),
+              backgroundColor: AppColors.error,
+              child: const Icon(Icons.notifications_outlined, size: 24, color: AppColors.textSecondary),
             ),
             tooltip: context.tr('alerts'),
             onPressed: () => onNavigateToTab(3),
           ),
-          const SizedBox(width: 8),
+          const SizedBox(width: 4),
         ],
       ),
       body: SingleChildScrollView(
@@ -159,28 +164,28 @@ class FarmerDashboard extends StatelessWidget {
 
   Widget _buildWelcomeHeader(BuildContext context, String name, String? farmName, ColorScheme colorScheme) {
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 16),
+      padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 18),
       decoration: BoxDecoration(
         gradient: const LinearGradient(
-          colors: [Color(0xFF1B5E20), Color(0xFF2E7D32)],
+          colors: [AppColors.primary, AppColors.primaryDark],
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
         ),
-        borderRadius: BorderRadius.circular(18),
-        boxShadow: [
-          BoxShadow(
-            color: const Color(0xFF2E7D32).withValues(alpha: 0.25),
-            blurRadius: 12,
-            offset: const Offset(0, 4),
-          ),
-        ],
+        borderRadius: AppRadius.lgRadius,
+        boxShadow: AppShadows.primaryShadow(AppColors.primary),
       ),
       child: Row(
         children: [
-          CircleAvatar(
-            radius: 26,
-            backgroundColor: Colors.white.withValues(alpha: 0.2),
-            child: const Text('👨‍🌾', style: TextStyle(fontSize: 28)),
+          Container(
+            width: 52,
+            height: 52,
+            decoration: BoxDecoration(
+              color: Colors.white.withValues(alpha: 0.18),
+              borderRadius: AppRadius.smRadius,
+            ),
+            child: const Center(
+              child: Text('👨‍🌾', style: TextStyle(fontSize: 28)),
+            ),
           ),
           const SizedBox(width: 14),
           Expanded(
@@ -191,17 +196,35 @@ class FarmerDashboard extends StatelessWidget {
                   context.tr('hello_farmer', params: {'name': name}),
                   style: const TextStyle(
                     color: Colors.white,
-                    fontSize: 20,
-                    fontWeight: FontWeight.bold,
+                    fontSize: 19,
+                    fontWeight: FontWeight.w800,
+                    letterSpacing: -0.2,
                   ),
                 ),
                 if (farmName != null && farmName.isNotEmpty) ...[
-                  const SizedBox(height: 2),
+                  const SizedBox(height: 3),
                   Text(
                     farmName,
-                    style: const TextStyle(color: Colors.white70, fontSize: 13),
+                    style: TextStyle(
+                      color: Colors.white.withValues(alpha: 0.75),
+                      fontSize: 13,
+                    ),
                   ),
                 ],
+              ],
+            ),
+          ),
+          Container(
+            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+            decoration: BoxDecoration(
+              color: Colors.white.withValues(alpha: 0.18),
+              borderRadius: AppRadius.smRadius,
+            ),
+            child: const Column(
+              children: [
+                Icon(Icons.wb_sunny_outlined, color: Colors.white, size: 16),
+                SizedBox(height: 2),
+                Text('Today', style: TextStyle(color: Colors.white70, fontSize: 10, fontWeight: FontWeight.w600)),
               ],
             ),
           ),
@@ -210,24 +233,23 @@ class FarmerDashboard extends StatelessWidget {
     );
   }
 
-  // Giant, high-contrast button for farmers
+  // Giant, high-contrast button for farmers — intentionally red for emergency visibility
   Widget _buildGiantReportButton(BuildContext context) {
-    return Container(
-      decoration: BoxDecoration(
-        borderRadius: BorderRadius.circular(22),
-        boxShadow: [
-          BoxShadow(
-            color: const Color(0xFFD32F2F).withValues(alpha: 0.3),
-            blurRadius: 16,
-            offset: const Offset(0, 6),
+    return Material(
+      color: Colors.transparent,
+      borderRadius: AppRadius.lgRadius,
+      child: Ink(
+        decoration: BoxDecoration(
+          gradient: const LinearGradient(
+            colors: [AppColors.farmerEmergency, Color(0xFFB71C1C)],
+            begin: Alignment.topLeft,
+            end: Alignment.bottomRight,
           ),
-        ],
-      ),
-      child: Material(
-        color: const Color(0xFFC62828), // High visibility deep red/orange
-        borderRadius: BorderRadius.circular(22),
+          borderRadius: AppRadius.lgRadius,
+          boxShadow: AppShadows.primaryShadow(AppColors.farmerEmergency),
+        ),
         child: InkWell(
-          borderRadius: BorderRadius.circular(22),
+          borderRadius: AppRadius.lgRadius,
           onTap: () {
             Navigator.push(
               context,
@@ -241,15 +263,18 @@ class FarmerDashboard extends StatelessWidget {
             child: Row(
               children: [
                 Container(
-                  padding: const EdgeInsets.all(12),
+                  width: 60,
+                  height: 60,
                   decoration: BoxDecoration(
                     color: Colors.white,
-                    borderRadius: BorderRadius.circular(16),
+                    borderRadius: AppRadius.smRadius,
                   ),
-                  child: const Icon(
-                    Icons.medical_services_rounded,
-                    color: Color(0xFFC62828),
-                    size: 36,
+                  child: const Center(
+                    child: Icon(
+                      Icons.medical_services_rounded,
+                      color: AppColors.farmerEmergency,
+                      size: 32,
+                    ),
                   ),
                 ),
                 const SizedBox(width: 16),
@@ -263,21 +288,31 @@ class FarmerDashboard extends StatelessWidget {
                           color: Colors.white,
                           fontSize: 18,
                           fontWeight: FontWeight.w900,
-                          letterSpacing: 0.5,
+                          letterSpacing: -0.2,
                         ),
                       ),
-                      const SizedBox(height: 4),
+                      const SizedBox(height: 5),
                       const Text(
                         'Tap here to describe symptoms & get advice',
-                        style: TextStyle(color: Colors.white70, fontSize: 12.5),
+                        style: TextStyle(color: Colors.white70, fontSize: 12.5, height: 1.3),
                       ),
                     ],
                   ),
                 ),
-                const Icon(
-                  Icons.arrow_forward_ios_rounded,
-                  color: Colors.white,
-                  size: 22,
+                Container(
+                  width: 36,
+                  height: 36,
+                  decoration: BoxDecoration(
+                    color: Colors.white.withValues(alpha: 0.2),
+                    borderRadius: AppRadius.xsRadius,
+                  ),
+                  child: const Center(
+                    child: Icon(
+                      Icons.arrow_forward_ios_rounded,
+                      color: Colors.white,
+                      size: 16,
+                    ),
+                  ),
                 ),
               ],
             ),
@@ -330,32 +365,45 @@ class FarmerDashboard extends StatelessWidget {
     required Color color,
     required VoidCallback onTap,
   }) {
-    return Card(
-      elevation: 2,
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-      child: InkWell(
-        borderRadius: BorderRadius.circular(16),
-        onTap: onTap,
-        child: Padding(
-          padding: const EdgeInsets.symmetric(vertical: 16, horizontal: 12),
-          child: Column(
-            children: [
-              CircleAvatar(
-                radius: 22,
-                backgroundColor: color.withValues(alpha: 0.12),
-                child: Icon(icon, color: color, size: 24),
-              ),
-              const SizedBox(height: 10),
-              Text(
-                title,
-                textAlign: TextAlign.center,
-                style: TextStyle(
-                  fontWeight: FontWeight.bold,
-                  fontSize: 13.5,
-                  color: color,
+    return Container(
+      decoration: BoxDecoration(
+        color: AppColors.surface,
+        borderRadius: AppRadius.mdRadius,
+        border: Border.all(color: AppColors.border),
+        boxShadow: AppShadows.cardShadow,
+      ),
+      child: Material(
+        color: Colors.transparent,
+        borderRadius: AppRadius.mdRadius,
+        child: InkWell(
+          borderRadius: AppRadius.mdRadius,
+          onTap: onTap,
+          child: Padding(
+            padding: const EdgeInsets.symmetric(vertical: 18, horizontal: 12),
+            child: Column(
+              children: [
+                Container(
+                  width: 48,
+                  height: 48,
+                  decoration: BoxDecoration(
+                    color: color.withValues(alpha: 0.10),
+                    borderRadius: AppRadius.smRadius,
+                  ),
+                  child: Center(child: Icon(icon, color: color, size: 24)),
                 ),
-              ),
-            ],
+                const SizedBox(height: 10),
+                Text(
+                  title,
+                  textAlign: TextAlign.center,
+                  style: TextStyle(
+                    fontWeight: FontWeight.w700,
+                    fontSize: 13,
+                    color: color,
+                    height: 1.3,
+                  ),
+                ),
+              ],
+            ),
           ),
         ),
       ),
@@ -405,17 +453,25 @@ class FarmerDashboard extends StatelessWidget {
     required IconData icon,
     required Color color,
   }) {
-    return Card(
-      elevation: 1.5,
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
+    return Container(
+      decoration: BoxDecoration(
+        color: AppColors.surface,
+        borderRadius: AppRadius.mdRadius,
+        border: Border.all(color: color.withValues(alpha: 0.18)),
+        boxShadow: AppShadows.cardShadow,
+      ),
       child: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
         child: Row(
           children: [
-            CircleAvatar(
-              radius: 18,
-              backgroundColor: color.withValues(alpha: 0.15),
-              child: Icon(icon, color: color, size: 18),
+            Container(
+              width: 40,
+              height: 40,
+              decoration: BoxDecoration(
+                color: color.withValues(alpha: 0.10),
+                borderRadius: AppRadius.smRadius,
+              ),
+              child: Center(child: Icon(icon, color: color, size: 20)),
             ),
             const SizedBox(width: 12),
             Expanded(
@@ -426,16 +482,21 @@ class FarmerDashboard extends StatelessWidget {
                   Text(
                     value,
                     style: TextStyle(
-                      fontSize: 22,
+                      fontSize: 24,
                       fontWeight: FontWeight.w900,
                       color: color,
+                      letterSpacing: -0.5,
                     ),
                   ),
                   Text(
                     label,
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
-                    style: const TextStyle(fontSize: 11.5, color: Colors.grey, fontWeight: FontWeight.w500),
+                    style: const TextStyle(
+                      fontSize: 11,
+                      color: AppColors.textMuted,
+                      fontWeight: FontWeight.w500,
+                    ),
                   ),
                 ],
               ),
@@ -448,18 +509,31 @@ class FarmerDashboard extends StatelessWidget {
 
   Widget _buildRecentActivityList(BuildContext context, List<Map<String, dynamic>> activity) {
     if (activity.isEmpty) {
-      return Card(
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+      return Container(
+        decoration: BoxDecoration(
+          color: AppColors.surface,
+          borderRadius: AppRadius.mdRadius,
+          border: Border.all(color: AppColors.border),
+        ),
         child: const Padding(
-          padding: EdgeInsets.all(24),
+          padding: EdgeInsets.all(28),
           child: Center(
             child: Column(
               children: [
-                Icon(Icons.history_rounded, size: 36, color: Colors.grey),
-                SizedBox(height: 8),
+                Icon(Icons.history_rounded, size: 40, color: AppColors.textDisabled),
+                SizedBox(height: 10),
                 Text(
                   'No recent reports or actions yet.',
-                  style: TextStyle(color: Colors.grey),
+                  style: TextStyle(
+                    color: AppColors.textMuted,
+                    fontSize: 14,
+                    fontWeight: FontWeight.w500,
+                  ),
+                ),
+                SizedBox(height: 4),
+                Text(
+                  'Use the Report button above to get started.',
+                  style: TextStyle(color: AppColors.textDisabled, fontSize: 12),
                 ),
               ],
             ),
@@ -468,48 +542,75 @@ class FarmerDashboard extends StatelessWidget {
       );
     }
 
-    return Card(
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-      elevation: 1.5,
+    return Container(
+      decoration: BoxDecoration(
+        color: AppColors.surface,
+        borderRadius: AppRadius.mdRadius,
+        border: Border.all(color: AppColors.border),
+        boxShadow: AppShadows.cardShadow,
+      ),
       child: Column(
         children: activity.asMap().entries.map((entry) {
           final item = entry.value;
           final isLast = entry.key == activity.length - 1;
           final type = item['type'] as String;
 
-          Color iconColor = Colors.green;
+          Color iconColor = AppColors.success;
           IconData iconData = Icons.pets_rounded;
 
           if (type == 'health_report') {
-            iconColor = Colors.orange.shade800;
+            iconColor = AppColors.warning;
             iconData = Icons.medical_services_rounded;
           } else if (type == 'mortality_report') {
-            iconColor = Colors.red.shade900;
+            iconColor = AppColors.error;
             iconData = Icons.warning_rounded;
           } else if (type == 'vet_request') {
-            iconColor = Colors.blue.shade800;
+            iconColor = AppColors.info;
             iconData = Icons.local_hospital_rounded;
           }
 
           return Column(
             children: [
               ListTile(
-                leading: CircleAvatar(
-                  backgroundColor: iconColor.withValues(alpha: 0.15),
-                  child: Icon(iconData, color: iconColor, size: 20),
+                contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
+                leading: Container(
+                  width: 40,
+                  height: 40,
+                  decoration: BoxDecoration(
+                    color: iconColor.withValues(alpha: 0.12),
+                    borderRadius: AppRadius.smRadius,
+                  ),
+                  child: Center(child: Icon(iconData, color: iconColor, size: 20)),
                 ),
                 title: Text(
                   item['title'] as String,
-                  style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 14),
+                  style: const TextStyle(
+                    fontWeight: FontWeight.w700,
+                    fontSize: 14,
+                    color: AppColors.textPrimary,
+                  ),
                 ),
                 subtitle: Text(
                   item['subtitle'] as String,
-                  style: const TextStyle(fontSize: 12.5),
+                  style: const TextStyle(
+                    fontSize: 12,
+                    color: AppColors.textSecondary,
+                  ),
                 ),
-                trailing: const Icon(Icons.chevron_right_rounded, color: Colors.grey),
+                trailing: Container(
+                  width: 28,
+                  height: 28,
+                  decoration: BoxDecoration(
+                    color: AppColors.surfaceSubtle,
+                    borderRadius: AppRadius.xsRadius,
+                  ),
+                  child: const Center(
+                    child: Icon(Icons.chevron_right_rounded, color: AppColors.textMuted, size: 18),
+                  ),
+                ),
                 onTap: () => onNavigateToTab(1),
               ),
-              if (!isLast) const Divider(height: 1, indent: 64, endIndent: 16),
+              if (!isLast) const Divider(height: 1, indent: 72, endIndent: 16, color: AppColors.divider),
             ],
           );
         }).toList(),

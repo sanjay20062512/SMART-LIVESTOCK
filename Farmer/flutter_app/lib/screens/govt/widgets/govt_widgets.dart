@@ -31,7 +31,7 @@ class GovernmentMetricCard extends StatelessWidget {
     return GestureDetector(
       onTap: onTap,
       child: Container(
-        padding: GovtSpacing.cardPadding,
+        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
         decoration: BoxDecoration(
           color: GovtColors.surface,
           borderRadius: GovtRadius.lgRadius,
@@ -42,17 +42,18 @@ class GovernmentMetricCard extends StatelessWidget {
         ),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
                 Container(
-                  padding: const EdgeInsets.all(8),
+                  padding: const EdgeInsets.all(6),
                   decoration: BoxDecoration(
                     color: (bgColor ?? color).withValues(alpha: 0.12),
                     borderRadius: GovtRadius.smRadius,
                   ),
-                  child: Icon(icon, size: 18, color: color),
+                  child: Icon(icon, size: 16, color: color),
                 ),
                 if (change != null)
                   Container(
@@ -76,10 +77,22 @@ class GovernmentMetricCard extends StatelessWidget {
                   ),
               ],
             ),
-            const SizedBox(height: 12),
-            Text(value, style: GovtTypography.metricValue.copyWith(color: color)),
+            const SizedBox(height: 6),
+            Flexible(
+              child: Text(
+                value,
+                style: GovtTypography.metricValue.copyWith(color: color),
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+              ),
+            ),
             const SizedBox(height: 2),
-            Text(label, style: GovtTypography.metricLabel),
+            Text(
+              label,
+              style: GovtTypography.metricLabel,
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+            ),
           ],
         ),
       ),
@@ -746,14 +759,20 @@ class DistrictRiskMapCanvas extends StatelessWidget {
       child: Container(
         height: 220,
         color: const Color(0xFFEDF4F2),
-        child: CustomPaint(
-          painter: _MapPainter(riskZones: riskZones),
-          child: Positioned(
-            bottom: 0,
-            left: 0,
-            right: 0,
-            child: _mapLegend(),
-          ),
+        child: Stack(
+          children: [
+            Positioned.fill(
+              child: CustomPaint(
+                painter: _MapPainter(riskZones: riskZones),
+              ),
+            ),
+            Positioned(
+              bottom: 0,
+              left: 0,
+              right: 0,
+              child: _mapLegend(),
+            ),
+          ],
         ),
       ),
     );
@@ -954,11 +973,18 @@ class GovtButton extends StatelessWidget {
         children: [
           Icon(icon, size: 16, color: c),
           const SizedBox(width: 6),
-          Text(label, style: GovtTypography.buttonText.copyWith(color: c)),
+          Flexible(
+            child: Text(
+              label,
+              style: GovtTypography.buttonText.copyWith(color: c),
+              overflow: TextOverflow.ellipsis,
+              maxLines: 1,
+            ),
+          ),
         ],
       );
     }
-    return Text(label, style: GovtTypography.buttonText.copyWith(color: c));
+    return Text(label, style: GovtTypography.buttonText.copyWith(color: c), overflow: TextOverflow.ellipsis, maxLines: 1);
   }
 }
 
@@ -980,7 +1006,10 @@ class GovtSectionCard extends StatelessWidget {
         border: Border.all(color: GovtColors.border),
         boxShadow: const [BoxShadow(color: GovtColors.shadow, blurRadius: 8, offset: Offset(0, 2))],
       ),
-      child: child,
+      child: Material(
+        color: Colors.transparent,
+        child: child,
+      ),
     );
   }
 }

@@ -5,6 +5,7 @@ import '../screens/my_reports_screen.dart';
 import '../screens/report_hub_screen.dart';
 import '../screens/alerts_screen.dart';
 import '../screens/profile_screen.dart';
+import '../theme/app_theme.dart';
 
 class FarmerShell extends StatefulWidget {
   final FarmerDataService dataService;
@@ -64,45 +65,53 @@ class _FarmerShellState extends State<FarmerShell> {
         children: tabs,
       ),
       bottomNavigationBar: NavigationBar(
-        selectedIndex: _currentIndex,
-        onDestinationSelected: (index) =>
-            setState(() => _currentIndex = index),
-        destinations: [
-          const NavigationDestination(
-            icon: Icon(Icons.home_outlined),
-            selectedIcon: Icon(Icons.home_rounded),
-            label: 'Home',
-          ),
-          const NavigationDestination(
-            icon: Icon(Icons.folder_shared_outlined),
-            selectedIcon: Icon(Icons.folder_shared_rounded),
-            label: 'My Cases',
-          ),
-          const NavigationDestination(
-            icon: Icon(Icons.add_circle_outline_rounded),
-            selectedIcon: Icon(Icons.add_circle_rounded),
-            label: 'Report',
-          ),
-          NavigationDestination(
-            icon: Badge(
-              isLabelVisible: unread > 0,
-              label: Text('$unread'),
-              child: const Icon(Icons.notifications_outlined),
+          selectedIndex: _currentIndex,
+          onDestinationSelected: (index) =>
+              setState(() => _currentIndex = index),
+          backgroundColor: AppColors.surface,
+          indicatorColor: AppColors.primaryLight,
+          elevation: 3,
+          shadowColor: AppColors.border,
+          surfaceTintColor: Colors.transparent,
+          labelBehavior: NavigationDestinationLabelBehavior.alwaysShow,
+          destinations: [
+            const NavigationDestination(
+              icon: Icon(Icons.home_outlined),
+              selectedIcon: Icon(Icons.home_rounded, color: AppColors.primary),
+              label: 'Home',
             ),
-            selectedIcon: Badge(
-              isLabelVisible: unread > 0,
-              label: Text('$unread'),
-              child: const Icon(Icons.notifications_rounded),
+            const NavigationDestination(
+              icon: Icon(Icons.folder_shared_outlined),
+              selectedIcon: Icon(Icons.folder_shared_rounded, color: AppColors.primary),
+              label: 'My Cases',
             ),
-            label: 'Alerts',
-          ),
-          const NavigationDestination(
-            icon: Icon(Icons.person_outline_rounded),
-            selectedIcon: Icon(Icons.person_rounded),
-            label: 'Profile',
-          ),
-        ],
-      ),
+            const NavigationDestination(
+              icon: Icon(Icons.add_circle_outline_rounded),
+              selectedIcon: Icon(Icons.add_circle_rounded, color: AppColors.primary),
+              label: 'Report',
+            ),
+            NavigationDestination(
+              icon: Badge(
+                isLabelVisible: unread > 0,
+                label: Text('$unread'),
+                backgroundColor: AppColors.error,
+                child: const Icon(Icons.notifications_outlined),
+              ),
+              selectedIcon: Badge(
+                isLabelVisible: unread > 0,
+                label: Text('$unread'),
+                backgroundColor: AppColors.error,
+                child: const Icon(Icons.notifications_rounded, color: AppColors.primary),
+              ),
+              label: 'Alerts',
+            ),
+            const NavigationDestination(
+              icon: Icon(Icons.person_outline_rounded),
+              selectedIcon: Icon(Icons.person_rounded, color: AppColors.primary),
+              label: 'Profile',
+            ),
+          ],
+        ),
     );
   }
 }

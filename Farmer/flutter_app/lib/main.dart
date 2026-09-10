@@ -2,6 +2,7 @@
 // Pashu Seva - Animal Health Surveillance System.
 
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'services/farmer_data_service.dart';
 import 'services/localization_service.dart';
 import 'widgets/farmer_shell.dart';
@@ -9,8 +10,16 @@ import 'screens/registration_screen.dart';
 import 'screens/language_selection_screen.dart';
 import 'screens/vet/vet_shell.dart';
 import 'screens/govt/govt_shell.dart';
+import 'theme/app_theme.dart';
 
 void main() {
+  WidgetsFlutterBinding.ensureInitialized();
+  SystemChrome.setSystemUIOverlayStyle(
+    const SystemUiOverlayStyle(
+      statusBarColor: Colors.transparent,
+      statusBarIconBrightness: Brightness.dark,
+    ),
+  );
   runApp(FarmerApp());
 }
 
@@ -51,44 +60,7 @@ class _FarmerAppState extends State<FarmerApp> {
     return MaterialApp(
       debugShowCheckedModeBanner: false,
       title: 'Smart Livestock',
-      theme: ThemeData(
-        colorScheme: ColorScheme.fromSeed(
-          seedColor: const Color(0xFF2E7D32),
-          brightness: Brightness.light,
-        ),
-        useMaterial3: true,
-        fontFamily: 'Roboto',
-        cardTheme: CardThemeData(
-          elevation: 2,
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(16),
-          ),
-        ),
-        elevatedButtonTheme: ElevatedButtonThemeData(
-          style: ElevatedButton.styleFrom(
-            elevation: 2,
-            shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(14),
-            ),
-          ),
-        ),
-        inputDecorationTheme: InputDecorationTheme(
-          filled: true,
-          fillColor: Colors.grey.shade50,
-          border: OutlineInputBorder(
-            borderRadius: BorderRadius.circular(14),
-            borderSide: BorderSide(color: Colors.grey.shade300),
-          ),
-          enabledBorder: OutlineInputBorder(
-            borderRadius: BorderRadius.circular(14),
-            borderSide: BorderSide(color: Colors.grey.shade300),
-          ),
-          focusedBorder: OutlineInputBorder(
-            borderRadius: BorderRadius.circular(14),
-            borderSide: const BorderSide(color: Color(0xFF2E7D32), width: 2),
-          ),
-        ),
-      ),
+      theme: AppTheme.light(),
       home: RoleSelectionScreen(dataService: widget.dataService),
     );
   }
@@ -103,142 +75,191 @@ class RoleSelectionScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xFF0D1B2A),
+      backgroundColor: const Color(0xFF0A1628),
       body: SafeArea(
         child: SingleChildScrollView(
-          padding: const EdgeInsets.all(24),
+          padding: const EdgeInsets.symmetric(horizontal: 22, vertical: 24),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
-              const SizedBox(height: 20),
-
-              // Logo
-              Center(
-                child: Container(
-                  padding: const EdgeInsets.all(20),
-                  decoration: BoxDecoration(
-                    color: const Color(0xFF1B4332).withValues(alpha: 0.8),
-                    shape: BoxShape.circle,
-                    boxShadow: [
-                      BoxShadow(
-                        color: const Color(0xFF2D6A4F).withValues(alpha: 0.4),
-                        blurRadius: 24,
-                        spreadRadius: 4,
-                      ),
-                    ],
-                  ),
-                  child: const Icon(Icons.agriculture_rounded, size: 60, color: Color(0xFF52B788)),
-                ),
-              ),
-
-              const SizedBox(height: 20),
-
-              const Center(
-                child: Text(
-                  'Smart Livestock',
-                  style: TextStyle(
-                    color: Colors.white,
-                    fontSize: 28,
-                    fontWeight: FontWeight.bold,
-                    letterSpacing: 0.5,
-                  ),
-                ),
-              ),
-              const Center(
-                child: Text(
-                  'Health Surveillance System',
-                  style: TextStyle(color: Color(0xFF74B49B), fontSize: 14),
-                ),
-              ),
-
-              const SizedBox(height: 36),
-
-              const Center(
-                child: Text(
-                  'SELECT YOUR ROLE',
-                  style: TextStyle(
-                    color: Color(0xFF74B49B),
-                    fontSize: 13,
-                    fontWeight: FontWeight.bold,
-                    letterSpacing: 2,
-                  ),
-                ),
-              ),
-
               const SizedBox(height: 16),
 
-              // Farmer role
-              _roleCard(
-                context,
-                icon: Icons.person_rounded,
-                title: 'Farmer',
-                subtitle: 'Report animal problems, track cases, receive advisories',
-                color: const Color(0xFF2E7D32),
-                accentColor: const Color(0xFF52B788),
-                demoHint: 'Demo: Any mobile + any password',
-                onTap: () => _goFarmer(context),
-              ),
-
-              const SizedBox(height: 14),
-
-              // Veterinarian role
-              _roleCard(
-                context,
-                icon: Icons.medical_services_rounded,
-                title: 'Veterinarian',
-                subtitle: 'Review cases, schedule visits, collect samples, manage treatments',
-                color: const Color(0xFF1565C0),
-                accentColor: const Color(0xFF42A5F5),
-                demoHint: 'Demo: Dr. Rajesh Kumar · VET001',
-                onTap: () => _goVet(context),
-              ),
-
-              const SizedBox(height: 14),
-
-              // Government role
-              _roleCard(
-                context,
-                icon: Icons.account_balance_rounded,
-                title: 'Government',
-                subtitle: 'Surveillance dashboard, cluster detection, advisories, response',
-                color: const Color(0xFF4A148C),
-                accentColor: const Color(0xFFCE93D8),
-                demoHint: 'Demo: District Animal Husbandry Officer',
-                onTap: () => _goGovt(context),
-              ),
-
-              const SizedBox(height: 32),
-
-              // SIH info
-              Container(
-                padding: const EdgeInsets.all(14),
-                decoration: BoxDecoration(
-                  color: Colors.white.withValues(alpha: 0.06),
-                  borderRadius: BorderRadius.circular(12),
-                  border: Border.all(color: Colors.white.withValues(alpha: 0.1)),
-                ),
-                child: const Column(
+              // ── App Logo & Brand ─────────────────────────────────────────
+              Center(
+                child: Column(
                   children: [
-                    Text(
-                      '⚡ DEMO MODE',
-                      style: TextStyle(
-                          color: Color(0xFF52B788),
-                          fontWeight: FontWeight.bold,
-                          fontSize: 12,
-                          letterSpacing: 1),
+                    // Logo container
+                    Container(
+                      width: 88,
+                      height: 88,
+                      decoration: BoxDecoration(
+                        gradient: const LinearGradient(
+                          colors: [AppColors.primary, AppColors.primaryDark],
+                          begin: Alignment.topLeft,
+                          end: Alignment.bottomRight,
+                        ),
+                        borderRadius: AppRadius.lgRadius,
+                        boxShadow: [
+                          BoxShadow(
+                            color: AppColors.primary.withValues(alpha: 0.45),
+                            blurRadius: 28,
+                            spreadRadius: 2,
+                            offset: const Offset(0, 8),
+                          ),
+                        ],
+                      ),
+                      child: const Center(
+                        child: Icon(
+                          Icons.agriculture_rounded,
+                          size: 48,
+                          color: Colors.white,
+                        ),
+                      ),
                     ),
-                    SizedBox(height: 6),
-                    Text(
-                      'This prototype uses in-memory demo data to demonstrate '
-                      'the complete data flow: Farmer → Vet → Government → Farmer.',
-                      textAlign: TextAlign.center,
-                      style: TextStyle(color: Colors.white54, fontSize: 11, height: 1.4),
+                    const SizedBox(height: 18),
+                    const Text(
+                      'Smart Livestock',
+                      style: TextStyle(
+                        color: Colors.white,
+                        fontSize: 28,
+                        fontWeight: FontWeight.w800,
+                        letterSpacing: -0.5,
+                      ),
+                    ),
+                    const SizedBox(height: 6),
+                    Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
+                      decoration: BoxDecoration(
+                        color: AppColors.primary.withValues(alpha: 0.18),
+                        borderRadius: AppRadius.fullRadius,
+                        border: Border.all(
+                          color: AppColors.primary.withValues(alpha: 0.35),
+                        ),
+                      ),
+                      child: const Text(
+                        'Animal Health Surveillance System',
+                        style: TextStyle(
+                          color: AppColors.primaryLight,
+                          fontSize: 12,
+                          fontWeight: FontWeight.w500,
+                          letterSpacing: 0.3,
+                        ),
+                      ),
                     ),
                   ],
                 ),
               ),
 
-              const SizedBox(height: 20),
+              const SizedBox(height: 36),
+
+              // ── Role Selection Label ──────────────────────────────────────
+              const Padding(
+                padding: EdgeInsets.only(left: 2, bottom: 12),
+                child: Text(
+                  'SELECT YOUR ROLE',
+                  style: TextStyle(
+                    color: AppColors.primaryLight,
+                    fontSize: 11,
+                    fontWeight: FontWeight.w700,
+                    letterSpacing: 2.5,
+                  ),
+                ),
+              ),
+
+              // ── Farmer role card ─────────────────────────────────────────
+              _roleCard(
+                context,
+                icon: Icons.agriculture_rounded,
+                title: 'Farmer',
+                subtitle: 'Report animal problems, track cases, receive advisories',
+                gradient: const LinearGradient(
+                  colors: [Color(0xFF0D9488), Color(0xFF0F766E)],
+                  begin: Alignment.topLeft,
+                  end: Alignment.bottomRight,
+                ),
+                accentColor: AppColors.primaryLight,
+                demoHint: 'Demo: Any mobile + any password',
+                onTap: () => _goFarmer(context),
+              ),
+
+              const SizedBox(height: 12),
+
+              // ── Veterinarian role card ────────────────────────────────────
+              _roleCard(
+                context,
+                icon: Icons.medical_services_rounded,
+                title: 'Veterinarian',
+                subtitle: 'Review cases, schedule visits, collect samples, manage treatments',
+                gradient: const LinearGradient(
+                  colors: [Color(0xFF1E40AF), Color(0xFF1E3A8A)],
+                  begin: Alignment.topLeft,
+                  end: Alignment.bottomRight,
+                ),
+                accentColor: const Color(0xFFBFDBFE),
+                demoHint: 'Demo: Dr. Rajesh Kumar · VET001',
+                onTap: () => _goVet(context),
+              ),
+
+              const SizedBox(height: 12),
+
+              // ── Government role card ──────────────────────────────────────
+              _roleCard(
+                context,
+                icon: Icons.account_balance_rounded,
+                title: 'Government',
+                subtitle: 'Surveillance dashboard, cluster detection, advisories, response',
+                gradient: const LinearGradient(
+                  colors: [Color(0xFF0B192C), Color(0xFF132743)],
+                  begin: Alignment.topLeft,
+                  end: Alignment.bottomRight,
+                ),
+                accentColor: const Color(0xFF93C5FD),
+                demoHint: 'Demo: District Animal Husbandry Officer',
+                onTap: () => _goGovt(context),
+              ),
+
+              const SizedBox(height: 28),
+
+              // ── Demo mode notice ─────────────────────────────────────────
+              Container(
+                padding: const EdgeInsets.all(14),
+                decoration: BoxDecoration(
+                  color: Colors.white.withValues(alpha: 0.05),
+                  borderRadius: AppRadius.smRadius,
+                  border: Border.all(
+                    color: Colors.white.withValues(alpha: 0.10),
+                  ),
+                ),
+                child: Row(
+                  children: [
+                    Container(
+                      padding: const EdgeInsets.all(6),
+                      decoration: BoxDecoration(
+                        color: AppColors.primary.withValues(alpha: 0.2),
+                        borderRadius: AppRadius.xsRadius,
+                      ),
+                      child: const Icon(
+                        Icons.info_outline_rounded,
+                        size: 16,
+                        color: AppColors.primaryLight,
+                      ),
+                    ),
+                    const SizedBox(width: 10),
+                    const Expanded(
+                      child: Text(
+                        'Demo mode — in-memory data demonstrates the complete Farmer → Vet → Government → Farmer data flow.',
+                        style: TextStyle(
+                          color: Colors.white54,
+                          fontSize: 11.5,
+                          height: 1.5,
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+
+              const SizedBox(height: 24),
             ],
           ),
         ),
@@ -251,71 +272,102 @@ class RoleSelectionScreen extends StatelessWidget {
     required IconData icon,
     required String title,
     required String subtitle,
-    required Color color,
+    required Gradient gradient,
     required Color accentColor,
     required String demoHint,
     required VoidCallback onTap,
   }) {
     return Material(
-      borderRadius: BorderRadius.circular(18),
+      borderRadius: AppRadius.lgRadius,
       color: Colors.transparent,
       child: InkWell(
-        borderRadius: BorderRadius.circular(18),
+        borderRadius: AppRadius.lgRadius,
         onTap: onTap,
-        child: Container(
-          padding: const EdgeInsets.all(18),
+        child: Ink(
           decoration: BoxDecoration(
-            gradient: LinearGradient(
-              colors: [color.withValues(alpha: 0.9), color.withValues(alpha: 0.7)],
-              begin: Alignment.topLeft,
-              end: Alignment.bottomRight,
+            gradient: gradient,
+            borderRadius: AppRadius.lgRadius,
+            border: Border.all(
+              color: Colors.white.withValues(alpha: 0.10),
             ),
-            borderRadius: BorderRadius.circular(18),
-            border: Border.all(color: accentColor.withValues(alpha: 0.3)),
-            boxShadow: [
-              BoxShadow(
-                color: color.withValues(alpha: 0.4),
-                blurRadius: 12,
-                offset: const Offset(0, 4),
-              ),
-            ],
           ),
-          child: Row(
-            children: [
-              Container(
-                padding: const EdgeInsets.all(12),
-                decoration: BoxDecoration(
-                  color: Colors.white.withValues(alpha: 0.15),
-                  shape: BoxShape.circle,
+          child: Padding(
+            padding: const EdgeInsets.all(18),
+            child: Row(
+              children: [
+                // Icon container
+                Container(
+                  width: 52,
+                  height: 52,
+                  decoration: BoxDecoration(
+                    color: Colors.white.withValues(alpha: 0.15),
+                    borderRadius: AppRadius.smRadius,
+                  ),
+                  child: Center(
+                    child: Icon(icon, size: 26, color: Colors.white),
+                  ),
                 ),
-                child: Icon(icon, size: 28, color: Colors.white),
-              ),
-              const SizedBox(width: 16),
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(title,
+                const SizedBox(width: 14),
+                // Text content
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        title,
                         style: const TextStyle(
-                            color: Colors.white, fontSize: 19, fontWeight: FontWeight.bold)),
-                    const SizedBox(height: 3),
-                    Text(subtitle,
-                        style: const TextStyle(color: Colors.white70, fontSize: 12, height: 1.3)),
-                    const SizedBox(height: 6),
-                    Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
-                      decoration: BoxDecoration(
-                        color: Colors.black.withValues(alpha: 0.2),
-                        borderRadius: BorderRadius.circular(6),
+                          color: Colors.white,
+                          fontSize: 17,
+                          fontWeight: FontWeight.w700,
+                          letterSpacing: -0.2,
+                        ),
                       ),
-                      child: Text(demoHint,
-                          style: TextStyle(color: accentColor, fontSize: 10)),
-                    ),
-                  ],
+                      const SizedBox(height: 3),
+                      Text(
+                        subtitle,
+                        style: TextStyle(
+                          color: Colors.white.withValues(alpha: 0.7),
+                          fontSize: 12,
+                          height: 1.4,
+                        ),
+                      ),
+                      const SizedBox(height: 8),
+                      Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                        decoration: BoxDecoration(
+                          color: Colors.black.withValues(alpha: 0.22),
+                          borderRadius: AppRadius.xsRadius,
+                        ),
+                        child: Text(
+                          demoHint,
+                          style: TextStyle(
+                            color: accentColor,
+                            fontSize: 10.5,
+                            fontWeight: FontWeight.w500,
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
                 ),
-              ),
-              const Icon(Icons.arrow_forward_ios, color: Colors.white54, size: 18),
-            ],
+                const SizedBox(width: 8),
+                Container(
+                  width: 28,
+                  height: 28,
+                  decoration: BoxDecoration(
+                    color: Colors.white.withValues(alpha: 0.12),
+                    borderRadius: AppRadius.xsRadius,
+                  ),
+                  child: const Center(
+                    child: Icon(
+                      Icons.arrow_forward_ios_rounded,
+                      color: Colors.white70,
+                      size: 14,
+                    ),
+                  ),
+                ),
+              ],
+            ),
           ),
         ),
       ),
@@ -405,8 +457,13 @@ class __VetLoginScreenState extends State<_VetLoginScreen> {
   Widget build(BuildContext context) {
     return _loginScaffold(
       context,
-      color: const Color(0xFF1565C0),
-      emoji: '👨‍⚕️',
+      accentColor: AppColors.vetAccent,
+      headerGradient: const LinearGradient(
+        colors: [Color(0xFF1E40AF), Color(0xFF1E3A8A)],
+        begin: Alignment.topLeft,
+        end: Alignment.bottomRight,
+      ),
+      icon: Icons.medical_services_rounded,
       title: 'Veterinary Login',
       subtitle: 'Veterinary Officer',
       fields: [
@@ -415,12 +472,30 @@ class __VetLoginScreenState extends State<_VetLoginScreen> {
         _field('Password', _passCtrl, Icons.lock_outline,
             obscure: _obscure,
             suffixIcon: IconButton(
-              icon: Icon(_obscure ? Icons.visibility_outlined : Icons.visibility_off_outlined),
+              icon: Icon(
+                _obscure ? Icons.visibility_outlined : Icons.visibility_off_outlined,
+                color: Colors.white60,
+              ),
               onPressed: () => setState(() => _obscure = !_obscure),
             )),
-        const SizedBox(height: 6),
-        const Text('Demo credentials: VET001 / vet123',
-            style: TextStyle(color: Colors.grey, fontSize: 12)),
+        const SizedBox(height: 8),
+        Container(
+          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+          decoration: BoxDecoration(
+            color: Colors.white.withValues(alpha: 0.08),
+            borderRadius: AppRadius.xsRadius,
+          ),
+          child: Row(
+            children: [
+              const Icon(Icons.info_outline_rounded, size: 14, color: Colors.white54),
+              const SizedBox(width: 8),
+              const Text(
+                'Demo credentials: VET001 / vet123',
+                style: TextStyle(color: Colors.white54, fontSize: 12),
+              ),
+            ],
+          ),
+        ),
       ],
       loading: _loading,
       onLogin: _login,
@@ -467,8 +542,13 @@ class __GovtLoginScreenState extends State<_GovtLoginScreen> {
   Widget build(BuildContext context) {
     return _loginScaffold(
       context,
-      color: const Color(0xFF4A148C),
-      emoji: '🏛️',
+      accentColor: AppColors.govtNavy,
+      headerGradient: const LinearGradient(
+        colors: [Color(0xFF0B192C), Color(0xFF132743)],
+        begin: Alignment.topLeft,
+        end: Alignment.bottomRight,
+      ),
+      icon: Icons.account_balance_rounded,
       title: 'Government Login',
       subtitle: 'District Animal Husbandry Officer',
       fields: [
@@ -477,12 +557,30 @@ class __GovtLoginScreenState extends State<_GovtLoginScreen> {
         _field('Password', _passCtrl, Icons.lock_outline,
             obscure: _obscure,
             suffixIcon: IconButton(
-              icon: Icon(_obscure ? Icons.visibility_outlined : Icons.visibility_off_outlined),
+              icon: Icon(
+                _obscure ? Icons.visibility_outlined : Icons.visibility_off_outlined,
+                color: Colors.white60,
+              ),
               onPressed: () => setState(() => _obscure = !_obscure),
             )),
-        const SizedBox(height: 6),
-        const Text('Demo credentials: GOV001 / gov123',
-            style: TextStyle(color: Colors.grey, fontSize: 12)),
+        const SizedBox(height: 8),
+        Container(
+          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+          decoration: BoxDecoration(
+            color: Colors.white.withValues(alpha: 0.08),
+            borderRadius: AppRadius.xsRadius,
+          ),
+          child: Row(
+            children: [
+              const Icon(Icons.info_outline_rounded, size: 14, color: Colors.white54),
+              const SizedBox(width: 8),
+              const Text(
+                'Demo credentials: GOV001 / gov123',
+                style: TextStyle(color: Colors.white54, fontSize: 12),
+              ),
+            ],
+          ),
+        ),
       ],
       loading: _loading,
       onLogin: _login,
@@ -494,8 +592,9 @@ class __GovtLoginScreenState extends State<_GovtLoginScreen> {
 
 Widget _loginScaffold(
   BuildContext context, {
-  required Color color,
-  required String emoji,
+  required Color accentColor,
+  required Gradient headerGradient,
+  required IconData icon,
   required String title,
   required String subtitle,
   required List<Widget> fields,
@@ -503,50 +602,116 @@ Widget _loginScaffold(
   required VoidCallback onLogin,
 }) {
   return Scaffold(
-    backgroundColor: const Color(0xFF0D1B2A),
+    backgroundColor: const Color(0xFF0A1628),
     appBar: AppBar(
       backgroundColor: Colors.transparent,
       foregroundColor: Colors.white,
       elevation: 0,
+      leading: IconButton(
+        icon: const Icon(Icons.arrow_back_rounded, color: Colors.white),
+        onPressed: () => Navigator.pop(context),
+      ),
     ),
     body: SafeArea(
       child: SingleChildScrollView(
-        padding: const EdgeInsets.symmetric(horizontal: 28, vertical: 10),
+        padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 8),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
-            Center(
+            // ── Header ────────────────────────────────────────────────────
+            Container(
+              padding: const EdgeInsets.all(28),
+              decoration: BoxDecoration(
+                gradient: headerGradient,
+                borderRadius: AppRadius.lgRadius,
+                border: Border.all(
+                  color: Colors.white.withValues(alpha: 0.10),
+                ),
+              ),
               child: Column(
                 children: [
-                  Text(emoji, style: const TextStyle(fontSize: 52)),
-                  const SizedBox(height: 12),
-                  Text(title,
-                      style: const TextStyle(
-                          color: Colors.white, fontSize: 24, fontWeight: FontWeight.bold)),
+                  Container(
+                    width: 64,
+                    height: 64,
+                    decoration: BoxDecoration(
+                      color: Colors.white.withValues(alpha: 0.15),
+                      borderRadius: AppRadius.smRadius,
+                    ),
+                    child: Center(
+                      child: Icon(icon, size: 34, color: Colors.white),
+                    ),
+                  ),
+                  const SizedBox(height: 14),
+                  Text(
+                    title,
+                    style: const TextStyle(
+                      color: Colors.white,
+                      fontSize: 22,
+                      fontWeight: FontWeight.w700,
+                      letterSpacing: -0.3,
+                    ),
+                  ),
                   const SizedBox(height: 4),
-                  Text(subtitle,
-                      style: const TextStyle(color: Colors.white54, fontSize: 14)),
+                  Text(
+                    subtitle,
+                    style: TextStyle(
+                      color: Colors.white.withValues(alpha: 0.65),
+                      fontSize: 13,
+                    ),
+                  ),
                 ],
               ),
             ),
-            const SizedBox(height: 36),
+
+            const SizedBox(height: 28),
+
+            // ── Credentials section label ─────────────────────────────────
+            const Padding(
+              padding: EdgeInsets.only(left: 2, bottom: 12),
+              child: Text(
+                'CREDENTIALS',
+                style: TextStyle(
+                  color: Colors.white38,
+                  fontSize: 11,
+                  fontWeight: FontWeight.w700,
+                  letterSpacing: 2,
+                ),
+              ),
+            ),
+
             ...fields,
             const SizedBox(height: 24),
+
+            // ── Login button ──────────────────────────────────────────────
             SizedBox(
-              height: 54,
+              height: 56,
               child: ElevatedButton(
                 style: ElevatedButton.styleFrom(
-                  backgroundColor: color,
+                  backgroundColor: AppColors.primary,
                   foregroundColor: Colors.white,
-                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: AppRadius.mdRadius,
+                  ),
+                  elevation: 0,
                 ),
                 onPressed: loading ? null : onLogin,
                 child: loading
                     ? const SizedBox(
                         height: 22,
                         width: 22,
-                        child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white))
-                    : const Text('LOGIN', style: TextStyle(fontSize: 17, fontWeight: FontWeight.bold, letterSpacing: 1)),
+                        child: CircularProgressIndicator(
+                          strokeWidth: 2.5,
+                          color: Colors.white,
+                        ),
+                      )
+                    : const Text(
+                        'SIGN IN',
+                        style: TextStyle(
+                          fontSize: 15,
+                          fontWeight: FontWeight.w700,
+                          letterSpacing: 1.5,
+                        ),
+                      ),
               ),
             ),
           ],
@@ -566,25 +731,33 @@ Widget _field(
   return TextField(
     controller: ctrl,
     obscureText: obscure,
-    style: const TextStyle(color: Colors.white),
+    style: const TextStyle(
+      color: Colors.white,
+      fontSize: 15,
+      fontWeight: FontWeight.w500,
+    ),
     decoration: InputDecoration(
       labelText: label,
-      labelStyle: const TextStyle(color: Colors.white54),
-      prefixIcon: Icon(icon, color: Colors.white54),
+      labelStyle: const TextStyle(color: Colors.white54, fontSize: 14),
+      prefixIcon: Icon(icon, color: Colors.white54, size: 20),
       suffixIcon: suffixIcon,
       filled: true,
       fillColor: Colors.white.withValues(alpha: 0.08),
+      contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 18),
       border: OutlineInputBorder(
-        borderRadius: BorderRadius.circular(12),
-        borderSide: BorderSide(color: Colors.white.withValues(alpha: 0.2)),
+        borderRadius: AppRadius.mdRadius,
+        borderSide: BorderSide(color: Colors.white.withValues(alpha: 0.18)),
       ),
       enabledBorder: OutlineInputBorder(
-        borderRadius: BorderRadius.circular(12),
-        borderSide: BorderSide(color: Colors.white.withValues(alpha: 0.2)),
+        borderRadius: AppRadius.mdRadius,
+        borderSide: BorderSide(color: Colors.white.withValues(alpha: 0.18)),
       ),
       focusedBorder: OutlineInputBorder(
-        borderRadius: BorderRadius.circular(12),
-        borderSide: const BorderSide(color: Colors.white54, width: 1.5),
+        borderRadius: AppRadius.mdRadius,
+        borderSide: const BorderSide(
+          color: AppColors.primary,
+          width: 2,
+        ),
       ),
     ),
   );

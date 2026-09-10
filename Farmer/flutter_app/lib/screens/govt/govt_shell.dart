@@ -403,24 +403,30 @@ class _GovtShellState extends State<GovtShell> with SingleTickerProviderStateMix
             ),
 
           // LEFT: Title & Subtitle
-          const Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              Text(
-                'Animal Health Intelligence',
-                style: TextStyle(
-                  fontSize: 15,
-                  fontWeight: FontWeight.w800,
-                  color: GovtColors.textPrimary,
-                  letterSpacing: -0.2,
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Text(
+                  'Animal Health Intelligence',
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: TextStyle(
+                    fontSize: isDesktop ? 15 : 13,
+                    fontWeight: FontWeight.w800,
+                    color: GovtColors.textPrimary,
+                    letterSpacing: -0.2,
+                  ),
                 ),
-              ),
-              Text(
-                'Government Surveillance & Decision Support',
-                style: TextStyle(fontSize: 10, color: GovtColors.textSecondary),
-              ),
-            ],
+                const Text(
+                  'Government Surveillance & Decision Support',
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: TextStyle(fontSize: 10, color: GovtColors.textSecondary),
+                ),
+              ],
+            ),
           ),
 
           // CENTER: Global Search Bar
@@ -470,24 +476,23 @@ class _GovtShellState extends State<GovtShell> with SingleTickerProviderStateMix
                   ),
                 ),
               ),
-            )
-          else
-            const Spacer(),
+            ),
 
           // RIGHT: Live Data indicator, Sync info, Notifications, Official Profile
           Row(
             mainAxisSize: MainAxisSize.min,
             children: [
-              // ● LIVE DATA Pulse
-              _buildLiveIndicator(),
-              const SizedBox(width: 10),
-
               if (isDesktop) ...[
+                _buildLiveIndicator(),
+                const SizedBox(width: 10),
                 Text(
                   'Last synchronized: ${_formatSyncTime()}',
                   style: const TextStyle(fontSize: 11, color: GovtColors.textSecondary),
                 ),
                 const SizedBox(width: 10),
+              ] else ...[
+                _buildLiveIndicator(),
+                const SizedBox(width: 4),
               ],
 
               // Notification icon with badge
@@ -500,14 +505,14 @@ class _GovtShellState extends State<GovtShell> with SingleTickerProviderStateMix
                 onPressed: () => setState(() => _showRightPanel = !_showRightPanel),
                 tooltip: '6 Critical Alerts',
               ),
-              const SizedBox(width: 8),
+              const SizedBox(width: 4),
 
               // Government Official profile
               InkWell(
                 borderRadius: BorderRadius.circular(20),
                 onTap: _showProfileDialog,
                 child: Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+                  padding: EdgeInsets.symmetric(horizontal: isDesktop ? 10 : 4, vertical: 5),
                   decoration: BoxDecoration(
                     color: GovtColors.surfaceSubtle,
                     borderRadius: BorderRadius.circular(20),
@@ -833,7 +838,7 @@ class _GovtShellState extends State<GovtShell> with SingleTickerProviderStateMix
       ),
       child: SafeArea(
         child: SizedBox(
-          height: 60,
+          height: 64,
           child: Row(
             children: [
               ...primary.asMap().entries.map((entry) {
@@ -845,10 +850,20 @@ class _GovtShellState extends State<GovtShell> with SingleTickerProviderStateMix
                     onTap: () => setState(() => _selectedIndex = i),
                     child: Column(
                       mainAxisAlignment: MainAxisAlignment.center,
+                      mainAxisSize: MainAxisSize.min,
                       children: [
                         Icon(isSelected ? item.selectedIcon : item.icon, size: 20, color: isSelected ? GovtColors.brand : GovtColors.textSecondary),
                         const SizedBox(height: 2),
-                        Text(item.label, style: TextStyle(fontSize: 10, fontWeight: isSelected ? FontWeight.w800 : FontWeight.w500, color: isSelected ? GovtColors.brand : GovtColors.textSecondary)),
+                        Text(
+                          item.label,
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                          style: TextStyle(
+                            fontSize: 10,
+                            fontWeight: isSelected ? FontWeight.w800 : FontWeight.w500,
+                            color: isSelected ? GovtColors.brand : GovtColors.textSecondary,
+                          ),
+                        ),
                       ],
                     ),
                   ),
@@ -859,10 +874,20 @@ class _GovtShellState extends State<GovtShell> with SingleTickerProviderStateMix
                   onTap: () => _showMoreSheet(context),
                   child: Column(
                     mainAxisAlignment: MainAxisAlignment.center,
+                    mainAxisSize: MainAxisSize.min,
                     children: [
                       Icon(Icons.grid_view_rounded, size: 20, color: _selectedIndex >= 4 ? GovtColors.brand : GovtColors.textSecondary),
                       const SizedBox(height: 2),
-                      Text(_selectedIndex >= 4 ? _navItems[_selectedIndex].label : 'More', style: TextStyle(fontSize: 10, fontWeight: _selectedIndex >= 4 ? FontWeight.w800 : FontWeight.w500, color: _selectedIndex >= 4 ? GovtColors.brand : GovtColors.textSecondary)),
+                      Text(
+                        (_selectedIndex >= 4 && _selectedIndex < _navItems.length) ? _navItems[_selectedIndex].label : 'More',
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        style: TextStyle(
+                          fontSize: 10,
+                          fontWeight: _selectedIndex >= 4 ? FontWeight.w800 : FontWeight.w500,
+                          color: _selectedIndex >= 4 ? GovtColors.brand : GovtColors.textSecondary,
+                        ),
+                      ),
                     ],
                   ),
                 ),
