@@ -28,10 +28,10 @@ class _FarmerAppState extends State<FarmerApp> {
   void initState() {
     super.initState();
     LocalizationService.instance.addListener(_onLocaleChanged);
-    // Seed demo data 300ms after first frame — keeps login screen instant
+    // Fetch data from FastAPI backend 300ms after first frame
     WidgetsBinding.instance.addPostFrameCallback((_) {
       Future.delayed(const Duration(milliseconds: 300), () {
-        widget.dataService.seedDemoData();
+        widget.dataService.loadInitialData();
       });
     });
   }
@@ -373,16 +373,32 @@ class __VetLoginScreenState extends State<_VetLoginScreen> {
     super.dispose();
   }
 
-  void _login() {
+  Future<void> _login() async {
     setState(() => _loading = true);
-    Future.delayed(const Duration(milliseconds: 500), () {
-      if (!mounted) return;
-      setState(() => _loading = false);
-      Navigator.pushReplacement(
-        context,
-        MaterialPageRoute(builder: (_) => VetShell(dataService: widget.dataService)),
-      );
-    });
+    try {
+      final res = await widget.dataService.apiService.post('/auth/login', {
+        'phone_or_id': _idCtrl.text.trim(),
+        'password': _passCtrl.text.trim(),
+      });
+      if (res != null && res['access_token'] != null) {
+        await widget.dataService.apiService.setToken(res['access_token']);
+      }
+    } catch (e) {
+      debugPrint('Vet backend login fallback: $e');
+    }
+
+    // Fetch live cases AND alerts as veterinarian
+    await Future.wait([
+      widget.dataService.fetchCases(role: 'veterinarian'),
+      widget.dataService.fetchAlerts(role: 'veterinarian'),
+    ]);
+
+    if (!mounted) return;
+    setState(() => _loading = false);
+    Navigator.pushReplacement(
+      context,
+      MaterialPageRoute(builder: (_) => VetShell(dataService: widget.dataService)),
+    );
   }
 
   @override

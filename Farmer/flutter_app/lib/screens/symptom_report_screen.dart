@@ -345,21 +345,24 @@ class _SymptomReportScreenState extends State<SymptomReportScreen> {
           _step < 10 ? 'Report Issue (Step ${_step + 1})' : 'Assessment Result',
           style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
         ),
-        bottom: _step < 10
-            ? PreferredSize(
-                preferredSize: const Size.fromHeight(6),
-                child: LinearProgressIndicator(
-                  value: (_step + 1) / 10,
-                  backgroundColor: Colors.grey.shade200,
-                  valueColor: AlwaysStoppedAnimation<Color>(colorScheme.primary),
-                ),
-              )
-            : null,
       ),
-      body: PageView(
-        controller: _pageController,
-        physics: const NeverScrollableScrollPhysics(),
+      body: Column(
         children: [
+          if (_step < 10)
+            SizedBox(
+              height: 4,
+              child: LinearProgressIndicator(
+                value: (_step + 1) / 10,
+                backgroundColor: Colors.grey.shade200,
+                valueColor: AlwaysStoppedAnimation<Color>(colorScheme.primary),
+                minHeight: 4,
+              ),
+            ),
+          Expanded(
+            child: PageView(
+              controller: _pageController,
+              physics: const NeverScrollableScrollPhysics(),
+              children: [
           _buildStep1Species(),
           _buildStep2Details(),
           _buildStep3Symptoms(),
@@ -373,6 +376,9 @@ class _SymptomReportScreenState extends State<SymptomReportScreen> {
           if (_triageResult != null) _buildStep11Result(),
         ],
       ),
+    ),
+  ],
+),
     );
   }
 

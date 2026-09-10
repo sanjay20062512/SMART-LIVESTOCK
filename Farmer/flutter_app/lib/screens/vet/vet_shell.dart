@@ -18,6 +18,7 @@ class VetShell extends StatefulWidget {
 
 class _VetShellState extends State<VetShell> {
   int _selectedIndex = 0;
+  bool _refreshing = false;
 
   late final List<Widget> _pages;
 
@@ -30,6 +31,21 @@ class _VetShellState extends State<VetShell> {
       VetClusterScreen(dataService: widget.dataService),
       VetVaccinationScreen(dataService: widget.dataService),
     ];
+    // Auto-refresh on shell load
+    _refresh();
+  }
+
+  Future<void> _refresh() async {
+    if (_refreshing) return;
+    setState(() => _refreshing = true);
+    try {
+      await Future.wait([
+        widget.dataService.fetchCases(role: 'veterinarian'),
+        widget.dataService.fetchAlerts(role: 'veterinarian'),
+      ]);
+    } finally {
+      if (mounted) setState(() => _refreshing = false);
+    }
   }
 
   @override
@@ -39,6 +55,25 @@ class _VetShellState extends State<VetShell> {
         index: _selectedIndex,
         children: _pages,
       ),
+      floatingActionButton: _refreshing
+          ? const FloatingActionButton(
+              onPressed: null,
+              backgroundColor: Color(0xFF1565C0),
+              child: SizedBox(
+                width: 24,
+                height: 24,
+                child: CircularProgressIndicator(
+                  color: Colors.white,
+                  strokeWidth: 2.5,
+                ),
+              ),
+            )
+          : FloatingActionButton(
+              onPressed: _refresh,
+              backgroundColor: const Color(0xFF1565C0),
+              tooltip: 'Refresh cases & alerts',
+              child: const Icon(Icons.refresh_rounded, color: Colors.white),
+            ),
       bottomNavigationBar: NavigationBar(
         selectedIndex: _selectedIndex,
         onDestinationSelected: (i) => setState(() => _selectedIndex = i),

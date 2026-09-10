@@ -87,7 +87,7 @@ class _VaccinationScreenState extends State<VaccinationScreen>
               ),
               const SizedBox(height: 16),
               DropdownButtonFormField<Animal>(
-                value: selectedAnimal,
+                initialValue: selectedAnimal,
                 decoration: InputDecoration(
                   labelText: 'Select Animal *',
                   border: OutlineInputBorder(
@@ -122,7 +122,7 @@ class _VaccinationScreenState extends State<VaccinationScreen>
               ),
               const SizedBox(height: 12),
               DropdownButtonFormField<VaccinationStatus>(
-                value: status,
+                initialValue: status,
                 decoration: InputDecoration(
                   labelText: 'Status',
                   border: OutlineInputBorder(

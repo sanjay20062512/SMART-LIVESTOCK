@@ -60,17 +60,23 @@ class _VetVisitScreenState extends State<VetVisitScreen> {
       isCompleted: _isCompleted,
     );
 
+    widget.lcase.visitScheduledDate = _visitDate;
+    widget.lcase.assignedVetName = 'Dr. Rajesh Kumar';
+    widget.lcase.assignedVetId = 'VET001';
+    if (_observationsCtrl.text.trim().isNotEmpty) {
+      widget.lcase.clinicalObservation = _observationsCtrl.text.trim();
+    }
+    if (_treatmentCtrl.text.trim().isNotEmpty) {
+      widget.lcase.treatmentSummary = _treatmentCtrl.text.trim();
+    }
+    widget.lcase.status = _isCompleted ? FullCaseStatus.treatmentStarted : FullCaseStatus.visitScheduled;
+
     widget.dataService.addVetVisit(visit);
 
-    if (_isCompleted && _treatmentCtrl.text.trim().isNotEmpty) {
-      widget.lcase.treatmentSummary = _treatmentCtrl.text.trim();
-      widget.dataService.updateCaseStatus(
-        widget.lcase.caseId,
-        FullCaseStatus.treatmentStarted,
-        actor: 'Veterinarian',
-        description: 'Treatment given: ${_treatmentCtrl.text.trim()}',
-      );
-    }
+    // addVetVisit handles status update, visitScheduledDate, vet info, and farmer alert.
+    // No additional updateCaseStatus call needed here.
+
+
 
     Future.delayed(const Duration(milliseconds: 400), () {
       if (mounted) {

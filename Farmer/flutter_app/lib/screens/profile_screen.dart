@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import '../services/farmer_data_service.dart';
 import '../services/localization_service.dart';
+import '../models/vet_visit.dart';
 import 'language_selection_screen.dart';
 
 class ProfileScreen extends StatefulWidget {
@@ -302,6 +303,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
   Widget build(BuildContext context) {
     final profile = widget.dataService.profile;
     final primary = Theme.of(context).colorScheme.primary;
+    final visits = widget.dataService.getFarmerVisits();
 
     return Scaffold(
       backgroundColor: const Color(0xFFF7FAF7),
@@ -456,6 +458,78 @@ class _ProfileScreenState extends State<ProfileScreen> {
             ),
             const SizedBox(height: 18),
 
+            // ==============================================================
+            // SECTION 3 — SCHEDULED VET VISITS & APPOINTMENTS
+            // ==============================================================
+            Card(
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+              elevation: 2,
+              child: Padding(
+                padding: const EdgeInsets.all(18),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        Row(
+                          children: [
+                            Icon(Icons.calendar_month_rounded, color: primary, size: 22),
+                            const SizedBox(width: 8),
+                            const Text(
+                              'SECTION 3 — SCHEDULED VET VISITS',
+                              style: TextStyle(fontWeight: FontWeight.bold, fontSize: 14, letterSpacing: 0.5),
+                            ),
+                          ],
+                        ),
+                        Container(
+                          padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 3),
+                          decoration: BoxDecoration(
+                            color: visits.isNotEmpty ? Colors.blue.shade50 : Colors.grey.shade100,
+                            borderRadius: BorderRadius.circular(12),
+                            border: Border.all(color: visits.isNotEmpty ? Colors.blue.shade200 : Colors.grey.shade300),
+                          ),
+                          child: Text(
+                            '${visits.length} Visit${visits.length == 1 ? "" : "s"}',
+                            style: TextStyle(
+                              fontSize: 12,
+                              fontWeight: FontWeight.bold,
+                              color: visits.isNotEmpty ? const Color(0xFF1565C0) : Colors.grey.shade600,
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                    const Divider(height: 16),
+                    if (visits.isEmpty)
+                      Container(
+                        padding: const EdgeInsets.symmetric(vertical: 20, horizontal: 12),
+                        alignment: Alignment.center,
+                        child: Column(
+                          children: [
+                            Icon(Icons.event_available_outlined, size: 36, color: Colors.grey.shade400),
+                            const SizedBox(height: 8),
+                            const Text(
+                              'No vet visits scheduled yet',
+                              style: TextStyle(color: Colors.grey, fontWeight: FontWeight.w600, fontSize: 14),
+                            ),
+                            const SizedBox(height: 4),
+                            Text(
+                              'When a veterinarian accepts your case and schedules a visit, details and dates will appear here.',
+                              textAlign: TextAlign.center,
+                              style: TextStyle(color: Colors.grey.shade500, fontSize: 12),
+                            ),
+                          ],
+                        ),
+                      )
+                    else
+                      ...visits.map((v) => _buildVisitItem(v, primary)),
+                  ],
+                ),
+              ),
+            ),
+            const SizedBox(height: 18),
+
             // Demo Actions & Logout
             Card(
               shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
@@ -471,7 +545,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                     subtitle: const Text('Populate animals and alerts for testing', style: TextStyle(fontSize: 12)),
                     trailing: const Icon(Icons.chevron_right_rounded),
                     onTap: () {
-                      widget.dataService.seedDemoData();
+                      widget.dataService.seedDemoData(force: true);
                       ScaffoldMessenger.of(context).showSnackBar(
                         const SnackBar(content: Text('✓ Demo data loaded.'), backgroundColor: Colors.green),
                       );
@@ -510,6 +584,134 @@ class _ProfileScreenState extends State<ProfileScreen> {
           Expanded(
             child: Text(value, style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 13.5)),
           ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildVisitItem(VetVisit v, Color primary) {
+    final isUpcoming = !v.isCompleted;
+    final dateStr = '${v.scheduledDate.day.toString().padLeft(2, "0")}/${v.scheduledDate.month.toString().padLeft(2, "0")}/${v.scheduledDate.year}';
+    final timeStr = '${v.scheduledDate.hour.toString().padLeft(2, "0")}:${v.scheduledDate.minute.toString().padLeft(2, "0")}';
+
+    return Container(
+      margin: const EdgeInsets.only(bottom: 12),
+      padding: const EdgeInsets.all(14),
+      decoration: BoxDecoration(
+        color: isUpcoming ? const Color(0xFFF0F7FF) : Colors.grey.shade50,
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: isUpcoming ? Colors.blue.shade200 : Colors.grey.shade300),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Row(
+                children: [
+                  Icon(
+                    isUpcoming ? Icons.schedule_rounded : Icons.check_circle_rounded,
+                    color: isUpcoming ? const Color(0xFF1565C0) : Colors.green,
+                    size: 18,
+                  ),
+                  const SizedBox(width: 6),
+                  Text(
+                    '📅 $dateStr at $timeStr',
+                    style: TextStyle(
+                      fontWeight: FontWeight.bold,
+                      fontSize: 14,
+                      color: isUpcoming ? const Color(0xFF0D47A1) : Colors.grey.shade800,
+                    ),
+                  ),
+                ],
+              ),
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                decoration: BoxDecoration(
+                  color: isUpcoming ? Colors.blue : Colors.green,
+                  borderRadius: BorderRadius.circular(8),
+                ),
+                child: Text(
+                  isUpcoming ? 'CONFIRMED' : 'COMPLETED',
+                  style: const TextStyle(color: Colors.white, fontSize: 11, fontWeight: FontWeight.bold),
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 10),
+          Row(
+            children: [
+              const Icon(Icons.person_pin_rounded, size: 16, color: Colors.grey),
+              const SizedBox(width: 6),
+              Text(
+                'Doctor: ${v.vetName}',
+                style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 13),
+              ),
+            ],
+          ),
+          const SizedBox(height: 4),
+          Row(
+            children: [
+              const Icon(Icons.location_on_outlined, size: 16, color: Colors.grey),
+              const SizedBox(width: 6),
+              Expanded(
+                child: Text(
+                  'Location: ${v.farmLocation}',
+                  style: const TextStyle(color: Colors.grey, fontSize: 12),
+                  overflow: TextOverflow.ellipsis,
+                ),
+              ),
+            ],
+          ),
+          if (v.observations != null && v.observations!.isNotEmpty) ...[
+            const SizedBox(height: 6),
+            Container(
+              padding: const EdgeInsets.all(8),
+              decoration: BoxDecoration(
+                color: Colors.white,
+                borderRadius: BorderRadius.circular(8),
+                border: Border.all(color: Colors.grey.shade200),
+              ),
+              child: Row(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  const Icon(Icons.notes_rounded, size: 14, color: Colors.grey),
+                  const SizedBox(width: 6),
+                  Expanded(
+                    child: Text(
+                      'Notes: ${v.observations}',
+                      style: const TextStyle(fontSize: 12, color: Colors.black87),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ],
+          if (v.treatmentGiven != null && v.treatmentGiven!.isNotEmpty) ...[
+            const SizedBox(height: 6),
+            Container(
+              padding: const EdgeInsets.all(8),
+              decoration: BoxDecoration(
+                color: Colors.green.shade50,
+                borderRadius: BorderRadius.circular(8),
+                border: Border.all(color: Colors.green.shade200),
+              ),
+              child: Row(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  const Icon(Icons.medication_rounded, size: 14, color: Colors.green),
+                  const SizedBox(width: 6),
+                  Expanded(
+                    child: Text(
+                      'Prescribed: ${v.treatmentGiven}',
+                      style: TextStyle(fontSize: 12, color: Colors.green.shade900, fontWeight: FontWeight.w500),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ],
         ],
       ),
     );

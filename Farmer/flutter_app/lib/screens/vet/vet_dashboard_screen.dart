@@ -3,7 +3,9 @@
 import 'package:flutter/material.dart';
 import '../../services/farmer_data_service.dart';
 import '../../models/case.dart';
+import '../../models/alert.dart';
 import 'vet_case_detail_screen.dart';
+import 'vet_case_queue_screen.dart';
 
 class VetDashboardScreen extends StatelessWidget {
   final FarmerDataService dataService;
@@ -27,6 +29,8 @@ class VetDashboardScreen extends StatelessWidget {
         final visits = dataService.getAllVisits()
             .where((v) => !v.isCompleted)
             .toList();
+        final unreadAlerts = dataService.unreadVetAlertCount;
+        final vetAlerts = dataService.getVetAlerts();
 
         return Scaffold(
           backgroundColor: const Color(0xFFF0F4FF),
@@ -76,7 +80,7 @@ class VetDashboardScreen extends StatelessWidget {
                 actions: [
                   if (clusters.isNotEmpty)
                     Container(
-                      margin: const EdgeInsets.only(right: 16, top: 8),
+                      margin: const EdgeInsets.only(top: 8),
                       child: Chip(
                         avatar: const Icon(Icons.warning_amber, size: 16, color: Colors.orange),
                         label: Text('${clusters.length} Cluster${clusters.length > 1 ? 's' : ''}',
@@ -84,6 +88,17 @@ class VetDashboardScreen extends StatelessWidget {
                         backgroundColor: Colors.orange.shade100,
                       ),
                     ),
+                  IconButton(
+                    tooltip: 'Notifications',
+                    icon: Badge(
+                      isLabelVisible: unreadAlerts > 0,
+                      label: Text('$unreadAlerts', style: const TextStyle(fontWeight: FontWeight.bold)),
+                      backgroundColor: Colors.redAccent,
+                      child: const Icon(Icons.notifications_outlined, color: Colors.white, size: 26),
+                    ),
+                    onPressed: () => _showNotificationsSheet(context),
+                  ),
+                  const SizedBox(width: 8),
                 ],
               ),
 
@@ -91,6 +106,10 @@ class VetDashboardScreen extends StatelessWidget {
                 padding: const EdgeInsets.all(16),
                 sliver: SliverList(
                   delegate: SliverChildListDelegate([
+                    // Urgent notification banner if there are new unread farmer reports
+                    if (unreadAlerts > 0 && vetAlerts.isNotEmpty)
+                      _urgentNotificationBanner(context, unreadAlerts, vetAlerts.first),
+
                     // Stat cards
                     GridView.count(
                       crossAxisCount: 2,
@@ -122,7 +141,12 @@ class VetDashboardScreen extends StatelessWidget {
                         ),
                         const Spacer(),
                         TextButton(
-                          onPressed: () {},
+                          onPressed: () {
+                            Navigator.push(
+                              context,
+                              MaterialPageRoute(builder: (_) => VetCaseQueueScreen(dataService: dataService)),
+                            );
+                          },
                           child: const Text('View All'),
                         ),
                       ],
@@ -142,6 +166,262 @@ class VetDashboardScreen extends StatelessWidget {
         );
       },
     );
+  }
+
+  Widget _urgentNotificationBanner(BuildContext context, int count, AppAlert latest) {
+    return Container(
+      margin: const EdgeInsets.only(bottom: 16),
+      decoration: BoxDecoration(
+        color: Colors.red.shade50,
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: Colors.red.shade300, width: 1.5),
+        boxShadow: [
+          BoxShadow(color: Colors.red.withValues(alpha: 0.1), blurRadius: 10, offset: const Offset(0, 4)),
+        ],
+      ),
+      child: Material(
+        color: Colors.transparent,
+        child: InkWell(
+          borderRadius: BorderRadius.circular(16),
+          onTap: () => _showNotificationsSheet(context),
+          child: Padding(
+            padding: const EdgeInsets.all(14),
+            child: Row(
+              children: [
+                Container(
+                  padding: const EdgeInsets.all(10),
+                  decoration: BoxDecoration(
+                    color: Colors.red.shade100,
+                    shape: BoxShape.circle,
+                  ),
+                  child: const Icon(Icons.notification_important_rounded, color: Colors.red, size: 24),
+                ),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Row(
+                        children: [
+                          Text(
+                            '$count New Farmer Report${count > 1 ? 's' : ''} Received',
+                            style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 14, color: Color(0xFFB71C1C)),
+                          ),
+                          const Spacer(),
+                          const Text('View', style: TextStyle(color: Colors.red, fontWeight: FontWeight.bold, fontSize: 12)),
+                        ],
+                      ),
+                      const SizedBox(height: 2),
+                      Text(
+                        latest.title,
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        style: TextStyle(fontSize: 12, color: Colors.grey.shade800),
+                      ),
+                    ],
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+
+  void _showNotificationsSheet(BuildContext context) {
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      builder: (ctx) {
+        return ListenableBuilder(
+          listenable: dataService,
+          builder: (context, _) {
+            final alerts = dataService.getVetAlerts();
+            return Container(
+              height: MediaQuery.of(context).size.height * 0.75,
+              decoration: const BoxDecoration(
+                color: Colors.white,
+                borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
+              ),
+              child: Column(
+                children: [
+                  Container(
+                    margin: const EdgeInsets.only(top: 12),
+                    width: 40,
+                    height: 4,
+                    decoration: BoxDecoration(
+                      color: Colors.grey.shade300,
+                      borderRadius: BorderRadius.circular(2),
+                    ),
+                  ),
+                  Padding(
+                    padding: const EdgeInsets.fromLTRB(20, 16, 16, 12),
+                    child: Row(
+                      children: [
+                        const Icon(Icons.notifications_active_rounded, color: Color(0xFF1565C0)),
+                        const SizedBox(width: 10),
+                        const Text(
+                          'Vet Notifications',
+                          style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                        ),
+                        const Spacer(),
+                        if (alerts.any((a) => !a.isRead))
+                          TextButton(
+                            onPressed: () => dataService.markAllVetAlertsRead(),
+                            child: const Text('Mark all read'),
+                          ),
+                      ],
+                    ),
+                  ),
+                  const Divider(height: 1),
+                  Expanded(
+                    child: alerts.isEmpty
+                        ? Center(
+                            child: Column(
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              children: [
+                                Icon(Icons.notifications_none_rounded, size: 54, color: Colors.grey.shade400),
+                                const SizedBox(height: 12),
+                                const Text('No notifications yet', style: TextStyle(color: Colors.grey, fontSize: 16)),
+                              ],
+                            ),
+                          )
+                        : ListView.separated(
+                            padding: const EdgeInsets.all(16),
+                            itemCount: alerts.length,
+                            separatorBuilder: (ctx, index) => const SizedBox(height: 10),
+                            itemBuilder: (ctx, i) {
+                              final a = alerts[i];
+                              final isCrit = a.severity == AlertSeverity.critical;
+                              final isHigh = a.severity == AlertSeverity.high;
+                              final borderCol = isCrit
+                                  ? Colors.red.shade300
+                                  : (isHigh ? Colors.orange.shade300 : Colors.grey.shade200);
+                              final bgCol = !a.isRead
+                                  ? (isCrit
+                                      ? Colors.red.shade50
+                                      : (isHigh ? Colors.orange.shade50 : const Color(0xFFF0F4FF)))
+                                  : Colors.white;
+
+                              return InkWell(
+                                borderRadius: BorderRadius.circular(14),
+                                onTap: () {
+                                  dataService.markAlertRead(a.id);
+                                  if (a.relatedId != null) {
+                                    final c = dataService.getCaseById(a.relatedId!);
+                                    if (c != null) {
+                                      Navigator.pop(ctx);
+                                      Navigator.push(
+                                        context,
+                                        MaterialPageRoute(
+                                          builder: (_) => VetCaseDetailScreen(dataService: dataService, lcase: c),
+                                        ),
+                                      );
+                                    }
+                                  }
+                                },
+                                child: Container(
+                                  padding: const EdgeInsets.all(14),
+                                  decoration: BoxDecoration(
+                                    color: bgCol,
+                                    borderRadius: BorderRadius.circular(14),
+                                    border: Border.all(color: borderCol, width: !a.isRead ? 1.5 : 1),
+                                  ),
+                                  child: Row(
+                                    crossAxisAlignment: CrossAxisAlignment.start,
+                                    children: [
+                                      Container(
+                                        padding: const EdgeInsets.all(8),
+                                        decoration: BoxDecoration(
+                                          color: isCrit
+                                              ? Colors.red.shade100
+                                              : (isHigh ? Colors.orange.shade100 : Colors.blue.shade100),
+                                          shape: BoxShape.circle,
+                                        ),
+                                        child: Icon(
+                                          isCrit
+                                              ? Icons.emergency_rounded
+                                              : (isHigh ? Icons.warning_rounded : Icons.info_outline_rounded),
+                                          color: isCrit
+                                              ? Colors.red.shade800
+                                              : (isHigh ? Colors.orange.shade800 : Colors.blue.shade800),
+                                          size: 20,
+                                        ),
+                                      ),
+                                      const SizedBox(width: 12),
+                                      Expanded(
+                                        child: Column(
+                                          crossAxisAlignment: CrossAxisAlignment.start,
+                                          children: [
+                                            Row(
+                                              children: [
+                                                Expanded(
+                                                  child: Text(
+                                                    a.title,
+                                                    style: TextStyle(
+                                                      fontWeight: !a.isRead ? FontWeight.bold : FontWeight.w600,
+                                                      fontSize: 14,
+                                                      color: isCrit ? const Color(0xFFB71C1C) : const Color(0xFF1A237E),
+                                                    ),
+                                                  ),
+                                                ),
+                                                if (!a.isRead)
+                                                  Container(
+                                                    width: 8,
+                                                    height: 8,
+                                                    decoration:
+                                                        const BoxDecoration(color: Colors.red, shape: BoxShape.circle),
+                                                  ),
+                                              ],
+                                            ),
+                                            const SizedBox(height: 4),
+                                            Text(a.message,
+                                                style: TextStyle(fontSize: 12, color: Colors.grey.shade700, height: 1.3)),
+                                            const SizedBox(height: 6),
+                                            Row(
+                                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                              children: [
+                                                Text(
+                                                  _formatTime(a.date),
+                                                  style: TextStyle(fontSize: 10, color: Colors.grey.shade500),
+                                                ),
+                                                if (a.relatedId != null)
+                                                  const Text(
+                                                    'Tap to view case →',
+                                                    style: TextStyle(
+                                                        fontSize: 11,
+                                                        fontWeight: FontWeight.bold,
+                                                        color: Color(0xFF1565C0)),
+                                                  ),
+                                              ],
+                                            ),
+                                          ],
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                              );
+                            },
+                          ),
+                  ),
+                ],
+              ),
+            );
+          },
+        );
+      },
+    );
+  }
+
+  String _formatTime(DateTime date) {
+    final diff = DateTime.now().difference(date);
+    if (diff.inMinutes < 1) return 'Just now';
+    if (diff.inMinutes < 60) return '${diff.inMinutes}m ago';
+    if (diff.inHours < 24) return '${diff.inHours}h ago';
+    return '${diff.inDays}d ago';
   }
 
   Widget _statCard(String label, String value, IconData icon, Color color, Color bg) {

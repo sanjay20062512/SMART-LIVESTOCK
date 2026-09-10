@@ -135,25 +135,32 @@ class _MortalityReportScreenState extends State<MortalityReportScreen> {
           context.tr('report_animal_death'),
           style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 18, color: Colors.red),
         ),
-        bottom: PreferredSize(
-          preferredSize: const Size.fromHeight(6),
-          child: LinearProgressIndicator(
-            value: (_step + 1) / 6,
-            backgroundColor: Colors.grey.shade200,
-            valueColor: const AlwaysStoppedAnimation<Color>(Colors.red),
-          ),
-        ),
       ),
-      body: PageView(
-        controller: _pageController,
-        physics: const NeverScrollableScrollPhysics(),
+      body: Column(
         children: [
-          _buildStep1AnimalType(),
-          _buildStep2Count(),
-          _buildStep3When(),
-          _buildStep4Symptoms(),
-          _buildStep5Evidence(),
-          _buildStep6LocationAndSubmit(),
+          SizedBox(
+            height: 4,
+            child: LinearProgressIndicator(
+              value: (_step + 1) / 6,
+              backgroundColor: Colors.grey.shade200,
+              valueColor: const AlwaysStoppedAnimation<Color>(Colors.red),
+              minHeight: 4,
+            ),
+          ),
+          Expanded(
+            child: PageView(
+              controller: _pageController,
+              physics: const NeverScrollableScrollPhysics(),
+              children: [
+                _buildStep1AnimalType(),
+                _buildStep2Count(),
+                _buildStep3When(),
+                _buildStep4Symptoms(),
+                _buildStep5Evidence(),
+                _buildStep6LocationAndSubmit(),
+              ],
+            ),
+          ),
         ],
       ),
     );

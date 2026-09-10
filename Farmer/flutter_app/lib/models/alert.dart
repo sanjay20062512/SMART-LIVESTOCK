@@ -59,7 +59,8 @@ class AppAlert {
   final DateTime date;
   bool isRead;
   final AlertSeverity severity;
-  final String? relatedId; // animalId, reportId, etc.
+  final String? relatedId; // animalId, reportId, caseId etc.
+  final String targetRole; // 'FARMER', 'VETERINARIAN', or 'ALL'
 
   AppAlert({
     required this.id,
@@ -70,6 +71,7 @@ class AppAlert {
     this.isRead = false,
     required this.severity,
     this.relatedId,
+    this.targetRole = 'FARMER',
   }) : date = date ?? DateTime.now();
 
   Map<String, dynamic> toJson() => {
@@ -81,5 +83,6 @@ class AppAlert {
         'isRead': isRead,
         'severity': severity.name,
         'relatedId': relatedId,
+        'targetRole': targetRole,
       };
 }

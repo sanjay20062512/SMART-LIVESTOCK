@@ -141,6 +141,7 @@ class Animal {
   final String? photoPath; // placeholder for image
   final String? location;
   final String? herdId;
+  final String? farmId;
   final DateTime createdAt;
 
   // Health tracking
@@ -158,6 +159,7 @@ class Animal {
     this.photoPath,
     this.location,
     this.herdId,
+    this.farmId,
     DateTime? createdAt,
     this.lastHealthReport,
     this.lastVetVisit,
@@ -175,6 +177,7 @@ class Animal {
     String? photoPath,
     String? location,
     String? herdId,
+    String? farmId,
   }) {
     return Animal(
       id: id ?? this.id,
@@ -187,6 +190,7 @@ class Animal {
       photoPath: photoPath ?? this.photoPath,
       location: location ?? this.location,
       herdId: herdId ?? this.herdId,
+      farmId: farmId ?? this.farmId,
       createdAt: createdAt,
       lastHealthReport: lastHealthReport,
       lastVetVisit: lastVetVisit,
@@ -205,6 +209,7 @@ class Animal {
         'photoPath': photoPath,
         'location': location,
         'herdId': herdId,
+        'farmId': farmId,
         'createdAt': createdAt.toIso8601String(),
       };
 }

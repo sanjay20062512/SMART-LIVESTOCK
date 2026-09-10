@@ -348,26 +348,33 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
           'Step ${_currentPage + 1} of 6',
           style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w600, color: Colors.grey),
         ),
-        bottom: PreferredSize(
-          preferredSize: const Size.fromHeight(6),
-          child: LinearProgressIndicator(
-            value: (_currentPage + 1) / 6,
-            backgroundColor: Colors.grey.shade200,
-            valueColor: AlwaysStoppedAnimation<Color>(colorScheme.primary),
-          ),
-        ),
       ),
-      body: PageView(
-        controller: _pageController,
-        physics: const NeverScrollableScrollPhysics(),
-        onPageChanged: (i) => setState(() => _currentPage = i),
+      body: Column(
         children: [
-          _buildPage1AboutYou(),
-          _buildPage2Location(),
-          _buildPage3FarmDetails(),
-          _buildPage4Preferences(),
-          _buildPage5Otp(),
-          _buildPage6Password(),
+          SizedBox(
+            height: 4,
+            child: LinearProgressIndicator(
+              value: (_currentPage + 1) / 6,
+              backgroundColor: Colors.grey.shade200,
+              valueColor: AlwaysStoppedAnimation<Color>(colorScheme.primary),
+              minHeight: 4,
+            ),
+          ),
+          Expanded(
+            child: PageView(
+              controller: _pageController,
+              physics: const NeverScrollableScrollPhysics(),
+              onPageChanged: (i) => setState(() => _currentPage = i),
+              children: [
+                _buildPage1AboutYou(),
+                _buildPage2Location(),
+                _buildPage3FarmDetails(),
+                _buildPage4Preferences(),
+                _buildPage5Otp(),
+                _buildPage6Password(),
+              ],
+            ),
+          ),
         ],
       ),
     );

@@ -696,7 +696,7 @@ class _VetClusterScreenState extends State<VetClusterScreen> {
 
                   // Risk Level Dropdown
                   DropdownButtonFormField<ClusterRisk>(
-                    value: selectedRisk,
+                    initialValue: selectedRisk,
                     decoration: const InputDecoration(labelText: 'Risk Level *'),
                     items: ClusterRisk.values.map((r) => DropdownMenuItem(
                       value: r,
@@ -710,7 +710,7 @@ class _VetClusterScreenState extends State<VetClusterScreen> {
 
                   // Species Dropdown
                   DropdownButtonFormField<String>(
-                    value: selectedSpecies,
+                    initialValue: selectedSpecies,
                     decoration: const InputDecoration(labelText: 'Species *'),
                     items: ['Cattle', 'Buffalo', 'Goat', 'Sheep', 'Poultry', 'Other'].map((s) => DropdownMenuItem(
                       value: s,
@@ -779,7 +779,7 @@ class _VetClusterScreenState extends State<VetClusterScreen> {
 
                   // Investigation Status
                   DropdownButtonFormField<ClusterStatus>(
-                    value: selectedStatus,
+                    initialValue: selectedStatus,
                     decoration: const InputDecoration(labelText: 'Investigation Status *'),
                     items: [
                       ClusterStatus.newStatus,
