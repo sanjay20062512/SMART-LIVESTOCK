@@ -9,6 +9,7 @@ import 'govt_mock_data.dart';
 import 'widgets/govt_maharashtra_map_widget.dart';
 import 'govt_area_detail_screen.dart';
 import '../../services/farmer_data_service.dart';
+import '../../models/case.dart';
 
 class GovtDashboardScreen extends StatefulWidget {
   final FarmerDataService dataService;
@@ -39,6 +40,17 @@ class _GovtDashboardScreenState extends State<GovtDashboardScreen> {
     super.initState();
     _districts = GovtMockData.getMaharashtraDistricts();
     _selectedDistrict = _districts.first; // Nagpur (81% Critical)
+    widget.dataService.addListener(_onDataChanged);
+  }
+
+  @override
+  void dispose() {
+    widget.dataService.removeListener(_onDataChanged);
+    super.dispose();
+  }
+
+  void _onDataChanged() {
+    if (mounted) setState(() {});
   }
 
   void _onDistrictSelected(DistrictRiskProfile d) {
@@ -161,12 +173,15 @@ class _GovtDashboardScreenState extends State<GovtDashboardScreen> {
   // ─── 2. Top KPI Row ─────────────────────────────────────────────────────────
 
   Widget _buildKpiRow() {
+    final activeCasesCount = 248 + widget.dataService.getAllCases().where((c) => c.status != FullCaseStatus.caseClosed).length;
+    final highRiskCount = 7 + widget.dataService.getGovernmentAlerts().length;
+
     return Row(
       children: [
         Expanded(
           child: _kpiCard(
             label: 'ACTIVE CASES',
-            value: '248',
+            value: '$activeCasesCount',
             trend: '+12% this week',
             isNegative: true,
             icon: Icons.coronavirus_outlined,
@@ -176,8 +191,8 @@ class _GovtDashboardScreenState extends State<GovtDashboardScreen> {
         Expanded(
           child: _kpiCard(
             label: 'HIGH-RISK AREAS',
-            value: '07',
-            trend: '3 critical',
+            value: highRiskCount < 10 ? '0$highRiskCount' : '$highRiskCount',
+            trend: '${widget.dataService.getGovernmentAlerts().length} live alerts',
             isNegative: true,
             icon: Icons.warning_amber_rounded,
           ),
@@ -557,7 +572,18 @@ class _GovtDashboardScreenState extends State<GovtDashboardScreen> {
   // ─── 6. Recent Alerts (Top 3 Only) ──────────────────────────────────────────
 
   Widget _buildRecentAlertsSection() {
-    final alerts = GovtMockData.recentAlerts;
+    final liveAlerts = widget.dataService.getGovernmentAlerts().map((a) {
+      return {
+        'severity': 'critical',
+        'title': a.title,
+        'location': a.district.isNotEmpty ? a.district : a.location,
+        'time': 'Just now',
+        'disease': a.suspectedDisease,
+        'description': '${a.species} affected in ${a.location}.',
+      };
+    }).toList();
+
+    final alerts = [...liveAlerts, ...GovtMockData.recentAlerts].take(5).toList();
 
     return Container(
       padding: const EdgeInsets.all(14),

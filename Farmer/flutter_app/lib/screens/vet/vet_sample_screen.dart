@@ -167,13 +167,19 @@ class _VetSampleScreenState extends State<VetSampleScreen> {
             const SizedBox(height: 12),
 
             _card('Initial Status', [
-              ...SampleStatus.values.map((s) => RadioListTile<SampleStatus>(
+              RadioGroup<SampleStatus>(
+                groupValue: _status,
+                onChanged: (v) {
+                  if (v != null) setState(() => _status = v);
+                },
+                child: Column(
+                  children: SampleStatus.values.map((s) => RadioListTile<SampleStatus>(
                     contentPadding: EdgeInsets.zero,
                     title: Text(s.displayName),
                     value: s,
-                    groupValue: _status,
-                    onChanged: (v) => setState(() => _status = v!),
-                  )),
+                  )).toList(),
+                ),
+              ),
             ]),
 
             const SizedBox(height: 24),

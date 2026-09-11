@@ -375,6 +375,97 @@ class VetCaseDetailScreen extends StatelessWidget {
               ),
             ],
           ),
+          const SizedBox(height: 8),
+          SizedBox(
+            width: double.infinity,
+            child: ElevatedButton.icon(
+              style: ElevatedButton.styleFrom(
+                backgroundColor: c.isEscalatedToGovt || c.status == FullCaseStatus.escalated
+                    ? Colors.grey.shade700
+                    : Colors.deepOrange.shade800,
+                foregroundColor: Colors.white,
+                padding: const EdgeInsets.symmetric(vertical: 12),
+                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+              ),
+              icon: Icon(
+                c.isEscalatedToGovt || c.status == FullCaseStatus.escalated
+                    ? Icons.check_circle_rounded
+                    : Icons.report_problem_rounded,
+                size: 18,
+              ),
+              label: Text(
+                c.isEscalatedToGovt || c.status == FullCaseStatus.escalated
+                    ? 'Escalated to Govt Surveillance'
+                    : 'Escalate Case to Government',
+                style: const TextStyle(fontWeight: FontWeight.bold),
+              ),
+              onPressed: c.isEscalatedToGovt || c.status == FullCaseStatus.escalated
+                  ? null
+                  : () => _handleEscalateCase(context, c),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  void _handleEscalateCase(BuildContext context, LivestockCase c) {
+    final reasonCtrl = TextEditingController();
+    showDialog(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: Row(
+          children: [
+            const Icon(Icons.report_problem_rounded, color: Colors.deepOrange),
+            const SizedBox(width: 8),
+            const Expanded(child: Text('Escalate Case to Government')),
+          ],
+        ),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              'Escalating Case #${c.caseId} (${c.species}, ${c.animalTag}) will dispatch an emergency high-priority alert to the State Government Surveillance Portal.',
+              style: const TextStyle(fontSize: 13, height: 1.4),
+            ),
+            const SizedBox(height: 12),
+            TextField(
+              controller: reasonCtrl,
+              decoration: const InputDecoration(
+                labelText: 'Reason for Escalation (Optional)',
+                hintText: 'e.g. Suspected contagious epidemic outbreak...',
+                border: OutlineInputBorder(),
+              ),
+              maxLines: 2,
+            ),
+          ],
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(ctx),
+            child: const Text('Cancel'),
+          ),
+          ElevatedButton(
+            style: ElevatedButton.styleFrom(
+              backgroundColor: Colors.deepOrange.shade800,
+              foregroundColor: Colors.white,
+            ),
+            onPressed: () {
+              Navigator.pop(ctx);
+              dataService.escalateCase(
+                c.caseId,
+                reason: reasonCtrl.text.trim().isNotEmpty ? reasonCtrl.text.trim() : null,
+              );
+              ScaffoldMessenger.of(context).showSnackBar(
+                SnackBar(
+                  content: Text('✓ Case #${c.caseId} escalated to Government Surveillance.'),
+                  backgroundColor: Colors.deepOrange.shade800,
+                ),
+              );
+            },
+            child: const Text('Escalate Now'),
+          ),
         ],
       ),
     );
@@ -443,20 +534,21 @@ class VetCaseDetailScreen extends StatelessWidget {
               const Text('Update Case Status',
                   style: TextStyle(fontWeight: FontWeight.bold, fontSize: 17)),
               const SizedBox(height: 16),
-              ...FullCaseStatus.values.map((s) => ListTile(
+              RadioGroup<FullCaseStatus>(
+                groupValue: c.status,
+                onChanged: (v) {
+                  if (v != null) {
+                    dataService.updateCaseStatus(c.caseId, v, actor: 'Veterinarian');
+                    Navigator.pop(ctx);
+                  }
+                },
+                child: Column(
+                  children: FullCaseStatus.values.map((s) => ListTile(
                     title: Text(s.displayName),
-                    leading: Radio<FullCaseStatus>(
-                      value: s,
-                      groupValue: c.status,
-                      onChanged: (v) {
-                        if (v != null) {
-                          dataService.updateCaseStatus(c.caseId, v,
-                              actor: 'Veterinarian');
-                          Navigator.pop(ctx);
-                        }
-                      },
-                    ),
-                  )),
+                    leading: Radio<FullCaseStatus>(value: s),
+                  )).toList(),
+                ),
+              ),
             ],
           ),
         ),

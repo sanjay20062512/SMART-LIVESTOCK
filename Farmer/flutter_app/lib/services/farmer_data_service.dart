@@ -123,7 +123,9 @@ class FarmerDataService extends ChangeNotifier {
             );
             _animals.add(animal);
           } catch (e) {
-             print('Error parsing animal: $e');
+            if (kDebugMode) {
+              print('Error parsing animal: $e');
+            }
           }
         }
         notifyListeners();
@@ -219,7 +221,9 @@ class FarmerDataService extends ChangeNotifier {
               _cases.insert(0, lcase);
             }
           } catch (e) {
-            print('Error parsing case: $e');
+            if (kDebugMode) {
+              print('Error parsing case: $e');
+            }
           }
         }
         notifyListeners();
@@ -282,7 +286,9 @@ class FarmerDataService extends ChangeNotifier {
       });
       await fetchAnimals();
     } catch (e) {
-      print('Error adding animal to backend: $e');
+      if (kDebugMode) {
+        print('Error adding animal to backend: $e');
+      }
     }
   }
 
@@ -780,14 +786,53 @@ class FarmerDataService extends ChangeNotifier {
         actor: actor,
       );
 
+      if (status == FullCaseStatus.escalated) {
+        c.isEscalatedToGovt = true;
+      }
+
       // Also update corresponding HealthReport if exists
       final rIdx = _healthReports.indexWhere((r) => r.id == c.reportId || r.id == c.caseId);
       if (rIdx != -1) {
-        _healthReports[rIdx].caseStatus = CaseStatus.values.firstWhere(
-          (cs) => cs.name.toLowerCase() == status.name.toLowerCase(),
-          orElse: () => _healthReports[rIdx].caseStatus,
-        );
-        // Note: recommendedAction is final; description is persisted in case timeline instead.
+        switch (status) {
+          case FullCaseStatus.submitted:
+            _healthReports[rIdx].caseStatus = CaseStatus.open;
+            break;
+          case FullCaseStatus.underReview:
+            _healthReports[rIdx].caseStatus = CaseStatus.underReview;
+            break;
+          case FullCaseStatus.vetAssigned:
+            _healthReports[rIdx].caseStatus = CaseStatus.vetAssigned;
+            break;
+          case FullCaseStatus.visitScheduled:
+            _healthReports[rIdx].caseStatus = CaseStatus.visitScheduled;
+            break;
+          case FullCaseStatus.sampleCollected:
+            _healthReports[rIdx].caseStatus = CaseStatus.sampleCollected;
+            break;
+          case FullCaseStatus.labReferred:
+            _healthReports[rIdx].caseStatus = CaseStatus.labReferred;
+            break;
+          case FullCaseStatus.investigation:
+            _healthReports[rIdx].caseStatus = CaseStatus.investigation;
+            break;
+          case FullCaseStatus.treatmentStarted:
+          case FullCaseStatus.followUpDue:
+          case FullCaseStatus.monitoring:
+            _healthReports[rIdx].caseStatus = CaseStatus.treatmentStarted;
+            break;
+          case FullCaseStatus.escalated:
+            _healthReports[rIdx].caseStatus = CaseStatus.escalated;
+            break;
+          case FullCaseStatus.contained:
+          case FullCaseStatus.caseClosed:
+            _healthReports[rIdx].caseStatus = CaseStatus.closed;
+            break;
+        }
+      }
+
+      // If escalated, ensure government alert is created
+      if (status == FullCaseStatus.escalated) {
+        _ensureGovtAlertForEscalatedCase(c, reason: description);
       }
 
       notifyListeners();
@@ -810,7 +855,9 @@ class FarmerDataService extends ChangeNotifier {
         await apiService.put('/cases/$caseId/status', payload);
         await fetchCases();
       } catch (e) {
-        print('Error updating case status: $e');
+        if (kDebugMode) {
+          print('Error updating case status: $e');
+        }
       }
     }
   }
@@ -820,9 +867,12 @@ class FarmerDataService extends ChangeNotifier {
     if (c != null) {
       c.assignedVetId = vetId;
       c.assignedVetName = vetName;
-      c.status = FullCaseStatus.vetAssigned;
-      c.addTimelineEvent('Vet Assigned', '$vetName has been assigned to this case.', actor: 'Veterinarian');
-      notifyListeners();
+      await updateCaseStatus(
+        caseId,
+        FullCaseStatus.vetAssigned,
+        actor: 'Veterinarian',
+        description: '$vetName has been assigned to this case.',
+      );
 
       try {
         await apiService.put('/cases/$caseId/assign', {
@@ -831,8 +881,66 @@ class FarmerDataService extends ChangeNotifier {
         });
         await fetchCases();
       } catch (e) {
-        print('Error assigning vet: $e');
+        if (kDebugMode) {
+          print('Error assigning vet: $e');
+        }
       }
+    }
+  }
+
+  void _ensureGovtAlertForEscalatedCase(LivestockCase c, {String? reason}) {
+    c.isEscalatedToGovt = true;
+    final alertTitle = 'ESCALATED CASE: ${c.species} (${c.animalTag}) - ${c.village}, ${c.district}';
+    final existingIdx = _govtAlerts.indexWhere((a) => a.clusterId == c.caseId);
+
+    if (existingIdx != -1) {
+      final existing = _govtAlerts[existingIdx];
+      existing.title = alertTitle;
+      existing.riskLevel = ClusterRisk.high;
+      existing.updatedAt = DateTime.now();
+    } else {
+      final alert = GovernmentAlert(
+        id: generateAlertId(),
+        clusterId: c.caseId,
+        type: 'ESCALATED_CASE',
+        riskLevel: ClusterRisk.high,
+        title: alertTitle,
+        location: '${c.village}, ${c.block}',
+        district: c.district,
+        state: c.state,
+        species: c.species,
+        animalCount: int.tryParse(c.affectedCount ?? '1') ?? 1,
+        reportCount: 1,
+        mortality: 0,
+        symptoms: List.from(c.symptoms),
+        suspectedDisease: c.symptoms.isNotEmpty ? c.symptoms.first : 'Critical Disease Outbreak',
+        status: GovernmentAlertStatus.newAlert,
+        createdAt: DateTime.now(),
+      );
+      _govtAlerts.insert(0, alert);
+    }
+
+    // Also send an urgent alert to the Farmer
+    addAlert(AppAlert(
+      id: generateAlertId(),
+      category: AlertCategory.veterinarianMessage,
+      title: 'Case #${c.caseId} Escalated to Government',
+      message: 'Dr. ${c.assignedVetName ?? "Field Veterinarian"} escalated this case to regional animal health authorities for emergency assistance.',
+      severity: AlertSeverity.high,
+      relatedId: c.caseId,
+      targetRole: 'FARMER',
+    ));
+  }
+
+  Future<void> escalateCase(String caseId, {String? reason}) async {
+    final c = getCaseById(caseId);
+    if (c != null) {
+      await updateCaseStatus(
+        caseId,
+        FullCaseStatus.escalated,
+        actor: 'Veterinarian',
+        description: reason ?? 'Case escalated by Veterinarian to State Government Surveillance for priority intervention.',
+      );
     }
   }
 
@@ -961,7 +1069,9 @@ class FarmerDataService extends ChangeNotifier {
         'status': 'PUBLISHED',
       });
     } catch (e) {
-      print('Error publishing advisory: $e');
+      if (kDebugMode) {
+        print('Error publishing advisory: $e');
+      }
     }
   }
 
@@ -1184,7 +1294,9 @@ class FarmerDataService extends ChangeNotifier {
           'description': 'Escalated to Government',
         });
       } catch (e) {
-        print('Error escalating cluster: $e');
+        if (kDebugMode) {
+          print('Error escalating cluster: $e');
+        }
       }
     }
   }

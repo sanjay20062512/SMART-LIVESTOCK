@@ -38,31 +38,41 @@ class ApiService {
     return headers;
   }
 
+  static const Duration requestTimeout = Duration(seconds: 2);
+
   Future<dynamic> get(String endpoint) async {
-    final response = await http.get(Uri.parse('$baseUrl$endpoint'), headers: _headers);
+    final response = await http
+        .get(Uri.parse('$baseUrl$endpoint'), headers: _headers)
+        .timeout(requestTimeout);
     return _handleResponse(response);
   }
 
   Future<dynamic> post(String endpoint, Map<String, dynamic> body) async {
-    final response = await http.post(
-      Uri.parse('$baseUrl$endpoint'),
-      headers: _headers,
-      body: jsonEncode(body),
-    );
+    final response = await http
+        .post(
+          Uri.parse('$baseUrl$endpoint'),
+          headers: _headers,
+          body: jsonEncode(body),
+        )
+        .timeout(requestTimeout);
     return _handleResponse(response);
   }
 
   Future<dynamic> put(String endpoint, Map<String, dynamic> body) async {
-    final response = await http.put(
-      Uri.parse('$baseUrl$endpoint'),
-      headers: _headers,
-      body: jsonEncode(body),
-    );
+    final response = await http
+        .put(
+          Uri.parse('$baseUrl$endpoint'),
+          headers: _headers,
+          body: jsonEncode(body),
+        )
+        .timeout(requestTimeout);
     return _handleResponse(response);
   }
 
   Future<dynamic> delete(String endpoint) async {
-    final response = await http.delete(Uri.parse('$baseUrl$endpoint'), headers: _headers);
+    final response = await http
+        .delete(Uri.parse('$baseUrl$endpoint'), headers: _headers)
+        .timeout(requestTimeout);
     return _handleResponse(response);
   }
 

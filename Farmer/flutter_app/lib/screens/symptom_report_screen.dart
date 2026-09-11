@@ -8,6 +8,7 @@ import '../services/triage_service.dart';
 import '../models/animal.dart';
 import '../models/health_report.dart';
 import 'vet_request_screen.dart';
+import 'assessment_result_screen.dart';
 
 class SymptomReportScreen extends StatefulWidget {
   final FarmerDataService dataService;
@@ -314,13 +315,18 @@ class _SymptomReportScreenState extends State<SymptomReportScreen> {
 
     widget.dataService.addHealthReport(report);
 
-    setState(() {
-      _triageResult = result;
-      _submittedReportId = reportId;
-      _step = 10;
-    });
-
-    _pageController.jumpToPage(10);
+    Navigator.pushReplacement(
+      context,
+      MaterialPageRoute(
+        builder: (_) => AssessmentResultScreen(
+          dataService: widget.dataService,
+          reportId: reportId,
+          triageResult: result,
+          animalId: animalId,
+          animalTag: animalTag,
+        ),
+      ),
+    );
   }
 
   @override
@@ -346,39 +352,39 @@ class _SymptomReportScreenState extends State<SymptomReportScreen> {
           style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
         ),
       ),
-      body: Column(
-        children: [
-          if (_step < 10)
-            SizedBox(
-              height: 4,
-              child: LinearProgressIndicator(
-                value: (_step + 1) / 10,
-                backgroundColor: Colors.grey.shade200,
-                valueColor: AlwaysStoppedAnimation<Color>(colorScheme.primary),
-                minHeight: 4,
-              ),
-            ),
-          Expanded(
-            child: PageView(
-              controller: _pageController,
-              physics: const NeverScrollableScrollPhysics(),
+      body: _step >= 10 && _triageResult != null
+          ? _buildStep11Result()
+          : Column(
               children: [
-          _buildStep1Species(),
-          _buildStep2Details(),
-          _buildStep3Symptoms(),
-          _buildStep4Duration(),
-          _buildStep5EatingDrinking(),
-          _buildStep6AffectedCount(),
-          _buildStep7Pregnancy(),
-          _buildStep8Evidence(),
-          _buildStep9Location(),
-          _buildStep10Summary(),
-          if (_triageResult != null) _buildStep11Result(),
-        ],
-      ),
-    ),
-  ],
-),
+                SizedBox(
+                  height: 4,
+                  child: LinearProgressIndicator(
+                    value: (_step + 1) / 10,
+                    backgroundColor: Colors.grey.shade200,
+                    valueColor: AlwaysStoppedAnimation<Color>(colorScheme.primary),
+                    minHeight: 4,
+                  ),
+                ),
+                Expanded(
+                  child: PageView(
+                    controller: _pageController,
+                    physics: const NeverScrollableScrollPhysics(),
+                    children: [
+                      _buildStep1Species(),
+                      _buildStep2Details(),
+                      _buildStep3Symptoms(),
+                      _buildStep4Duration(),
+                      _buildStep5EatingDrinking(),
+                      _buildStep6AffectedCount(),
+                      _buildStep7Pregnancy(),
+                      _buildStep8Evidence(),
+                      _buildStep9Location(),
+                      _buildStep10Summary(),
+                    ],
+                  ),
+                ),
+              ],
+            ),
     );
   }
 
@@ -1356,15 +1362,20 @@ class _SymptomReportScreenState extends State<SymptomReportScreen> {
                   Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
-                      const Text(
-                        'Recommended Action',
-                        style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
+                      const Expanded(
+                        child: Text(
+                          'Recommended Action',
+                          style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
+                          overflow: TextOverflow.ellipsis,
+                        ),
                       ),
+                      const SizedBox(width: 8),
                       ElevatedButton.icon(
                         style: ElevatedButton.styleFrom(
                           backgroundColor: Colors.green.shade50,
                           foregroundColor: Colors.green.shade900,
                           elevation: 0,
+                          minimumSize: const Size(0, 36),
                           shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
                         ),
                         icon: Icon(

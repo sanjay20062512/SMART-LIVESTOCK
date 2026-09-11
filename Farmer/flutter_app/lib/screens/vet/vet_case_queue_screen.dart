@@ -16,7 +16,7 @@ class VetCaseQueueScreen extends StatefulWidget {
 
 class _VetCaseQueueScreenState extends State<VetCaseQueueScreen> {
   String _filterRisk = 'All';
-  String _filterStatus = 'All';
+  final String _filterStatus = 'All';
 
   @override
   Widget build(BuildContext context) {

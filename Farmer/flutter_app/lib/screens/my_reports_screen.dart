@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import '../services/farmer_data_service.dart';
 import '../services/localization_service.dart';
 import '../models/health_report.dart';
+import '../models/case.dart';
 import '../models/mortality_report.dart';
 import '../models/vet_request.dart';
 import '../theme/app_theme.dart';
@@ -308,6 +309,9 @@ class _MyReportsScreenState extends State<MyReportsScreen>
   }
 
   void _openHealthCaseModal(BuildContext context, HealthReport report) {
+    final linkedCase = widget.dataService.getCaseById(report.id.replaceFirst('RPT', 'CASE')) ??
+        widget.dataService.getCaseById(report.id);
+
     showModalBottomSheet(
       context: context,
       isScrollControlled: true,
@@ -340,6 +344,191 @@ class _MyReportsScreenState extends State<MyReportsScreen>
               Text('Animal: ${report.animalTag} · ${report.breed ?? "Standard"}',
                   style: const TextStyle(color: Colors.grey, fontSize: 14)),
               const SizedBox(height: 16),
+
+              // Government Escalation Alert Banner (if escalated)
+              if (linkedCase?.isEscalatedToGovt == true ||
+                  linkedCase?.status == FullCaseStatus.escalated ||
+                  report.caseStatus == CaseStatus.escalated) ...[
+                Container(
+                  width: double.infinity,
+                  padding: const EdgeInsets.all(14),
+                  decoration: BoxDecoration(
+                    color: Colors.deepOrange.shade50,
+                    borderRadius: BorderRadius.circular(14),
+                    border: Border.all(color: Colors.deepOrange.shade300, width: 1.5),
+                  ),
+                  child: Row(
+                    children: [
+                      const Icon(Icons.emergency_rounded, color: Colors.deepOrange, size: 28),
+                      const SizedBox(width: 12),
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            const Text(
+                              'ESCALATED TO GOVERNMENT SURVEILLANCE',
+                              style: TextStyle(color: Colors.deepOrange, fontWeight: FontWeight.w800, fontSize: 12.5),
+                            ),
+                            const SizedBox(height: 3),
+                            Text(
+                              'Case escalated to regional animal health authorities for emergency epidemic response.',
+                              style: TextStyle(color: Colors.deepOrange.shade900, fontSize: 12, height: 1.3),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+                const SizedBox(height: 16),
+              ],
+
+              // Unified Veterinary Care & Clinical Findings Card
+              if (linkedCase?.assignedVetName != null ||
+                  (linkedCase?.clinicalObservation != null && linkedCase!.clinicalObservation!.isNotEmpty)) ...[
+                Container(
+                  width: double.infinity,
+                  decoration: BoxDecoration(
+                    color: Colors.white,
+                    borderRadius: BorderRadius.circular(14),
+                    border: Border.all(color: const Color(0xFFE2E8F0)),
+                    boxShadow: [
+                      BoxShadow(
+                        color: Colors.black.withValues(alpha: 0.04),
+                        blurRadius: 8,
+                        offset: const Offset(0, 2),
+                      ),
+                    ],
+                  ),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      // Header: Assigned Vet Info
+                      if (linkedCase?.assignedVetName != null)
+                        Container(
+                          padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+                          decoration: const BoxDecoration(
+                            color: Color(0xFFF0FDF4),
+                            borderRadius: BorderRadius.vertical(top: Radius.circular(13)),
+                            border: Border(bottom: BorderSide(color: Color(0xFFDCFCE7))),
+                          ),
+                          child: Row(
+                            children: [
+                              Container(
+                                padding: const EdgeInsets.all(8),
+                                decoration: BoxDecoration(
+                                  color: AppColors.primary.withValues(alpha: 0.12),
+                                  shape: BoxShape.circle,
+                                ),
+                                child: const Icon(Icons.medical_services_rounded, color: AppColors.primaryDark, size: 20),
+                              ),
+                              const SizedBox(width: 12),
+                              Expanded(
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    Row(
+                                      children: [
+                                        Text(
+                                          linkedCase!.assignedVetName!,
+                                          style: const TextStyle(fontWeight: FontWeight.w700, fontSize: 14, color: AppColors.textPrimary),
+                                        ),
+                                        const SizedBox(width: 6),
+                                        Container(
+                                          padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                                          decoration: BoxDecoration(
+                                            color: AppColors.primaryDark,
+                                            borderRadius: BorderRadius.circular(4),
+                                          ),
+                                          child: const Text('ATTENDING VET', style: TextStyle(color: Colors.white, fontSize: 9, fontWeight: FontWeight.w800, letterSpacing: 0.5)),
+                                        ),
+                                      ],
+                                    ),
+                                    if (linkedCase.visitScheduledDate != null) ...[
+                                      const SizedBox(height: 3),
+                                      Row(
+                                        children: [
+                                          const Icon(Icons.event_available_rounded, size: 14, color: AppColors.textSecondary),
+                                          const SizedBox(width: 4),
+                                          Text(
+                                            'Visit: ${linkedCase.visitScheduledDate!.day}/${linkedCase.visitScheduledDate!.month}/${linkedCase.visitScheduledDate!.year}',
+                                            style: const TextStyle(fontSize: 12, color: AppColors.textSecondary, fontWeight: FontWeight.w500),
+                                          ),
+                                        ],
+                                      ),
+                                    ],
+                                  ],
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+
+                      // Clinical Findings Body
+                      if (linkedCase?.clinicalObservation != null && linkedCase!.clinicalObservation!.isNotEmpty)
+                        Padding(
+                          padding: const EdgeInsets.all(14),
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              const Row(
+                                children: [
+                                  Icon(Icons.assignment_turned_in_rounded, color: AppColors.primary, size: 17),
+                                  SizedBox(width: 7),
+                                  Text(
+                                    'Veterinarian Findings & Diagnosis',
+                                    style: TextStyle(
+                                      fontWeight: FontWeight.w700,
+                                      fontSize: 13,
+                                      color: AppColors.primaryDark,
+                                      letterSpacing: -0.1,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                              const SizedBox(height: 8),
+                              Container(
+                                width: double.infinity,
+                                padding: const EdgeInsets.all(12),
+                                decoration: BoxDecoration(
+                                  color: const Color(0xFFF8FAFC),
+                                  borderRadius: BorderRadius.circular(8),
+                                  border: Border.all(color: const Color(0xFFE2E8F0)),
+                                ),
+                                child: Text(
+                                  linkedCase.clinicalObservation!,
+                                  style: const TextStyle(
+                                    fontSize: 13.5,
+                                    height: 1.45,
+                                    color: AppColors.textPrimary,
+                                    fontWeight: FontWeight.w400,
+                                  ),
+                                ),
+                              ),
+                              if (linkedCase.treatmentSummary != null && linkedCase.treatmentSummary!.isNotEmpty) ...[
+                                const SizedBox(height: 10),
+                                Row(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    const Icon(Icons.medication_rounded, color: Colors.blue, size: 16),
+                                    const SizedBox(width: 6),
+                                    Expanded(
+                                      child: Text(
+                                        'Treatment: ${linkedCase.treatmentSummary!}',
+                                        style: const TextStyle(fontSize: 12.5, fontWeight: FontWeight.w600, color: Colors.black87),
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ],
+                            ],
+                          ),
+                        ),
+                    ],
+                  ),
+                ),
+                const SizedBox(height: 16),
+              ],
 
               // Risk Badge
               Container(
@@ -512,18 +701,56 @@ class _MyReportsScreenState extends State<MyReportsScreen>
       'UNDER REVIEW',
       'VET ASSIGNED',
       'VISIT SCHEDULED',
+      'SAMPLE COLLECTED',
+      'LAB REFERRED',
       'TREATMENT STARTED',
+      if (status == CaseStatus.escalated) 'ESCALATED TO GOVT',
       'CASE CLOSED',
     ];
 
-    final currentIndex = status.index;
+    int targetIndex = 0;
+    switch (status) {
+      case CaseStatus.open:
+        targetIndex = 0;
+        break;
+      case CaseStatus.underReview:
+        targetIndex = 1;
+        break;
+      case CaseStatus.vetAssigned:
+        targetIndex = 2;
+        break;
+      case CaseStatus.visitScheduled:
+        targetIndex = 3;
+        break;
+      case CaseStatus.sampleCollected:
+        targetIndex = 4;
+        break;
+      case CaseStatus.labReferred:
+        targetIndex = 5;
+        break;
+      case CaseStatus.investigation:
+        targetIndex = 5;
+        break;
+      case CaseStatus.treatmentStarted:
+        targetIndex = 6;
+        break;
+      case CaseStatus.escalated:
+        targetIndex = 7;
+        break;
+      case CaseStatus.closed:
+        targetIndex = stages.length - 1;
+        break;
+    }
 
     return Column(
       children: stages.asMap().entries.map((e) {
         final idx = e.key;
         final name = e.value;
-        final isPassed = idx <= currentIndex;
+        final isPassed = idx <= targetIndex;
         final isLast = idx == stages.length - 1;
+        final isEscalatedNode = name == 'ESCALATED TO GOVT';
+
+        final activeColor = isEscalatedNode ? Colors.deepOrange.shade800 : const Color(0xFF2E7D32);
 
         return Row(
           crossAxisAlignment: CrossAxisAlignment.start,
@@ -532,14 +759,14 @@ class _MyReportsScreenState extends State<MyReportsScreen>
               children: [
                 CircleAvatar(
                   radius: 9,
-                  backgroundColor: isPassed ? const Color(0xFF2E7D32) : Colors.grey.shade300,
+                  backgroundColor: isPassed ? activeColor : Colors.grey.shade300,
                   child: isPassed ? const Icon(Icons.check, size: 12, color: Colors.white) : null,
                 ),
                 if (!isLast)
                   Container(
                     width: 2,
                     height: 28,
-                    color: isPassed ? const Color(0xFF2E7D32) : Colors.grey.shade300,
+                    color: isPassed ? activeColor : Colors.grey.shade300,
                   ),
               ],
             ),
@@ -551,7 +778,7 @@ class _MyReportsScreenState extends State<MyReportsScreen>
                   name,
                   style: TextStyle(
                     fontWeight: isPassed ? FontWeight.bold : FontWeight.normal,
-                    color: isPassed ? Colors.black87 : Colors.grey,
+                    color: isPassed ? (isEscalatedNode ? Colors.deepOrange.shade900 : Colors.black87) : Colors.grey,
                   ),
                 ),
               ),

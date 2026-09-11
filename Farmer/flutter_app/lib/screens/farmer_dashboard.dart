@@ -46,13 +46,16 @@ class FarmerDashboard extends StatelessWidget {
               child: const Icon(Icons.agriculture_rounded, color: AppColors.primary, size: 22),
             ),
             const SizedBox(width: 10),
-            Text(
-              context.tr('app_title'),
-              style: const TextStyle(
-                fontWeight: FontWeight.w800,
-                fontSize: 19,
-                color: AppColors.primary,
-                letterSpacing: -0.3,
+            Flexible(
+              child: Text(
+                context.tr('app_title'),
+                overflow: TextOverflow.ellipsis,
+                style: const TextStyle(
+                  fontWeight: FontWeight.w800,
+                  fontSize: 18,
+                  color: AppColors.primary,
+                  letterSpacing: -0.3,
+                ),
               ),
             ),
           ],

@@ -7,7 +7,11 @@ enum CaseStatus {
   underReview,
   vetAssigned,
   visitScheduled,
+  sampleCollected,
+  labReferred,
+  investigation,
   treatmentStarted,
+  escalated,
   closed
 }
 
@@ -37,8 +41,16 @@ extension CaseStatusExt on CaseStatus {
         return 'Vet Assigned';
       case CaseStatus.visitScheduled:
         return 'Visit Scheduled';
+      case CaseStatus.sampleCollected:
+        return 'Sample Collected';
+      case CaseStatus.labReferred:
+        return 'Lab Referred';
+      case CaseStatus.investigation:
+        return 'Investigation';
       case CaseStatus.treatmentStarted:
         return 'Treatment Started';
+      case CaseStatus.escalated:
+        return 'Escalated to Govt';
       case CaseStatus.closed:
         return 'Case Closed';
     }

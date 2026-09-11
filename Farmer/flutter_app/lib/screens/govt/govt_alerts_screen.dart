@@ -25,12 +25,18 @@ class _GovtAlertsScreenState extends State<GovtAlertsScreen> with SingleTickerPr
   void initState() {
     super.initState();
     _tabController = TabController(length: 3, vsync: this);
+    widget.dataService.addListener(_onDataChanged);
   }
 
   @override
   void dispose() {
+    widget.dataService.removeListener(_onDataChanged);
     _tabController.dispose();
     super.dispose();
+  }
+
+  void _onDataChanged() {
+    if (mounted) setState(() {});
   }
 
   void _showReviewModal(Map<String, dynamic> alert) {
@@ -160,7 +166,21 @@ class _GovtAlertsScreenState extends State<GovtAlertsScreen> with SingleTickerPr
   }
 
   Widget _buildAlertList(String category) {
-    final alerts = GovtMockData.getAlertsByCategory(category);
+    final List<Map<String, dynamic>> alerts = [];
+
+    if (category == 'Critical') {
+      final liveGovtAlerts = widget.dataService.getGovernmentAlerts().map((a) => {
+        'severity': 'critical',
+        'title': a.title,
+        'location': a.district.isNotEmpty ? a.district : a.location,
+        'time': 'Just now',
+        'issue': '${a.title} - ${a.suspectedDisease} (${a.species}, ${a.animalCount} affected)',
+        'action': 'Deploy Rapid Response Team & Ring Vaccination',
+      }).toList();
+      alerts.addAll(liveGovtAlerts);
+    }
+
+    alerts.addAll(GovtMockData.getAlertsByCategory(category));
 
     return ListView.builder(
       padding: const EdgeInsets.fromLTRB(16, 14, 16, 28),
