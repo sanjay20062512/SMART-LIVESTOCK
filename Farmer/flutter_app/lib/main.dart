@@ -75,7 +75,7 @@ class RoleSelectionScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xFF0A1628),
+      backgroundColor: const Color(0xFFF8FAFC),
       body: SafeArea(
         child: SingleChildScrollView(
           padding: const EdgeInsets.symmetric(horizontal: 22, vertical: 24),
@@ -90,8 +90,8 @@ class RoleSelectionScreen extends StatelessWidget {
                   children: [
                     // Logo container
                     Container(
-                      width: 88,
-                      height: 88,
+                      width: 84,
+                      height: 84,
                       decoration: BoxDecoration(
                         gradient: const LinearGradient(
                           colors: [AppColors.primary, AppColors.primaryDark],
@@ -101,17 +101,17 @@ class RoleSelectionScreen extends StatelessWidget {
                         borderRadius: AppRadius.lgRadius,
                         boxShadow: [
                           BoxShadow(
-                            color: AppColors.primary.withValues(alpha: 0.45),
-                            blurRadius: 28,
-                            spreadRadius: 2,
-                            offset: const Offset(0, 8),
+                            color: AppColors.primary.withValues(alpha: 0.28),
+                            blurRadius: 20,
+                            spreadRadius: 1,
+                            offset: const Offset(0, 6),
                           ),
                         ],
                       ),
                       child: const Center(
                         child: Icon(
                           Icons.agriculture_rounded,
-                          size: 48,
+                          size: 46,
                           color: Colors.white,
                         ),
                       ),
@@ -120,7 +120,7 @@ class RoleSelectionScreen extends StatelessWidget {
                     const Text(
                       'Smart Livestock',
                       style: TextStyle(
-                        color: Colors.white,
+                        color: AppColors.textPrimary,
                         fontSize: 28,
                         fontWeight: FontWeight.w800,
                         letterSpacing: -0.5,
@@ -128,21 +128,21 @@ class RoleSelectionScreen extends StatelessWidget {
                     ),
                     const SizedBox(height: 6),
                     Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
+                      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 6),
                       decoration: BoxDecoration(
-                        color: AppColors.primary.withValues(alpha: 0.18),
+                        color: AppColors.primaryLight,
                         borderRadius: AppRadius.fullRadius,
                         border: Border.all(
-                          color: AppColors.primary.withValues(alpha: 0.35),
+                          color: AppColors.primary.withValues(alpha: 0.25),
                         ),
                       ),
                       child: const Text(
                         'Animal Health Surveillance System',
                         style: TextStyle(
-                          color: AppColors.primaryLight,
+                          color: AppColors.primaryDark,
                           fontSize: 12,
-                          fontWeight: FontWeight.w500,
-                          letterSpacing: 0.3,
+                          fontWeight: FontWeight.w600,
+                          letterSpacing: 0.2,
                         ),
                       ),
                     ),
@@ -154,14 +154,14 @@ class RoleSelectionScreen extends StatelessWidget {
 
               // ── Role Selection Label ──────────────────────────────────────
               const Padding(
-                padding: EdgeInsets.only(left: 2, bottom: 12),
+                padding: EdgeInsets.only(left: 4, bottom: 12),
                 child: Text(
                   'SELECT YOUR ROLE',
                   style: TextStyle(
-                    color: AppColors.primaryLight,
+                    color: AppColors.textMuted,
                     fontSize: 11,
                     fontWeight: FontWeight.w700,
-                    letterSpacing: 2.5,
+                    letterSpacing: 1.5,
                   ),
                 ),
               ),
@@ -172,12 +172,7 @@ class RoleSelectionScreen extends StatelessWidget {
                 icon: Icons.agriculture_rounded,
                 title: 'Farmer',
                 subtitle: 'Report animal problems, track cases, receive advisories',
-                gradient: const LinearGradient(
-                  colors: [Color(0xFF0D9488), Color(0xFF0F766E)],
-                  begin: Alignment.topLeft,
-                  end: Alignment.bottomRight,
-                ),
-                accentColor: AppColors.primaryLight,
+                accentColor: AppColors.primary,
                 badgeText: 'Farmer Portal',
                 onTap: () => _goFarmer(context),
               ),
@@ -190,12 +185,7 @@ class RoleSelectionScreen extends StatelessWidget {
                 icon: Icons.medical_services_rounded,
                 title: 'Veterinarian',
                 subtitle: 'Review cases, schedule visits, collect samples, manage treatments',
-                gradient: const LinearGradient(
-                  colors: [Color(0xFF1E40AF), Color(0xFF1E3A8A)],
-                  begin: Alignment.topLeft,
-                  end: Alignment.bottomRight,
-                ),
-                accentColor: const Color(0xFFBFDBFE),
+                accentColor: const Color(0xFF1E40AF),
                 badgeText: 'Field Veterinary Services',
                 onTap: () => _goVet(context),
               ),
@@ -208,12 +198,7 @@ class RoleSelectionScreen extends StatelessWidget {
                 icon: Icons.account_balance_rounded,
                 title: 'Government',
                 subtitle: 'Surveillance dashboard, cluster detection, advisories, response',
-                gradient: const LinearGradient(
-                  colors: [Color(0xFF0B192C), Color(0xFF132743)],
-                  begin: Alignment.topLeft,
-                  end: Alignment.bottomRight,
-                ),
-                accentColor: const Color(0xFF93C5FD),
+                accentColor: AppColors.govtNavy,
                 badgeText: 'Animal Health Authority',
                 onTap: () => _goGovt(context),
               ),
@@ -231,7 +216,6 @@ class RoleSelectionScreen extends StatelessWidget {
     required IconData icon,
     required String title,
     required String subtitle,
-    required Gradient gradient,
     required Color accentColor,
     required String badgeText,
     required VoidCallback onTap,
@@ -244,11 +228,19 @@ class RoleSelectionScreen extends StatelessWidget {
         onTap: onTap,
         child: Ink(
           decoration: BoxDecoration(
-            gradient: gradient,
+            color: Colors.white,
             borderRadius: AppRadius.lgRadius,
             border: Border.all(
-              color: Colors.white.withValues(alpha: 0.10),
+              color: const Color(0xFFE2E8F0),
+              width: 1.2,
             ),
+            boxShadow: [
+              BoxShadow(
+                color: Colors.black.withValues(alpha: 0.04),
+                blurRadius: 12,
+                offset: const Offset(0, 4),
+              ),
+            ],
           ),
           child: Padding(
             padding: const EdgeInsets.all(18),
@@ -259,11 +251,14 @@ class RoleSelectionScreen extends StatelessWidget {
                   width: 52,
                   height: 52,
                   decoration: BoxDecoration(
-                    color: Colors.white.withValues(alpha: 0.15),
-                    borderRadius: AppRadius.smRadius,
+                    color: accentColor.withValues(alpha: 0.10),
+                    borderRadius: AppRadius.mdRadius,
+                    border: Border.all(
+                      color: accentColor.withValues(alpha: 0.20),
+                    ),
                   ),
                   child: Center(
-                    child: Icon(icon, size: 26, color: Colors.white),
+                    child: Icon(icon, size: 26, color: accentColor),
                   ),
                 ),
                 const SizedBox(width: 14),
@@ -275,7 +270,7 @@ class RoleSelectionScreen extends StatelessWidget {
                       Text(
                         title,
                         style: const TextStyle(
-                          color: Colors.white,
+                          color: AppColors.textPrimary,
                           fontSize: 17,
                           fontWeight: FontWeight.w700,
                           letterSpacing: -0.2,
@@ -284,25 +279,25 @@ class RoleSelectionScreen extends StatelessWidget {
                       const SizedBox(height: 3),
                       Text(
                         subtitle,
-                        style: TextStyle(
-                          color: Colors.white.withValues(alpha: 0.7),
-                          fontSize: 12,
-                          height: 1.4,
+                        style: const TextStyle(
+                          color: AppColors.textSecondary,
+                          fontSize: 12.5,
+                          height: 1.35,
                         ),
                       ),
                       const SizedBox(height: 8),
                       Container(
                         padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
                         decoration: BoxDecoration(
-                          color: Colors.black.withValues(alpha: 0.22),
+                          color: accentColor.withValues(alpha: 0.08),
                           borderRadius: AppRadius.xsRadius,
                         ),
                         child: Text(
                           badgeText,
                           style: TextStyle(
                             color: accentColor,
-                            fontSize: 10.5,
-                            fontWeight: FontWeight.w500,
+                            fontSize: 11,
+                            fontWeight: FontWeight.w600,
                           ),
                         ),
                       ),
@@ -311,16 +306,16 @@ class RoleSelectionScreen extends StatelessWidget {
                 ),
                 const SizedBox(width: 8),
                 Container(
-                  width: 28,
-                  height: 28,
+                  width: 32,
+                  height: 32,
                   decoration: BoxDecoration(
-                    color: Colors.white.withValues(alpha: 0.12),
+                    color: const Color(0xFFF1F5F9),
                     borderRadius: AppRadius.xsRadius,
                   ),
                   child: const Center(
                     child: Icon(
                       Icons.arrow_forward_ios_rounded,
-                      color: Colors.white70,
+                      color: AppColors.textSecondary,
                       size: 14,
                     ),
                   ),
@@ -433,7 +428,7 @@ class __VetLoginScreenState extends State<_VetLoginScreen> {
             suffixIcon: IconButton(
               icon: Icon(
                 _obscure ? Icons.visibility_outlined : Icons.visibility_off_outlined,
-                color: Colors.white60,
+                color: AppColors.textSecondary,
               ),
               onPressed: () => setState(() => _obscure = !_obscure),
             )),
@@ -501,7 +496,7 @@ class __GovtLoginScreenState extends State<_GovtLoginScreen> {
             suffixIcon: IconButton(
               icon: Icon(
                 _obscure ? Icons.visibility_outlined : Icons.visibility_off_outlined,
-                color: Colors.white60,
+                color: AppColors.textSecondary,
               ),
               onPressed: () => setState(() => _obscure = !_obscure),
             )),
@@ -527,13 +522,13 @@ Widget _loginScaffold(
   required VoidCallback onLogin,
 }) {
   return Scaffold(
-    backgroundColor: const Color(0xFF0A1628),
+    backgroundColor: const Color(0xFFF8FAFC),
     appBar: AppBar(
       backgroundColor: Colors.transparent,
-      foregroundColor: Colors.white,
+      foregroundColor: AppColors.textPrimary,
       elevation: 0,
       leading: IconButton(
-        icon: const Icon(Icons.arrow_back_rounded, color: Colors.white),
+        icon: const Icon(Icons.arrow_back_rounded, color: AppColors.textPrimary),
         onPressed: () => Navigator.pop(context),
       ),
     ),
@@ -543,15 +538,23 @@ Widget _loginScaffold(
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
-            // ── Header ────────────────────────────────────────────────────
+            // ── Header Card ───────────────────────────────────────────────
             Container(
-              padding: const EdgeInsets.all(28),
+              padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 26),
               decoration: BoxDecoration(
-                gradient: headerGradient,
+                color: Colors.white,
                 borderRadius: AppRadius.lgRadius,
                 border: Border.all(
-                  color: Colors.white.withValues(alpha: 0.10),
+                  color: const Color(0xFFE2E8F0),
+                  width: 1.2,
                 ),
+                boxShadow: [
+                  BoxShadow(
+                    color: Colors.black.withValues(alpha: 0.04),
+                    blurRadius: 14,
+                    offset: const Offset(0, 4),
+                  ),
+                ],
               ),
               child: Column(
                 children: [
@@ -559,18 +562,21 @@ Widget _loginScaffold(
                     width: 64,
                     height: 64,
                     decoration: BoxDecoration(
-                      color: Colors.white.withValues(alpha: 0.15),
-                      borderRadius: AppRadius.smRadius,
+                      color: accentColor.withValues(alpha: 0.10),
+                      borderRadius: AppRadius.mdRadius,
+                      border: Border.all(
+                        color: accentColor.withValues(alpha: 0.20),
+                      ),
                     ),
                     child: Center(
-                      child: Icon(icon, size: 34, color: Colors.white),
+                      child: Icon(icon, size: 32, color: accentColor),
                     ),
                   ),
                   const SizedBox(height: 14),
                   Text(
                     title,
                     style: const TextStyle(
-                      color: Colors.white,
+                      color: AppColors.textPrimary,
                       fontSize: 22,
                       fontWeight: FontWeight.w700,
                       letterSpacing: -0.3,
@@ -579,9 +585,10 @@ Widget _loginScaffold(
                   const SizedBox(height: 4),
                   Text(
                     subtitle,
-                    style: TextStyle(
-                      color: Colors.white.withValues(alpha: 0.65),
+                    style: const TextStyle(
+                      color: AppColors.textSecondary,
                       fontSize: 13,
+                      fontWeight: FontWeight.w500,
                     ),
                   ),
                 ],
@@ -592,14 +599,14 @@ Widget _loginScaffold(
 
             // ── Credentials section label ─────────────────────────────────
             const Padding(
-              padding: EdgeInsets.only(left: 2, bottom: 12),
+              padding: EdgeInsets.only(left: 4, bottom: 12),
               child: Text(
                 'CREDENTIALS',
                 style: TextStyle(
-                  color: Colors.white38,
+                  color: AppColors.textMuted,
                   fontSize: 11,
                   fontWeight: FontWeight.w700,
-                  letterSpacing: 2,
+                  letterSpacing: 1.5,
                 ),
               ),
             ),
@@ -609,15 +616,15 @@ Widget _loginScaffold(
 
             // ── Login button ──────────────────────────────────────────────
             SizedBox(
-              height: 56,
+              height: 54,
               child: ElevatedButton(
                 style: ElevatedButton.styleFrom(
-                  backgroundColor: AppColors.primary,
+                  backgroundColor: accentColor,
                   foregroundColor: Colors.white,
                   shape: RoundedRectangleBorder(
                     borderRadius: AppRadius.mdRadius,
                   ),
-                  elevation: 0,
+                  elevation: 1,
                 ),
                 onPressed: loading ? null : onLogin,
                 child: loading
@@ -634,7 +641,7 @@ Widget _loginScaffold(
                         style: TextStyle(
                           fontSize: 15,
                           fontWeight: FontWeight.w700,
-                          letterSpacing: 1.5,
+                          letterSpacing: 1.2,
                         ),
                       ),
               ),
@@ -657,25 +664,25 @@ Widget _field(
     controller: ctrl,
     obscureText: obscure,
     style: const TextStyle(
-      color: Colors.white,
+      color: AppColors.textPrimary,
       fontSize: 15,
       fontWeight: FontWeight.w500,
     ),
     decoration: InputDecoration(
       labelText: label,
-      labelStyle: const TextStyle(color: Colors.white54, fontSize: 14),
-      prefixIcon: Icon(icon, color: Colors.white54, size: 20),
+      labelStyle: const TextStyle(color: AppColors.textSecondary, fontSize: 14),
+      prefixIcon: Icon(icon, color: AppColors.textSecondary, size: 20),
       suffixIcon: suffixIcon,
       filled: true,
-      fillColor: Colors.white.withValues(alpha: 0.08),
+      fillColor: Colors.white,
       contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 18),
       border: OutlineInputBorder(
         borderRadius: AppRadius.mdRadius,
-        borderSide: BorderSide(color: Colors.white.withValues(alpha: 0.18)),
+        borderSide: const BorderSide(color: Color(0xFFE2E8F0)),
       ),
       enabledBorder: OutlineInputBorder(
         borderRadius: AppRadius.mdRadius,
-        borderSide: BorderSide(color: Colors.white.withValues(alpha: 0.18)),
+        borderSide: const BorderSide(color: Color(0xFFCBD5E1)),
       ),
       focusedBorder: OutlineInputBorder(
         borderRadius: AppRadius.mdRadius,
