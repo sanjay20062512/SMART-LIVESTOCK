@@ -1,403 +1,898 @@
-// Vaccination Command Screen — campaign management and coverage tracking
+// Smart Livestock — Government Vaccination Campaigns Command Center
+// Connected directly to the Maharashtra Disease Risk Map & Village Field Teams.
+// Follows the clean, light design system of Farmer & Veterinary modules.
 
 import 'package:flutter/material.dart';
 import '../../services/farmer_data_service.dart';
 import 'govt_theme.dart';
 import 'govt_models.dart';
 import 'govt_mock_data.dart';
-import 'widgets/govt_widgets.dart';
+import 'govt_campaign_engine.dart';
+import 'govt_campaign_detail_screen.dart';
+import 'widgets/govt_create_campaign_dialog.dart';
+import 'widgets/govt_maharashtra_map_widget.dart';
 
 class GovtVaccinationScreen extends StatefulWidget {
   final FarmerDataService dataService;
-  const GovtVaccinationScreen({super.key, required this.dataService});
+
+  const GovtVaccinationScreen({
+    super.key,
+    required this.dataService,
+  });
 
   @override
   State<GovtVaccinationScreen> createState() => _GovtVaccinationScreenState();
 }
 
 class _GovtVaccinationScreenState extends State<GovtVaccinationScreen> {
-  final _campaigns = GovtMockData.getCampaigns();
+  late List<VaccinationCampaign> _campaigns;
+  late List<DistrictRiskProfile> _districts;
+  late DistrictRiskProfile _selectedMapDistrict;
+  String _selectedDisease = 'All';
+  String _selectedTimeframe = '7 Days';
+
+  @override
+  void initState() {
+    super.initState();
+    _campaigns = GovtMockData.getCampaigns();
+    _districts = GovtMockData.getMaharashtraDistricts();
+
+    // Default selected district to Pune (Critical gap)
+    _selectedMapDistrict = _districts.firstWhere(
+      (d) => d.name.toLowerCase() == 'pune',
+      orElse: () => _districts.first,
+    );
+  }
+
+  void _openCreateCampaignFlow({
+    String? district,
+    String? disease,
+    CampaignPriority? priority,
+  }) {
+    GovtCreateCampaignDialog.show(
+      context,
+      initialDistrict: district,
+      initialDisease: disease,
+      initialPriority: priority,
+      onCampaignCreated: (newCamp) {
+        setState(() {
+          _campaigns.insert(0, newCamp);
+        });
+      },
+    );
+  }
+
+  void _openCampaignDetails(VaccinationCampaign c) {
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (_) => GovtCampaignDetailScreen(
+          campaign: c,
+          dataService: widget.dataService,
+        ),
+      ),
+    );
+  }
 
   @override
   Widget build(BuildContext context) {
+    // Exact aggregates per spec: 6 active, 24,850 target, 17,420 vaccinated, 70.1% coverage
+    final activeCount = _campaigns.where((c) => c.status == CampaignStatus.active).length;
     final totalTarget = _campaigns.fold(0, (s, c) => s + c.targetAnimals);
     final totalVaccinated = _campaigns.fold(0, (s, c) => s + c.vaccinatedAnimals);
     final coveragePct = totalTarget > 0 ? (totalVaccinated / totalTarget * 100) : 0.0;
-    final activeCampaigns = _campaigns.where((c) => c.status == CampaignStatus.active).length;
 
-    return Scaffold(
-      backgroundColor: GovtColors.pageBackground,
-      body: CustomScrollView(
-        slivers: [
-          SliverAppBar(
-            pinned: true,
-            backgroundColor: GovtColors.brandDark,
-            foregroundColor: Colors.white,
-            automaticallyImplyLeading: false,
-            title: const Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text('Vaccination Command', style: TextStyle(fontSize: 17, fontWeight: FontWeight.w700)),
-                Text('Campaign management & coverage tracking', style: TextStyle(fontSize: 11, color: Colors.white70)),
-              ],
-            ),
-            actions: [
-              IconButton(icon: const Icon(Icons.add_circle_outline_rounded), onPressed: () => _showCreateCampaign(context)),
-            ],
-          ),
-
-          SliverToBoxAdapter(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                // ── Top Metrics ───────────────────────────────────────────
-                Padding(
-                  padding: const EdgeInsets.fromLTRB(16, 16, 16, 0),
-                  child: GridView.count(
-                    crossAxisCount: 2,
-                    shrinkWrap: true,
-                    physics: const NeverScrollableScrollPhysics(),
-                    crossAxisSpacing: 10,
-                    mainAxisSpacing: 10,
-                    childAspectRatio: 1.25,
-                    children: [
-                      GovernmentMetricCard(label: 'ELIGIBLE ANIMALS', value: '${(totalTarget / 1000).toStringAsFixed(0)}K', icon: Icons.pets_rounded, color: GovtColors.textPrimary),
-                      GovernmentMetricCard(label: 'VACCINATED', value: '${(totalVaccinated / 1000).toStringAsFixed(0)}K', icon: Icons.vaccines_rounded, color: GovtColors.success),
-                      GovernmentMetricCard(
-                        label: 'PENDING',
-                        value: '${((totalTarget - totalVaccinated) / 1000).toStringAsFixed(0)}K',
-                        icon: Icons.pending_actions_rounded,
-                        color: GovtColors.warning,
-                      ),
-                      GovernmentMetricCard(
-                        label: 'COVERAGE',
-                        value: '${coveragePct.round()}%',
-                        icon: Icons.donut_large_rounded,
-                        color: GovtColors.brand,
-                      ),
-                    ],
-                  ),
-                ),
-
-                const SizedBox(height: 20),
-
-                // ── Coverage Summary ──────────────────────────────────────
-                Padding(
-                  padding: GovtSpacing.pagePadding,
-                  child: GovtSectionCard(
-                    child: Row(
-                      children: [
-                        VaccinationRingChart(percent: coveragePct, label: 'Overall', color: GovtColors.brand),
-                        const SizedBox(width: 20),
-                        Expanded(
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              const Text('Overall Coverage', style: GovtTypography.sectionTitle),
-                              const SizedBox(height: 4),
-                              Text('$activeCampaigns active campaign${activeCampaigns != 1 ? 's' : ''}', style: GovtTypography.caption),
-                              const SizedBox(height: 12),
-                              GovtProgressBar(value: coveragePct / 100),
-                              const SizedBox(height: 6),
-                              Row(
-                                children: [
-                                  Flexible(child: Text('$totalVaccinated vaccinated', style: const TextStyle(fontSize: 11, color: GovtColors.success), overflow: TextOverflow.ellipsis)),
-                                  const SizedBox(width: 8),
-                                  Flexible(child: Text('${totalTarget - totalVaccinated} pending', style: const TextStyle(fontSize: 11, color: GovtColors.warning), overflow: TextOverflow.ellipsis)),
-                                ],
-                              ),
-                            ],
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                ),
-
-                const SizedBox(height: 20),
-
-                Padding(
-                  padding: GovtSpacing.pagePadding,
-                  child: Row(
-                    children: [
-                      const Expanded(child: SectionHeader(title: 'Vaccination Campaigns')),
-                      GovtButton(label: 'New Campaign', icon: Icons.add_rounded, compact: true, onPressed: () => _showCreateCampaign(context)),
-                    ],
-                  ),
-                ),
-
-                // ── Campaign Cards ────────────────────────────────────────
-                ..._campaigns.map((c) => Padding(
-                  padding: const EdgeInsets.fromLTRB(16, 0, 16, 10),
-                  child: GestureDetector(
-                    onTap: () => _openCampaignDetail(context, c),
-                    child: _campaignCard(c),
-                  ),
-                )),
-
-                const SizedBox(height: 100),
-              ],
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _campaignCard(VaccinationCampaign c) {
-    final statusColor = _statusColor(c.status);
-    return Container(
-      decoration: BoxDecoration(
-        color: GovtColors.surface,
-        borderRadius: GovtRadius.lgRadius,
-        border: Border.all(color: GovtColors.border),
-        boxShadow: const [BoxShadow(color: GovtColors.shadow, blurRadius: 8, offset: Offset(0, 2))],
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          // Header
-          Container(
-            padding: const EdgeInsets.all(14),
-            decoration: BoxDecoration(
-              color: statusColor.withValues(alpha: 0.05),
-              borderRadius: const BorderRadius.only(topLeft: Radius.circular(16), topRight: Radius.circular(16)),
-              border: Border(bottom: BorderSide(color: statusColor.withValues(alpha: 0.15))),
-            ),
-            child: Row(
-              children: [
-                Container(
-                  padding: const EdgeInsets.all(8),
-                  decoration: BoxDecoration(color: statusColor.withValues(alpha: 0.1), borderRadius: GovtRadius.smRadius),
-                  child: Icon(Icons.vaccines_rounded, size: 18, color: statusColor),
-                ),
-                const SizedBox(width: 10),
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(c.name, style: GovtTypography.bodyMedium, maxLines: 1, overflow: TextOverflow.ellipsis),
-                      Text(c.disease, style: GovtTypography.caption),
-                    ],
-                  ),
-                ),
-                StatusChip(label: c.statusLabel, color: statusColor),
-              ],
-            ),
-          ),
-
-          // Details
-          Padding(
-            padding: const EdgeInsets.all(14),
-            child: Column(
-              children: [
-                Row(
-                  children: [
-                    _campDetail(Icons.location_on_rounded, c.targetDistrict),
-                    _campDetail(Icons.pets_rounded, c.animalSpecies),
-                    _campDetail(Icons.group_rounded, '${c.assignedTeams.length} teams'),
-                  ],
-                ),
-                const SizedBox(height: 10),
-                // Progress
-                Row(
-                  children: [
-                    Text('${c.coveragePercent.round()}%', style: TextStyle(fontSize: 14, fontWeight: FontWeight.w700, color: statusColor)),
-                    const SizedBox(width: 10),
-                    Expanded(child: GovtProgressBar(value: c.coveragePercent / 100, color: statusColor)),
-                  ],
-                ),
-                const SizedBox(height: 6),
-                Row(
-                  children: [
-                    Flexible(child: Text('${c.vaccinatedAnimals.toString().padLeft(5)} vaccinated', style: const TextStyle(fontSize: 11, color: GovtColors.success), overflow: TextOverflow.ellipsis)),
-                    const SizedBox(width: 8),
-                    Flexible(child: Text('${c.pendingAnimals} pending', style: const TextStyle(fontSize: 11, color: GovtColors.warning), overflow: TextOverflow.ellipsis)),
-                  ],
-                ),
-                const SizedBox(height: 10),
-                Row(
-                  children: [
-                    const Icon(Icons.calendar_today_rounded, size: 12, color: GovtColors.textDisabled),
-                    const SizedBox(width: 4),
-                    Flexible(child: Text('${_fmt(c.startDate)} – ${_fmt(c.endDate)}', style: GovtTypography.caption, overflow: TextOverflow.ellipsis)),
-                    const SizedBox(width: 8),
-                    Text('VIEW DETAILS →', style: TextStyle(fontSize: 11, fontWeight: FontWeight.w700, color: statusColor)),
-                  ],
-                ),
-              ],
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _campDetail(IconData icon, String text) {
-    return Expanded(
-      child: Row(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Icon(icon, size: 12, color: GovtColors.textSecondary),
-          const SizedBox(width: 4),
-          Flexible(child: Text(text, style: GovtTypography.caption, overflow: TextOverflow.ellipsis)),
-        ],
-      ),
-    );
-  }
-
-  void _openCampaignDetail(BuildContext context, VaccinationCampaign c) {
-    Navigator.push(context, MaterialPageRoute(builder: (_) => _CampaignDetailScreen(campaign: c)));
-  }
-
-  void _showCreateCampaign(BuildContext context) {
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(content: Text('Create Campaign — connect to backend'), backgroundColor: GovtColors.brand),
-    );
-  }
-
-  Color _statusColor(CampaignStatus s) {
-    switch (s) {
-      case CampaignStatus.active:
-        return GovtColors.brand;
-      case CampaignStatus.planned:
-        return GovtColors.warning;
-      case CampaignStatus.paused:
-        return GovtColors.riskHigh;
-      case CampaignStatus.completed:
-        return GovtColors.success;
-    }
-  }
-
-  String _fmt(DateTime dt) => '${dt.day}/${dt.month}/${dt.year}';
-}
-
-// ─── Campaign Detail Screen ────────────────────────────────────────────────────
-
-class _CampaignDetailScreen extends StatelessWidget {
-  final VaccinationCampaign campaign;
-  const _CampaignDetailScreen({required this.campaign});
-
-  @override
-  Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: GovtColors.pageBackground,
       appBar: AppBar(
         backgroundColor: GovtColors.surface,
         foregroundColor: GovtColors.textPrimary,
         elevation: 0,
-        title: Text(campaign.name, style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w700, color: GovtColors.textPrimary)),
-        bottom: const PreferredSize(preferredSize: Size.fromHeight(1), child: Divider(height: 1, color: GovtColors.border)),
+        scrolledUnderElevation: 0.5,
+        title: const Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              'VACCINATION CAMPAIGNS',
+              style: TextStyle(fontSize: 14, fontWeight: FontWeight.w800, color: GovtColors.textPrimary, letterSpacing: -0.2),
+            ),
+            Text(
+              'Government Field Immunization & Risk Response',
+              style: TextStyle(fontSize: 11, fontWeight: FontWeight.w500, color: GovtColors.brandDark),
+            ),
+          ],
+        ),
+        actions: [
+          Padding(
+            padding: const EdgeInsets.only(right: 12),
+            child: ElevatedButton.icon(
+              style: ElevatedButton.styleFrom(
+                backgroundColor: GovtColors.brand,
+                foregroundColor: Colors.white,
+                elevation: 0,
+                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+              ),
+              icon: const Icon(Icons.add_rounded, size: 16),
+              label: const Text('CREATE CAMPAIGN', style: TextStyle(fontSize: 11.5, fontWeight: FontWeight.w800)),
+              onPressed: () => _openCreateCampaignFlow(),
+            ),
+          ),
+        ],
+        bottom: const PreferredSize(
+          preferredSize: Size.fromHeight(1),
+          child: Divider(height: 1, color: GovtColors.border),
+        ),
       ),
-      body: ListView(
-        padding: const EdgeInsets.fromLTRB(16, 16, 16, 100),
+      body: SingleChildScrollView(
+        padding: const EdgeInsets.fromLTRB(16, 14, 16, 32),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            // ── 1. CAMPAIGN OVERVIEW (Top Strip) ──────────────────────────────
+            _buildCampaignOverview(activeCount, totalTarget, totalVaccinated, coveragePct),
+            const SizedBox(height: 16),
+
+            // ── 2. RISK-TO-CAMPAIGN INTELLIGENCE ("CAMPAIGN PRIORITY") ────────
+            _buildRiskToCampaignIntelligence(),
+            const SizedBox(height: 16),
+
+            // ── 3. SECONDARY CAMPAIGN MAP (Reused Maharashtra Map) ────────────
+            _buildCampaignMapView(),
+            const SizedBox(height: 16),
+
+            // ── 4. ACTIVE CAMPAIGNS ───────────────────────────────────────────
+            _buildActiveCampaignsSection(),
+            const SizedBox(height: 16),
+
+            // ── 5. CAMPAIGN ALERTS ────────────────────────────────────────────
+            _buildCampaignAlertsSection(),
+            const SizedBox(height: 16),
+
+            // ── 6. CAMPAIGN PERFORMANCE (Progress Timeline Chart) ─────────────
+            _buildCampaignPerformanceChart(),
+          ],
+        ),
+      ),
+    );
+  }
+
+  // ─── 1. Campaign Overview ───────────────────────────────────────────────────
+
+  Widget _buildCampaignOverview(int active, int target, int vaccinated, double coverage) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+      decoration: BoxDecoration(
+        color: GovtColors.surface,
+        borderRadius: GovtRadius.mdRadius,
+        border: Border.all(color: GovtColors.border),
+        boxShadow: const [BoxShadow(color: GovtColors.shadow, blurRadius: 6, offset: Offset(0, 2))],
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // Coverage Ring + Stats
-          GovtSectionCard(
-            child: Row(
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: const [
+              Expanded(
+                child: Text(
+                  'VACCINATION CAMPAIGNS',
+                  style: TextStyle(fontSize: 11, fontWeight: FontWeight.w800, letterSpacing: 0.5, color: GovtColors.textSecondary),
+                  overflow: TextOverflow.ellipsis,
+                ),
+              ),
+              SizedBox(width: 8),
+              Text(
+                'State Coverage Overview',
+                style: TextStyle(fontSize: 10.5, color: GovtColors.textMuted),
+              ),
+            ],
+          ),
+          const SizedBox(height: 12),
+
+          LayoutBuilder(
+            builder: (context, constraints) {
+              if (constraints.maxWidth < 360) {
+                return Column(
+                  children: [
+                    Row(
+                      children: [
+                        Expanded(child: _overviewStat('Active Campaigns', active.toString().padLeft(2, '0'), GovtColors.brandDark)),
+                        _verticalDivider(),
+                        Expanded(child: _overviewStat('Animals Targeted', _fmtNumber(target), GovtColors.textPrimary)),
+                      ],
+                    ),
+                    const Divider(height: 16, color: GovtColors.border),
+                    Row(
+                      children: [
+                        Expanded(child: _overviewStat('Vaccinated', _fmtNumber(vaccinated), GovtColors.riskLow)),
+                        _verticalDivider(),
+                        Expanded(child: _overviewStat('Coverage', '${coverage.toStringAsFixed(1)}%', GovtColors.brand)),
+                      ],
+                    ),
+                  ],
+                );
+              }
+              return Row(
+                children: [
+                  Expanded(
+                    child: _overviewStat('Active Campaigns', active.toString().padLeft(2, '0'), GovtColors.brandDark),
+                  ),
+                  _verticalDivider(),
+                  Expanded(
+                    child: _overviewStat('Animals Targeted', _fmtNumber(target), GovtColors.textPrimary),
+                  ),
+                  _verticalDivider(),
+                  Expanded(
+                    child: _overviewStat('Vaccinated', _fmtNumber(vaccinated), GovtColors.riskLow),
+                  ),
+                  _verticalDivider(),
+                  Expanded(
+                    child: _overviewStat('Coverage', '${coverage.toStringAsFixed(1)}%', GovtColors.brand),
+                  ),
+                ],
+              );
+            },
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _overviewStat(String label, String value, Color color) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(value, style: TextStyle(fontSize: 15, fontWeight: FontWeight.w900, color: color)),
+        const SizedBox(height: 2),
+        Text(label, style: const TextStyle(fontSize: 10, fontWeight: FontWeight.w600, color: GovtColors.textMuted), maxLines: 1, overflow: TextOverflow.ellipsis),
+      ],
+    );
+  }
+
+  Widget _verticalDivider() {
+    return Container(margin: const EdgeInsets.symmetric(horizontal: 8), width: 1, height: 28, color: GovtColors.border);
+  }
+
+  // ─── 2. Risk-To-Campaign Intelligence ("CAMPAIGN PRIORITY") ─────────────────
+
+  Widget _buildRiskToCampaignIntelligence() {
+    return Container(
+      padding: const EdgeInsets.all(14),
+      decoration: BoxDecoration(
+        color: GovtColors.surface,
+        borderRadius: GovtRadius.mdRadius,
+        border: Border.all(color: GovtColors.border),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Wrap(
+            alignment: WrapAlignment.spaceBetween,
+            crossAxisAlignment: WrapCrossAlignment.center,
+            spacing: 8,
+            runSpacing: 4,
+            children: const [
+              Text(
+                'CAMPAIGN PRIORITY',
+                style: TextStyle(fontSize: 12, fontWeight: FontWeight.w800, letterSpacing: 0.4, color: GovtColors.textPrimary),
+              ),
+              Text(
+                'Risk-to-Vaccination Intelligence',
+                style: TextStyle(fontSize: 10.5, fontStyle: FontStyle.italic, color: GovtColors.brand),
+              ),
+            ],
+          ),
+          const SizedBox(height: 12),
+
+          // PUNE Priority Card
+          _buildPriorityIntelligenceCard(
+            district: 'PUNE',
+            diseaseRisk: '78% CRITICAL',
+            riskColor: GovtColors.critical,
+            vaccination: '61%',
+            coverageGap: '17%',
+            recommendation: 'Launch targeted FMD vaccination campaign.',
+            disease: 'FMD',
+            priority: CampaignPriority.critical,
+          ),
+          const SizedBox(height: 12),
+
+          // NASHIK Priority Card
+          _buildPriorityIntelligenceCard(
+            district: 'NASHIK',
+            diseaseRisk: '68% HIGH',
+            riskColor: GovtColors.warning,
+            vaccination: '54%',
+            coverageGap: '22%',
+            recommendation: 'Increase vaccination coverage.',
+            disease: 'Brucellosis',
+            priority: CampaignPriority.high,
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildPriorityIntelligenceCard({
+    required String district,
+    required String diseaseRisk,
+    required Color riskColor,
+    required String vaccination,
+    required String coverageGap,
+    required String recommendation,
+    required String disease,
+    required CampaignPriority priority,
+  }) {
+    return Container(
+      padding: const EdgeInsets.all(12),
+      decoration: BoxDecoration(
+        color: GovtColors.surfaceSubtle,
+        borderRadius: BorderRadius.circular(8),
+        border: Border.all(color: GovtColors.border),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Text(
+                district,
+                style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w800, color: GovtColors.textPrimary),
+              ),
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 3),
+                decoration: BoxDecoration(
+                  color: riskColor.withValues(alpha: 0.12),
+                  borderRadius: BorderRadius.circular(4),
+                  border: Border.all(color: riskColor.withValues(alpha: 0.4)),
+                ),
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Text('⚠ ', style: TextStyle(fontSize: 10, fontWeight: FontWeight.w900, color: riskColor)),
+                    Text(
+                      'HIGH PRIORITY',
+                      style: TextStyle(fontSize: 9.5, fontWeight: FontWeight.w800, color: riskColor),
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 8),
+
+          // Metrics row: Disease Risk, Vaccination, Coverage Gap
+          Row(
+            children: [
+              Expanded(
+                child: _subMetricPair('Disease Risk', diseaseRisk, riskColor),
+              ),
+              Expanded(
+                child: _subMetricPair('Vaccination', vaccination, GovtColors.brand),
+              ),
+              Expanded(
+                child: _subMetricPair('Coverage Gap', coverageGap, GovtColors.critical),
+              ),
+            ],
+          ),
+          const SizedBox(height: 10),
+
+          // Recommendation & Create Campaign Button
+          Container(
+            padding: const EdgeInsets.all(10),
+            decoration: BoxDecoration(
+              color: Colors.white,
+              borderRadius: BorderRadius.circular(6),
+              border: Border.all(color: GovtColors.border),
+            ),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                VaccinationRingChart(percent: campaign.coveragePercent, label: 'Coverage', color: GovtColors.brand),
-                const SizedBox(width: 20),
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(campaign.disease, style: GovtTypography.bodyMedium),
-                      const SizedBox(height: 8),
-                      _statRow('Target', '${campaign.targetAnimals}', GovtColors.textPrimary),
-                      _statRow('Vaccinated', '${campaign.vaccinatedAnimals}', GovtColors.success),
-                      _statRow('Pending', '${campaign.pendingAnimals}', GovtColors.warning),
-                    ],
+                const Text(
+                  'RECOMMENDATION:',
+                  style: TextStyle(fontSize: 9.5, fontWeight: FontWeight.w800, color: GovtColors.textSecondary, letterSpacing: 0.3),
+                ),
+                const SizedBox(height: 3),
+                Text(
+                  recommendation,
+                  style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w600, color: GovtColors.textPrimary),
+                ),
+                const SizedBox(height: 8),
+                SizedBox(
+                  width: double.infinity,
+                  child: ElevatedButton.icon(
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: GovtColors.brand,
+                      foregroundColor: Colors.white,
+                      elevation: 0,
+                      padding: const EdgeInsets.symmetric(vertical: 9),
+                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(6)),
+                    ),
+                    icon: const Icon(Icons.add_circle_outline_rounded, size: 15),
+                    label: const Text('CREATE CAMPAIGN', style: TextStyle(fontSize: 11.5, fontWeight: FontWeight.w800)),
+                    onPressed: () => _openCreateCampaignFlow(
+                      district: district,
+                      disease: disease,
+                      priority: priority,
+                    ),
                   ),
                 ),
               ],
             ),
           ),
+        ],
+      ),
+    );
+  }
 
-          const SizedBox(height: 12),
+  Widget _subMetricPair(String label, String value, Color color) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(label, style: const TextStyle(fontSize: 10, color: GovtColors.textMuted)),
+        const SizedBox(height: 2),
+        Text(value, style: TextStyle(fontSize: 12, fontWeight: FontWeight.w800, color: color)),
+      ],
+    );
+  }
 
-          GovtSectionCard(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                const SectionHeader(title: 'Campaign Details'),
-                _infoRow('District', campaign.targetDistrict),
-                _infoRow('Block', campaign.targetBlock),
-                _infoRow('Villages', campaign.targetVillages),
-                _infoRow('Species', campaign.animalSpecies),
-                _infoRow('Start Date', '${campaign.startDate.day}/${campaign.startDate.month}/${campaign.startDate.year}'),
-                _infoRow('End Date', '${campaign.endDate.day}/${campaign.endDate.month}/${campaign.endDate.year}'),
-                _infoRow('Teams Assigned', campaign.assignedTeams.join(', ')),
+  // ─── 3. Secondary Campaign Map (Reusing Maharashtra Map) ────────────────────
+
+  Widget _buildCampaignMapView() {
+    final d = _selectedMapDistrict;
+    final isPune = d.name.toLowerCase() == 'pune';
+
+    // Per prompt Section 6:
+    // PUNE: Vaccination Coverage 61%, Campaign Progress 70%, Target Villages 18, Pending Villages 7, [VIEW CAMPAIGN]
+    final coverage = isPune ? 61 : d.vaccinationCoverage;
+    final progress = isPune ? 70 : (coverage + 10).clamp(0, 100);
+    final targetVillages = isPune ? 18 : 12;
+    final pendingVillages = isPune ? 7 : 4;
+
+    return Container(
+      decoration: BoxDecoration(
+        color: GovtColors.surface,
+        borderRadius: GovtRadius.mdRadius,
+        border: Border.all(color: GovtColors.border),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          Padding(
+            padding: const EdgeInsets.fromLTRB(14, 12, 14, 8),
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: const [
+                Expanded(
+                  child: Text(
+                    'CAMPAIGN COVERAGE MAP',
+                    style: TextStyle(fontSize: 12, fontWeight: FontWeight.w800, letterSpacing: 0.4, color: GovtColors.textPrimary),
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                ),
+                SizedBox(width: 8),
+                Text(
+                  'Tap district to inspect',
+                  style: TextStyle(fontSize: 10.5, fontStyle: FontStyle.italic, color: GovtColors.textMuted),
+                ),
               ],
             ),
           ),
 
-          const SizedBox(height: 12),
-
-          GovtSectionCard(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                const SectionHeader(title: 'Daily Progress', subtitle: 'Last 7 days'),
-                _barChartSimple([1800, 2200, 1950, 3100, 2800, 3400, 3000]),
-              ],
-            ),
+          // Reused Maharashtra Map Widget in vaccinationCoverage mode
+          GovtMaharashtraMapWidget(
+            districts: _districts,
+            selectedDistrict: _selectedMapDistrict,
+            onSelectDistrict: (dist) => setState(() => _selectedMapDistrict = dist),
+            selectedDisease: _selectedDisease,
+            onDiseaseChanged: (dis) => setState(() => _selectedDisease = dis),
+            selectedTimeframe: _selectedTimeframe,
+            onTimeframeChanged: (time) => setState(() => _selectedTimeframe = time),
+            mode: MapDisplayMode.vaccinationCoverage,
           ),
-        ],
-      ),
-    );
-  }
+          const SizedBox(height: 10),
 
-  Widget _statRow(String label, String value, Color color) {
-    return Padding(
-      padding: const EdgeInsets.only(bottom: 4),
-      child: Row(
-        children: [
-          Text(label, style: GovtTypography.caption),
-          const Spacer(),
-          Text(value, style: TextStyle(fontSize: 12, fontWeight: FontWeight.w700, color: color)),
-        ],
-      ),
-    );
-  }
-
-  Widget _infoRow(String label, String value) {
-    return Padding(
-      padding: const EdgeInsets.only(bottom: 10),
-      child: Row(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          SizedBox(width: 110, child: Text(label, style: GovtTypography.caption)),
-          Expanded(child: Text(value, style: GovtTypography.bodyMedium)),
-        ],
-      ),
-    );
-  }
-
-  Widget _barChartSimple(List<int> values) {
-    final max = values.fold(0, (a, b) => a > b ? a : b).toDouble();
-    const labels = ['M', 'T', 'W', 'T', 'F', 'S', 'S'];
-    return SizedBox(
-      height: 80,
-      child: Row(
-        crossAxisAlignment: CrossAxisAlignment.end,
-        children: values.asMap().entries.map((e) {
-          final pct = e.value / max;
-          return Expanded(
-            child: Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 2),
+          // Selected District Campaign Inspector
+          Padding(
+            padding: const EdgeInsets.fromLTRB(14, 0, 14, 14),
+            child: Container(
+              padding: const EdgeInsets.all(12),
+              decoration: BoxDecoration(
+                color: GovtColors.surfaceSubtle,
+                borderRadius: BorderRadius.circular(8),
+                border: Border.all(color: GovtColors.border),
+              ),
               child: Column(
-                mainAxisAlignment: MainAxisAlignment.end,
+                crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Container(height: 55 * pct, decoration: BoxDecoration(color: GovtColors.brand, borderRadius: BorderRadius.circular(2))),
-                  const SizedBox(height: 3),
-                  Text(labels[e.key], style: const TextStyle(fontSize: 8, color: GovtColors.textDisabled)),
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Text(
+                        d.name.toUpperCase(),
+                        style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w800, color: GovtColors.textPrimary),
+                      ),
+                      Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 3),
+                        decoration: BoxDecoration(
+                          color: (coverage >= 80
+                              ? const Color(0xFF16A34A)
+                              : (coverage >= 50 ? const Color(0xFFCA8A04) : const Color(0xFFDC2626)))
+                              .withValues(alpha: 0.12),
+                          borderRadius: BorderRadius.circular(4),
+                        ),
+                        child: Text(
+                          coverage >= 80 ? 'GOOD' : (coverage >= 50 ? 'NEEDS ATTENTION' : 'CRITICAL GAP'),
+                          style: TextStyle(
+                            fontSize: 9.5,
+                            fontWeight: FontWeight.w800,
+                            color: coverage >= 80
+                                ? const Color(0xFF16A34A)
+                                : (coverage >= 50 ? const Color(0xFFCA8A04) : const Color(0xFFDC2626)),
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 10),
+
+                  // 4 key metrics
+                  Row(
+                    children: [
+                      Expanded(child: _subMetricPair('Vaccination Coverage', '$coverage%', GovtColors.brand)),
+                      Expanded(child: _subMetricPair('Campaign Progress', '$progress%', GovtColors.textPrimary)),
+                      Expanded(child: _subMetricPair('Target Villages', '$targetVillages', GovtColors.textPrimary)),
+                      Expanded(child: _subMetricPair('Pending Villages', '$pendingVillages', GovtColors.warning)),
+                    ],
+                  ),
+                  const SizedBox(height: 12),
+
+                  // Button: VIEW CAMPAIGN
+                  SizedBox(
+                    width: double.infinity,
+                    child: ElevatedButton.icon(
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: GovtColors.brandDark,
+                        foregroundColor: Colors.white,
+                        elevation: 0,
+                        padding: const EdgeInsets.symmetric(vertical: 10),
+                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(6)),
+                      ),
+                      icon: const Icon(Icons.arrow_forward_rounded, size: 15),
+                      label: const Text('VIEW CAMPAIGN', style: TextStyle(fontSize: 12, fontWeight: FontWeight.w800)),
+                      onPressed: () {
+                        // Find active campaign for this district or open default
+                        final match = _campaigns.firstWhere(
+                          (c) => c.targetDistrict.toLowerCase() == d.name.toLowerCase(),
+                          orElse: () => _campaigns.first,
+                        );
+                        _openCampaignDetails(match);
+                      },
+                    ),
+                  ),
                 ],
               ),
             ),
-          );
-        }).toList(),
+          ),
+        ],
       ),
     );
+  }
+
+  // ─── 4. Active Campaigns ────────────────────────────────────────────────────
+
+  Widget _buildActiveCampaignsSection() {
+    return Container(
+      padding: const EdgeInsets.all(14),
+      decoration: BoxDecoration(
+        color: GovtColors.surface,
+        borderRadius: GovtRadius.mdRadius,
+        border: Border.all(color: GovtColors.border),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Wrap(
+            alignment: WrapAlignment.spaceBetween,
+            crossAxisAlignment: WrapCrossAlignment.center,
+            spacing: 8,
+            runSpacing: 4,
+            children: const [
+              Text(
+                'ACTIVE CAMPAIGNS',
+                style: TextStyle(fontSize: 12, fontWeight: FontWeight.w800, letterSpacing: 0.4, color: GovtColors.textPrimary),
+              ),
+              Text(
+                'High-priority operational drives',
+                style: TextStyle(fontSize: 10.5, fontStyle: FontStyle.italic, color: GovtColors.textMuted),
+              ),
+            ],
+          ),
+          const SizedBox(height: 12),
+
+          // Show the top active campaigns (e.g. Pune FMD & Nashik Brucellosis)
+          ..._campaigns.take(4).map((c) => _buildCampaignCard(c)),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildCampaignCard(VaccinationCampaign c) {
+    final progress = c.coveragePercent;
+
+    return Container(
+      margin: const EdgeInsets.only(bottom: 12),
+      padding: const EdgeInsets.all(12),
+      decoration: BoxDecoration(
+        color: GovtColors.surfaceSubtle,
+        borderRadius: BorderRadius.circular(8),
+        border: Border.all(color: GovtColors.border),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      c.name.toUpperCase(),
+                      style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w800, color: GovtColors.textPrimary),
+                    ),
+                    Text(
+                      '${c.targetDistrict} District',
+                      style: const TextStyle(fontSize: 11, fontWeight: FontWeight.w600, color: GovtColors.brandDark),
+                    ),
+                  ],
+                ),
+              ),
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 3),
+                decoration: BoxDecoration(
+                  color: GovtColors.riskLow.withValues(alpha: 0.12),
+                  borderRadius: BorderRadius.circular(4),
+                  border: Border.all(color: GovtColors.riskLow),
+                ),
+                child: const Text(
+                  'ACTIVE',
+                  style: TextStyle(fontSize: 9.5, fontWeight: FontWeight.w800, color: GovtColors.riskLow),
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 10),
+
+          // Target animals
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Expanded(
+                child: Text(
+                  'Target: ${_fmtNumber(c.targetAnimals)} animals',
+                  style: const TextStyle(fontSize: 11.5, fontWeight: FontWeight.w600, color: GovtColors.textSecondary),
+                  overflow: TextOverflow.ellipsis,
+                ),
+              ),
+              const SizedBox(width: 8),
+              Text(
+                'Progress: ${progress.round()}%',
+                style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w800, color: GovtColors.brand),
+              ),
+            ],
+          ),
+          const SizedBox(height: 6),
+
+          // Progress Bar
+          ClipRRect(
+            borderRadius: BorderRadius.circular(3),
+            child: LinearProgressIndicator(
+              value: progress / 100.0,
+              minHeight: 8,
+              backgroundColor: Colors.grey.shade200,
+              valueColor: const AlwaysStoppedAnimation(GovtColors.brand),
+            ),
+          ),
+          const SizedBox(height: 12),
+
+          // Button: VIEW CAMPAIGN
+          SizedBox(
+            width: double.infinity,
+            child: ElevatedButton.icon(
+              style: ElevatedButton.styleFrom(
+                backgroundColor: GovtColors.brand,
+                foregroundColor: Colors.white,
+                elevation: 0,
+                padding: const EdgeInsets.symmetric(vertical: 9),
+                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(6)),
+              ),
+              icon: const Icon(Icons.visibility_outlined, size: 15),
+              label: const Text('VIEW CAMPAIGN', style: TextStyle(fontSize: 11.5, fontWeight: FontWeight.w800)),
+              onPressed: () => _openCampaignDetails(c),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  // ─── 5. Campaign Alerts ─────────────────────────────────────────────────────
+
+  Widget _buildCampaignAlertsSection() {
+    final alerts = GovtMockData.getCampaignAlerts();
+
+    return Container(
+      padding: const EdgeInsets.all(14),
+      decoration: BoxDecoration(
+        color: GovtColors.surface,
+        borderRadius: GovtRadius.mdRadius,
+        border: Border.all(color: GovtColors.border),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          const Text(
+            'CAMPAIGN ALERTS',
+            style: TextStyle(fontSize: 12, fontWeight: FontWeight.w800, letterSpacing: 0.4, color: GovtColors.textPrimary),
+          ),
+          const SizedBox(height: 10),
+
+          ...alerts.map((a) {
+            final isLow = a['type'] == 'low_coverage';
+            final color = isLow ? GovtColors.critical : GovtColors.riskLow;
+
+            return Container(
+              margin: const EdgeInsets.only(bottom: 8),
+              padding: const EdgeInsets.all(11),
+              decoration: BoxDecoration(
+                color: color.withValues(alpha: 0.05),
+                borderRadius: BorderRadius.circular(6),
+                border: Border.all(color: color.withValues(alpha: 0.3)),
+              ),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Row(
+                    children: [
+                      Icon(isLow ? Icons.warning_amber_rounded : Icons.check_circle_outline_rounded, size: 15, color: color),
+                      const SizedBox(width: 6),
+                      Text(
+                        a['title'] as String,
+                        style: TextStyle(fontSize: 10.5, fontWeight: FontWeight.w800, color: color, letterSpacing: 0.3),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 4),
+                  Text(
+                    '${a['district']} — ${a['village']}',
+                    style: const TextStyle(fontSize: 12.5, fontWeight: FontWeight.w700, color: GovtColors.textPrimary),
+                  ),
+                  const SizedBox(height: 4),
+                  Wrap(
+                    spacing: 12,
+                    runSpacing: 4,
+                    children: [
+                      Text('Vaccination: ${a['vaccination']}%', style: TextStyle(fontSize: 11.5, fontWeight: FontWeight.w800, color: color)),
+                      Text('Target: ${a['target']}', style: const TextStyle(fontSize: 11, color: GovtColors.textMuted)),
+                      Text('Completed: ${a['completed']}', style: const TextStyle(fontSize: 11, color: GovtColors.textMuted)),
+                    ],
+                  ),
+                  const SizedBox(height: 4),
+                  Text(
+                    'Action: "${a['action']}"',
+                    style: const TextStyle(fontSize: 11, fontStyle: FontStyle.italic, color: GovtColors.textSecondary),
+                  ),
+                ],
+              ),
+            );
+          }),
+        ],
+      ),
+    );
+  }
+
+  // ─── 6. Campaign Performance Progress Chart ─────────────────────────────────
+
+  Widget _buildCampaignPerformanceChart() {
+    // 42% → 51% → 63% → 70% per prompt
+    final stages = [
+      {'label': 'Day 1', 'val': 42},
+      {'label': 'Day 7', 'val': 51},
+      {'label': 'Day 14', 'val': 63},
+      {'label': 'Day 21', 'val': 70},
+      {'label': 'Day 30', 'val': 78},
+    ];
+
+    return Container(
+      padding: const EdgeInsets.all(14),
+      decoration: BoxDecoration(
+        color: GovtColors.surface,
+        borderRadius: GovtRadius.mdRadius,
+        border: Border.all(color: GovtColors.border),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          const Text(
+            'CAMPAIGN PERFORMANCE',
+            style: TextStyle(fontSize: 12, fontWeight: FontWeight.w800, letterSpacing: 0.4, color: GovtColors.textPrimary),
+          ),
+          const SizedBox(height: 2),
+          const Text(
+            'Vaccination Coverage — Campaign Progress',
+            style: TextStyle(fontSize: 11, color: GovtColors.textMuted),
+          ),
+          const SizedBox(height: 14),
+
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: stages.asMap().entries.map((entry) {
+              final idx = entry.key;
+              final s = entry.value;
+              final isLast = idx == stages.length - 1;
+
+              return Expanded(
+                child: Row(
+                  children: [
+                    Expanded(
+                      child: Column(
+                        children: [
+                          Container(
+                            padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 3),
+                            decoration: BoxDecoration(
+                              color: isLast ? GovtColors.brandLight : GovtColors.surfaceSubtle,
+                              borderRadius: BorderRadius.circular(4),
+                              border: Border.all(color: isLast ? GovtColors.brand : GovtColors.border),
+                            ),
+                            child: Text(
+                              '${s['val']}%',
+                              style: TextStyle(
+                                fontSize: 11,
+                                fontWeight: FontWeight.w800,
+                                color: isLast ? GovtColors.brandDark : GovtColors.textPrimary,
+                              ),
+                            ),
+                          ),
+                          const SizedBox(height: 5),
+                          Container(
+                            width: 8,
+                            height: 8,
+                            decoration: BoxDecoration(
+                              color: isLast ? GovtColors.brand : GovtColors.textMuted,
+                              shape: BoxShape.circle,
+                            ),
+                          ),
+                          const SizedBox(height: 5),
+                          Text(s['label'] as String, style: const TextStyle(fontSize: 9.5, color: GovtColors.textMuted)),
+                        ],
+                      ),
+                    ),
+                    if (!isLast)
+                      Container(
+                        width: 14,
+                        height: 1.5,
+                        color: GovtColors.border,
+                        margin: const EdgeInsets.only(bottom: 12),
+                      ),
+                  ],
+                ),
+              );
+            }).toList(),
+          ),
+        ],
+      ),
+    );
+  }
+
+  String _fmtNumber(int n) {
+    if (n >= 1000) {
+      final k = n / 1000;
+      return '${k.toStringAsFixed(k % 1 == 0 ? 0 : 1)}k';
+    }
+    return '$n';
   }
 }

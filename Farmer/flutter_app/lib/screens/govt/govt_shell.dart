@@ -5,6 +5,7 @@ import 'package:flutter/material.dart';
 import 'govt_theme.dart';
 import 'govt_dashboard_screen.dart';
 import 'govt_disease_map_screen.dart';
+import 'govt_vaccination_screen.dart';
 import 'govt_alerts_screen.dart';
 import 'govt_reports_screen.dart';
 import '../../services/farmer_data_service.dart';
@@ -36,6 +37,7 @@ class _GovtShellState extends State<GovtShell> {
         onNavigateTab: (index) => setState(() => _selectedIndex = index),
       ),
       GovtDiseaseMapScreen(dataService: widget.dataService),
+      GovtVaccinationScreen(dataService: widget.dataService),
       GovtAlertsScreen(dataService: widget.dataService),
       GovtReportsScreen(dataService: widget.dataService),
     ];
@@ -164,7 +166,7 @@ class _GovtShellState extends State<GovtShell> {
           children: [
             IconButton(
               icon: const Icon(Icons.notifications_none_rounded, size: 20, color: GovtColors.textPrimary),
-              onPressed: () => setState(() => _selectedIndex = 2), // Jump to Alerts
+              onPressed: () => setState(() => _selectedIndex = 3), // Jump to Alerts
             ),
             Positioned(
               right: 10,
@@ -254,6 +256,11 @@ class _GovtShellState extends State<GovtShell> {
             label: 'Disease Map',
           ),
           NavigationDestination(
+            icon: Icon(Icons.vaccines_outlined, size: 20, color: GovtColors.textMuted),
+            selectedIcon: Icon(Icons.vaccines_rounded, size: 20, color: GovtColors.brand),
+            label: 'Campaigns',
+          ),
+          NavigationDestination(
             icon: Icon(Icons.notifications_none_rounded, size: 20, color: GovtColors.textMuted),
             selectedIcon: Icon(Icons.notifications_active_rounded, size: 20, color: GovtColors.brand),
             label: 'Alerts',
@@ -274,6 +281,7 @@ class _GovtShellState extends State<GovtShell> {
     final navItems = [
       {'title': 'Dashboard', 'icon': Icons.dashboard_rounded},
       {'title': 'Disease Map', 'icon': Icons.map_rounded},
+      {'title': 'Campaigns', 'icon': Icons.vaccines_rounded},
       {'title': 'Alerts', 'icon': Icons.notifications_active_rounded},
       {'title': 'Reports', 'icon': Icons.assessment_rounded},
     ];

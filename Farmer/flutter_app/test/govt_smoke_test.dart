@@ -9,6 +9,8 @@ import 'package:flutter_app/screens/govt/govt_reports_screen.dart';
 import 'package:flutter_app/screens/govt/govt_area_detail_screen.dart';
 import 'package:flutter_app/screens/govt/govt_mock_data.dart';
 
+import 'package:flutter_app/screens/govt/govt_vaccination_screen.dart';
+
 void main() {
   final dataService = FarmerDataService();
 
@@ -53,6 +55,14 @@ void main() {
     setMobileView(tester);
     await tester.pumpWidget(MaterialApp(home: GovtDiseaseMapScreen(dataService: dataService)));
     await tester.pump(const Duration(milliseconds: 50));
+  });
+
+  testWidgets('GovtVaccinationScreen builds on mobile', (WidgetTester tester) async {
+    setMobileView(tester);
+    await tester.pumpWidget(MaterialApp(home: GovtVaccinationScreen(dataService: dataService)));
+    await tester.pump(const Duration(milliseconds: 50));
+    expect(find.text('VACCINATION CAMPAIGNS'), findsWidgets);
+    expect(find.text('06'), findsWidgets);
   });
 
   testWidgets('GovtAlertsScreen builds on mobile', (WidgetTester tester) async {

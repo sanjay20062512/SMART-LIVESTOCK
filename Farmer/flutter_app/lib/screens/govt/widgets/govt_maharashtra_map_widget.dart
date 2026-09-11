@@ -1,9 +1,14 @@
-// Smart Livestock — Maharashtra Disease Risk Heat Map Widget
-// Realistic, interactive geographic visualization for district-level early warning.
+// Smart Livestock — Maharashtra Disease Risk & Vaccination Coverage Map Widget
+// Realistic, interactive geographic visualization for district-level surveillance and campaigns.
 
 import 'package:flutter/material.dart';
 import '../govt_theme.dart';
 import '../govt_models.dart';
+
+enum MapDisplayMode {
+  diseaseRisk,
+  vaccinationCoverage,
+}
 
 class GovtMaharashtraMapWidget extends StatefulWidget {
   final List<DistrictRiskProfile> districts;
@@ -13,6 +18,7 @@ class GovtMaharashtraMapWidget extends StatefulWidget {
   final ValueChanged<String> onDiseaseChanged;
   final String selectedTimeframe;
   final ValueChanged<String> onTimeframeChanged;
+  final MapDisplayMode mode;
 
   const GovtMaharashtraMapWidget({
     super.key,
@@ -23,7 +29,17 @@ class GovtMaharashtraMapWidget extends StatefulWidget {
     required this.onDiseaseChanged,
     this.selectedTimeframe = '7 Days',
     required this.onTimeframeChanged,
+    this.mode = MapDisplayMode.diseaseRisk,
   });
+
+  static Color getDistrictColor(DistrictRiskProfile d, MapDisplayMode mode) {
+    if (mode == MapDisplayMode.vaccinationCoverage) {
+      if (d.vaccinationCoverage >= 80) return const Color(0xFF16A34A); // Green: 80-100% Good
+      if (d.vaccinationCoverage >= 50) return const Color(0xFFCA8A04); // Yellow: 50-79% Needs attention
+      return const Color(0xFFDC2626); // Red: 0-49% Critical gap
+    }
+    return GovtColors.getHeatmapColor(d.riskScore);
+  }
 
   @override
   State<GovtMaharashtraMapWidget> createState() => _GovtMaharashtraMapWidgetState();
@@ -82,6 +98,7 @@ class _GovtMaharashtraMapWidgetState extends State<GovtMaharashtraMapWidget>
                             districts: widget.districts,
                             selectedDistrict: widget.selectedDistrict,
                             pulseValue: _pulseCtrl.value,
+                            mode: widget.mode,
                           ),
                         );
                       },
@@ -99,7 +116,7 @@ class _GovtMaharashtraMapWidgetState extends State<GovtMaharashtraMapWidget>
                           final isSelected = d.name == widget.selectedDistrict.name;
                           final left = d.normX * w - 38;
                           final top = d.normY * h - 22;
-                          final color = GovtColors.getHeatmapColor(d.riskScore);
+                          final color = GovtMaharashtraMapWidget.getDistrictColor(d, widget.mode);
 
                           return Positioned(
                             left: left.clamp(4.0, w - 80.0),
@@ -151,7 +168,9 @@ class _GovtMaharashtraMapWidgetState extends State<GovtMaharashtraMapWidget>
                                           ),
                                         ),
                                         Text(
-                                          '${d.riskScore}%',
+                                          widget.mode == MapDisplayMode.vaccinationCoverage
+                                              ? '${d.vaccinationCoverage}%'
+                                              : '${d.riskScore}%',
                                           style: TextStyle(
                                             fontSize: 9,
                                             fontWeight: FontWeight.w800,
@@ -183,12 +202,18 @@ class _GovtMaharashtraMapWidgetState extends State<GovtMaharashtraMapWidget>
                       ),
                       child: Row(
                         mainAxisSize: MainAxisSize.min,
-                        children: const [
-                          Icon(Icons.shield_outlined, size: 12, color: GovtColors.brand),
-                          SizedBox(width: 4),
+                        children: [
+                          Icon(
+                            widget.mode == MapDisplayMode.vaccinationCoverage ? Icons.vaccines_outlined : Icons.shield_outlined,
+                            size: 12,
+                            color: GovtColors.brand,
+                          ),
+                          const SizedBox(width: 4),
                           Text(
-                            'MAHARASHTRA EPIDEMIOLOGICAL SURVEILLANCE',
-                            style: TextStyle(
+                            widget.mode == MapDisplayMode.vaccinationCoverage
+                                ? 'MAHARASHTRA VACCINATION CAMPAIGN COVERAGE'
+                                : 'MAHARASHTRA EPIDEMIOLOGICAL SURVEILLANCE',
+                            style: const TextStyle(
                               fontSize: 9,
                               fontWeight: FontWeight.w700,
                               letterSpacing: 0.3,
@@ -303,6 +328,8 @@ class _GovtMaharashtraMapWidgetState extends State<GovtMaharashtraMapWidget>
   }
 
   Widget _buildCompactLegend() {
+    final isVaccination = widget.mode == MapDisplayMode.vaccinationCoverage;
+
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
       decoration: BoxDecoration(
@@ -315,23 +342,39 @@ class _GovtMaharashtraMapWidgetState extends State<GovtMaharashtraMapWidget>
       ),
       child: SingleChildScrollView(
         scrollDirection: Axis.horizontal,
-        child: Row(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            const Text(
-              'Risk Level: ',
-              style: TextStyle(fontSize: 10, fontWeight: FontWeight.w700, color: GovtColors.textPrimary),
-            ),
-            const SizedBox(width: 6),
-            _legendItem(GovtColors.riskLow, '0–30% Low'),
-            const SizedBox(width: 10),
-            _legendItem(GovtColors.riskMedium, '31–55% Medium'),
-            const SizedBox(width: 10),
-            _legendItem(GovtColors.riskHigh, '56–75% High'),
-            const SizedBox(width: 10),
-            _legendItem(GovtColors.riskCritical, '76–100% Critical'),
-          ],
-        ),
+        child: isVaccination
+            ? Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  const Text(
+                    'Coverage: ',
+                    style: TextStyle(fontSize: 10, fontWeight: FontWeight.w700, color: GovtColors.textPrimary),
+                  ),
+                  const SizedBox(width: 6),
+                  _legendItem(const Color(0xFF16A34A), '80–100% Good'),
+                  const SizedBox(width: 10),
+                  _legendItem(const Color(0xFFCA8A04), '50–79% Needs attention'),
+                  const SizedBox(width: 10),
+                  _legendItem(const Color(0xFFDC2626), '0–49% Critical gap'),
+                ],
+              )
+            : Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  const Text(
+                    'Risk Level: ',
+                    style: TextStyle(fontSize: 10, fontWeight: FontWeight.w700, color: GovtColors.textPrimary),
+                  ),
+                  const SizedBox(width: 6),
+                  _legendItem(GovtColors.riskLow, '0–30% Low'),
+                  const SizedBox(width: 10),
+                  _legendItem(GovtColors.riskMedium, '31–55% Medium'),
+                  const SizedBox(width: 10),
+                  _legendItem(GovtColors.riskHigh, '56–75% High'),
+                  const SizedBox(width: 10),
+                  _legendItem(GovtColors.riskCritical, '76–100% Critical'),
+                ],
+              ),
       ),
     );
   }
@@ -361,11 +404,13 @@ class _MaharashtraMapPainter extends CustomPainter {
   final List<DistrictRiskProfile> districts;
   final DistrictRiskProfile selectedDistrict;
   final double pulseValue;
+  final MapDisplayMode mode;
 
   _MaharashtraMapPainter({
     required this.districts,
     required this.selectedDistrict,
     required this.pulseValue,
+    required this.mode,
   });
 
   @override
@@ -454,11 +499,13 @@ class _MaharashtraMapPainter extends CustomPainter {
     // Draw Heat Radii / Concentric Zones for each district
     for (final d in districts) {
       final center = Offset(d.normX * w, d.normY * h);
-      final color = GovtColors.getHeatmapColor(d.riskScore);
+      final color = GovtMaharashtraMapWidget.getDistrictColor(d, mode);
       final isSelected = d.name == selectedDistrict.name;
 
-      // Base radius scaled by risk score
-      final baseRadius = 14.0 + (d.riskScore / 100.0) * 16.0;
+      // Base radius scaled by risk score or coverage gap
+      final baseRadius = mode == MapDisplayMode.vaccinationCoverage
+          ? 14.0 + ((100 - d.vaccinationCoverage) / 100.0) * 14.0
+          : 14.0 + (d.riskScore / 100.0) * 16.0;
 
       // Outer heat halo
       final haloPaint = Paint()
@@ -494,6 +541,7 @@ class _MaharashtraMapPainter extends CustomPainter {
   bool shouldRepaint(covariant _MaharashtraMapPainter oldDelegate) {
     return oldDelegate.selectedDistrict.name != selectedDistrict.name ||
         oldDelegate.pulseValue != pulseValue ||
-        oldDelegate.districts != districts;
+        oldDelegate.districts != districts ||
+        oldDelegate.mode != mode;
   }
 }

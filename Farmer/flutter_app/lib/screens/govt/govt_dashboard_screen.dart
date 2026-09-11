@@ -517,7 +517,10 @@ class _GovtDashboardScreenState extends State<GovtDashboardScreen> {
   // ─── 5. Priority Actions ────────────────────────────────────────────────────
 
   Widget _buildPriorityActions() {
-    final actions = GovtMockData.priorityActions;
+    final actions = [
+      {'icon': '💉', 'label': 'Vaccination Campaigns (6 Active)', 'detail': 'Active drives in Pune, Nashik, Jalgaon'},
+      ...GovtMockData.priorityActions,
+    ];
 
     return Container(
       padding: const EdgeInsets.all(14),
@@ -536,13 +539,17 @@ class _GovtDashboardScreenState extends State<GovtDashboardScreen> {
             child: InkWell(
               borderRadius: BorderRadius.circular(6),
               onTap: () {
-                ScaffoldMessenger.of(context).showSnackBar(
-                  SnackBar(
-                    backgroundColor: GovtColors.brandDark,
-                    content: Text('Action Selected: ${item['detail']}'),
-                    duration: const Duration(seconds: 2),
-                  ),
-                );
+                if (item['label']!.contains('Vaccination')) {
+                  widget.onNavigateTab?.call(2); // Jump to Campaigns Tab (index 2)
+                } else {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(
+                      backgroundColor: GovtColors.brandDark,
+                      content: Text('Action Selected: ${item['detail']}'),
+                      duration: const Duration(seconds: 2),
+                    ),
+                  );
+                }
               },
               child: Container(
                 padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
@@ -602,7 +609,7 @@ class _GovtDashboardScreenState extends State<GovtDashboardScreen> {
                 child: Text('RECENT ALERTS', style: TextStyle(fontSize: 13, fontWeight: FontWeight.w800, letterSpacing: 0.3, color: GovtColors.textPrimary), overflow: TextOverflow.ellipsis),
               ),
               TextButton(
-                onPressed: () => widget.onNavigateTab?.call(2), // Jump to Alerts Tab (index 2)
+                onPressed: () => widget.onNavigateTab?.call(3), // Jump to Alerts Tab (index 3)
                 child: const Text('VIEW ALL ALERTS →', style: TextStyle(fontSize: 11, fontWeight: FontWeight.w700, color: GovtColors.brand)),
               ),
             ],

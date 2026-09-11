@@ -3,9 +3,44 @@
 // These are isolated from the shared Farmer/Vet models.
 // Future integration: Replace mock constructors with JSON factories from REST API.
 
+import 'govt_campaign_engine.dart';
+
 // ─── Vaccination Campaign ──────────────────────────────────────────────────────
 
 enum CampaignStatus { planned, active, paused, completed }
+
+class VillageCampaignData {
+  final String name;
+  final int target;
+  int vaccinated;
+  String status; // 'Completed', 'In Progress', 'Pending', 'Low Coverage'
+  String? assignedTeam;
+  final String recommendedAction;
+
+  VillageCampaignData({
+    required this.name,
+    required this.target,
+    required this.vaccinated,
+    this.status = 'In Progress',
+    this.assignedTeam,
+    this.recommendedAction = 'Deploy additional vaccination team.',
+  });
+
+  double get coveragePercent => target > 0 ? (vaccinated / target * 100) : 0;
+  int get remaining => (target - vaccinated).clamp(0, target);
+  bool get isCompleted => vaccinated >= target || status == 'Completed';
+  bool get hasLowCoverage => coveragePercent < 50;
+}
+
+class CampaignProgressPoint {
+  final String dayLabel;
+  final double coverage;
+
+  const CampaignProgressPoint({
+    required this.dayLabel,
+    required this.coverage,
+  });
+}
 
 class VaccinationCampaign {
   final String campaignId;
@@ -21,6 +56,12 @@ class VaccinationCampaign {
   final int vaccinatedAnimals;
   final List<String> assignedTeams;
   CampaignStatus status;
+  final CampaignPriority priority;
+  final int targetVillagesCount;
+  final int completedVillagesCount;
+  final int pendingVillagesCount;
+  final List<VillageCampaignData> villages;
+  final List<CampaignProgressPoint> timelinePoints;
   final DateTime createdAt;
 
   VaccinationCampaign({
@@ -37,6 +78,12 @@ class VaccinationCampaign {
     this.vaccinatedAnimals = 0,
     this.assignedTeams = const [],
     this.status = CampaignStatus.planned,
+    this.priority = CampaignPriority.high,
+    this.targetVillagesCount = 1,
+    this.completedVillagesCount = 0,
+    this.pendingVillagesCount = 1,
+    this.villages = const [],
+    this.timelinePoints = const [],
     DateTime? createdAt,
   }) : createdAt = createdAt ?? DateTime.now();
 

@@ -5,7 +5,9 @@ import 'package:flutter/material.dart';
 import 'govt_theme.dart';
 import 'govt_models.dart';
 import 'govt_mock_data.dart';
+import 'govt_campaign_engine.dart';
 import 'widgets/govt_maharashtra_map_widget.dart';
+import 'widgets/govt_create_campaign_dialog.dart';
 import 'govt_area_detail_screen.dart';
 import '../../services/farmer_data_service.dart';
 
@@ -42,6 +44,16 @@ class _GovtDiseaseMapScreenState extends State<GovtDiseaseMapScreen> {
       final matchesDisease = _selectedDisease == 'All' || d.primaryDisease == _selectedDisease;
       return matchesSearch && matchesDisease;
     }).toList();
+  }
+
+  void _startVaccinationCampaign(DistrictRiskProfile d) {
+    final priority = d.riskScore >= 75 ? CampaignPriority.critical : CampaignPriority.high;
+    GovtCreateCampaignDialog.show(
+      context,
+      initialDistrict: d.name,
+      initialDisease: d.primaryDisease,
+      initialPriority: priority,
+    );
   }
 
   void _openDistrictDossier(DistrictRiskProfile d) {
@@ -164,13 +176,66 @@ class _GovtDiseaseMapScreenState extends State<GovtDiseaseMapScreen> {
                     'Action Recommended: ${d.recommendedAction}',
                     style: const TextStyle(fontSize: 11.5, fontStyle: FontStyle.italic, color: GovtColors.textSecondary),
                   ),
-                  const SizedBox(height: 12),
+                  const SizedBox(height: 10),
+                  if (GovtCampaignEngine.hasVaccinationGap(riskScore: d.riskScore, vaccinationCoverage: d.vaccinationCoverage)) ...[
+                    Container(
+                      padding: const EdgeInsets.all(12),
+                      decoration: BoxDecoration(
+                        color: GovtColors.critical.withValues(alpha: 0.06),
+                        borderRadius: BorderRadius.circular(8),
+                        border: Border.all(color: GovtColors.critical.withValues(alpha: 0.3)),
+                      ),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Row(
+                            children: const [
+                              Icon(Icons.warning_amber_rounded, size: 16, color: GovtColors.critical),
+                              SizedBox(width: 6),
+                              Expanded(
+                                child: Text(
+                                  'Vaccination gap detected.',
+                                  style: TextStyle(fontSize: 12, fontWeight: FontWeight.w800, color: GovtColors.critical),
+                                  overflow: TextOverflow.ellipsis,
+                                ),
+                              ),
+                            ],
+                          ),
+                          const SizedBox(height: 4),
+                          Text(
+                            '${d.name}: Risk ${d.riskScore}% (${d.primaryDisease}), Vaccination ${d.vaccinationCoverage}%. Coverage gap requires targeted campaign.',
+                            style: const TextStyle(fontSize: 11.5, color: GovtColors.textSecondary),
+                          ),
+                          const SizedBox(height: 8),
+                          SizedBox(
+                            width: double.infinity,
+                            child: ElevatedButton.icon(
+                              style: ElevatedButton.styleFrom(
+                                backgroundColor: GovtColors.critical,
+                                foregroundColor: Colors.white,
+                                elevation: 0,
+                                padding: const EdgeInsets.symmetric(vertical: 9, horizontal: 8),
+                                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(6)),
+                              ),
+                              icon: const Icon(Icons.vaccines_rounded, size: 15),
+                              label: const FittedBox(
+                                fit: BoxFit.scaleDown,
+                                child: Text('START VACCINATION CAMPAIGN', style: TextStyle(fontSize: 11.5, fontWeight: FontWeight.w800)),
+                              ),
+                              onPressed: () => _startVaccinationCampaign(d),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                    const SizedBox(height: 8),
+                  ],
                   SizedBox(
                     width: double.infinity,
-                    child: ElevatedButton.icon(
-                       style: ElevatedButton.styleFrom(
-                        backgroundColor: GovtColors.brand,
-                        foregroundColor: Colors.white,
+                    child: OutlinedButton.icon(
+                       style: OutlinedButton.styleFrom(
+                        foregroundColor: GovtColors.brand,
+                        side: const BorderSide(color: GovtColors.brand),
                         padding: const EdgeInsets.symmetric(vertical: 10),
                         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
                       ),
