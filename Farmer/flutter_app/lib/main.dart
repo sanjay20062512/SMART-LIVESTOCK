@@ -178,7 +178,7 @@ class RoleSelectionScreen extends StatelessWidget {
                   end: Alignment.bottomRight,
                 ),
                 accentColor: AppColors.primaryLight,
-                demoHint: 'Demo: Any mobile + any password',
+                badgeText: 'Farmer Portal',
                 onTap: () => _goFarmer(context),
               ),
 
@@ -196,7 +196,7 @@ class RoleSelectionScreen extends StatelessWidget {
                   end: Alignment.bottomRight,
                 ),
                 accentColor: const Color(0xFFBFDBFE),
-                demoHint: 'Demo: Dr. Rajesh Kumar · VET001',
+                badgeText: 'Field Veterinary Services',
                 onTap: () => _goVet(context),
               ),
 
@@ -214,49 +214,8 @@ class RoleSelectionScreen extends StatelessWidget {
                   end: Alignment.bottomRight,
                 ),
                 accentColor: const Color(0xFF93C5FD),
-                demoHint: 'Demo: District Animal Husbandry Officer',
+                badgeText: 'Animal Health Authority',
                 onTap: () => _goGovt(context),
-              ),
-
-              const SizedBox(height: 28),
-
-              // ── Demo mode notice ─────────────────────────────────────────
-              Container(
-                padding: const EdgeInsets.all(14),
-                decoration: BoxDecoration(
-                  color: Colors.white.withValues(alpha: 0.05),
-                  borderRadius: AppRadius.smRadius,
-                  border: Border.all(
-                    color: Colors.white.withValues(alpha: 0.10),
-                  ),
-                ),
-                child: Row(
-                  children: [
-                    Container(
-                      padding: const EdgeInsets.all(6),
-                      decoration: BoxDecoration(
-                        color: AppColors.primary.withValues(alpha: 0.2),
-                        borderRadius: AppRadius.xsRadius,
-                      ),
-                      child: const Icon(
-                        Icons.info_outline_rounded,
-                        size: 16,
-                        color: AppColors.primaryLight,
-                      ),
-                    ),
-                    const SizedBox(width: 10),
-                    const Expanded(
-                      child: Text(
-                        'Demo mode — in-memory data demonstrates the complete Farmer → Vet → Government → Farmer data flow.',
-                        style: TextStyle(
-                          color: Colors.white54,
-                          fontSize: 11.5,
-                          height: 1.5,
-                        ),
-                      ),
-                    ),
-                  ],
-                ),
               ),
 
               const SizedBox(height: 24),
@@ -274,7 +233,7 @@ class RoleSelectionScreen extends StatelessWidget {
     required String subtitle,
     required Gradient gradient,
     required Color accentColor,
-    required String demoHint,
+    required String badgeText,
     required VoidCallback onTap,
   }) {
     return Material(
@@ -339,7 +298,7 @@ class RoleSelectionScreen extends StatelessWidget {
                           borderRadius: AppRadius.xsRadius,
                         ),
                         child: Text(
-                          demoHint,
+                          badgeText,
                           style: TextStyle(
                             color: accentColor,
                             fontSize: 10.5,

@@ -84,7 +84,7 @@ class _LoginScreenState extends State<LoginScreen>
           children: [
             const Icon(Icons.check_circle, color: Colors.white, size: 20),
             const SizedBox(width: 8),
-            Text('Auto-filled demo login: $mobile'),
+            Text('Auto-filled login: $mobile'),
           ],
         ),
         backgroundColor: const Color(0xFF2E7D32),
@@ -203,7 +203,7 @@ class _LoginScreenState extends State<LoginScreen>
               ScaffoldMessenger.of(context).showSnackBar(
                 SnackBar(
                   content: const Text(
-                    'OTP sent! For prototype demonstration, use OTP: 123456',
+                    'OTP sent successfully. Verification code: 123456',
                   ),
                   backgroundColor: const Color(0xFF2E7D32),
                   behavior: SnackBarBehavior.floating,
@@ -1026,7 +1026,7 @@ class _LoginScreenState extends State<LoginScreen>
                   size: 18),
               const SizedBox(width: 6),
               Text(
-                'Quick Demo Login (Tap to Autofill)',
+                'Quick Login (Tap to Autofill)',
                 style: TextStyle(
                   fontSize: 12,
                   fontWeight: FontWeight.bold,

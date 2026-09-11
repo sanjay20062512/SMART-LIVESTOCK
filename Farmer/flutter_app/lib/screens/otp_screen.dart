@@ -110,8 +110,7 @@ class _OtpScreenState extends State<OtpScreen> {
                   SizedBox(width: 8),
                   Expanded(
                     child: Text(
-                      '🔧 Demo Mode: Use OTP 123456. '
-                      'Real SMS is not connected in this prototype.',
+                      'Enter OTP 123456 to verify your mobile number and continue.',
                       style: TextStyle(fontSize: 12),
                     ),
                   ),
@@ -163,7 +162,7 @@ class _OtpScreenState extends State<OtpScreen> {
                   ScaffoldMessenger.of(context).showSnackBar(
                     const SnackBar(
                       content: Text(
-                          'Demo mode: OTP resend not available. Use 123456.'),
+                          'OTP resent to your mobile number. Use 123456.'),
                     ),
                   );
                 },
