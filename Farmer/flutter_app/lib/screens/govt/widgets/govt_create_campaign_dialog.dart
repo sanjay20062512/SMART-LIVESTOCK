@@ -48,7 +48,6 @@ class _GovtCreateCampaignDialogState extends State<GovtCreateCampaignDialog> {
   int _currentStep = 1;
 
   // Step 1: Area Selection
-  final String _selectedState = 'Maharashtra';
   late String _selectedDistrict;
   late String _selectedBlock;
   final Set<String> _selectedVillages = {};
@@ -548,7 +547,7 @@ class _GovtCreateCampaignDialogState extends State<GovtCreateCampaignDialog> {
             child: ListView.separated(
               shrinkWrap: true,
               itemCount: availableVillages.length,
-              separatorBuilder: (_, __) => const Divider(height: 1, color: GovtColors.border),
+              separatorBuilder: (_, _) => const Divider(height: 1, color: GovtColors.border),
               itemBuilder: (context, i) {
                 final v = availableVillages[i];
                 final isChecked = _selectedVillages.contains(v);

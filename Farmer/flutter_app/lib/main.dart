@@ -438,23 +438,6 @@ class __VetLoginScreenState extends State<_VetLoginScreen> {
               onPressed: () => setState(() => _obscure = !_obscure),
             )),
         const SizedBox(height: 8),
-        Container(
-          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-          decoration: BoxDecoration(
-            color: Colors.white.withValues(alpha: 0.08),
-            borderRadius: AppRadius.xsRadius,
-          ),
-          child: Row(
-            children: [
-              const Icon(Icons.info_outline_rounded, size: 14, color: Colors.white54),
-              const SizedBox(width: 8),
-              const Text(
-                'Demo credentials: VET001 / vet123',
-                style: TextStyle(color: Colors.white54, fontSize: 12),
-              ),
-            ],
-          ),
-        ),
       ],
       loading: _loading,
       onLogin: _login,
@@ -523,23 +506,6 @@ class __GovtLoginScreenState extends State<_GovtLoginScreen> {
               onPressed: () => setState(() => _obscure = !_obscure),
             )),
         const SizedBox(height: 8),
-        Container(
-          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-          decoration: BoxDecoration(
-            color: Colors.white.withValues(alpha: 0.08),
-            borderRadius: AppRadius.xsRadius,
-          ),
-          child: Row(
-            children: [
-              const Icon(Icons.info_outline_rounded, size: 14, color: Colors.white54),
-              const SizedBox(width: 8),
-              const Text(
-                'Demo credentials: GOV001 / gov123',
-                style: TextStyle(color: Colors.white54, fontSize: 12),
-              ),
-            ],
-          ),
-        ),
       ],
       loading: _loading,
       onLogin: _login,
