@@ -28,6 +28,8 @@ import '../models/government_alert.dart';
 
 // Note: import case.dart types directly in screens that need them.
 import 'api_service.dart';
+import 'offline_sync_service.dart';
+import 'localization_service.dart';
 
 class FarmerDataService extends ChangeNotifier {
   final ApiService apiService = ApiService();
@@ -86,6 +88,8 @@ class FarmerDataService extends ChangeNotifier {
       await apiService.init();
       await fetchAnimals();
       await fetchCases();
+      // Sync any pending offline media uploads in background
+      OfflineSyncService.instance.syncPendingQueue(apiService).catchError((_) => null);
       // We will add more fetches here (alerts, etc.)
     } catch (e) {
       if (kDebugMode) {
@@ -172,8 +176,13 @@ class FarmerDataService extends ChangeNotifier {
               district: item['district'] ?? _profile.district,
               state: item['state'] ?? _profile.state,
               hasVoiceNote: item['has_voice_note'] ?? false,
+              voiceNoteUrl: item['voice_note_url'],
               hasPhoto: item['has_photo'] ?? false,
+              photoUrls: parseStringList(item['photo_urls']),
               hasVideo: item['has_video'] ?? false,
+              videoUrl: item['video_url'],
+              voiceTranscript: item['voice_transcript'],
+              clinicalObservation: item['description'],
               createdAt: DateTime.tryParse(item['created_at'] ?? '') ?? DateTime.now(),
             );
             
@@ -331,7 +340,7 @@ class FarmerDataService extends ChangeNotifier {
 
     // 1. Immediately create a LivestockCase in _cases so it appears instantly for Vet and Govt
     final caseId = report.id.startsWith('RPT') ? report.id.replaceFirst('RPT', 'CASE') : generateCaseId();
-    final newCase = LivestockCase(
+    var newCase = LivestockCase(
       caseId: caseId,
       reportId: report.id,
       farmerId: 'F001',
@@ -351,8 +360,16 @@ class FarmerDataService extends ChangeNotifier {
       district: _profile.district,
       state: _profile.state,
       hasVoiceNote: report.hasVoiceNote,
+      voiceNoteUrl: report.voiceUrl,
       hasPhoto: report.hasPhoto,
+      photoUrls: report.photoUrls,
       hasVideo: report.hasVideo,
+      videoUrl: report.videoUrl,
+      voiceTranscript: report.voiceTranscript,
+      localVoicePath: report.voicePath,
+      localPhotoPath: report.photoPath,
+      localVideoPath: report.videoPath,
+      clinicalObservation: report.description,
       status: FullCaseStatus.submitted,
       createdAt: report.createdAt,
       timeline: [
@@ -393,7 +410,7 @@ class FarmerDataService extends ChangeNotifier {
     notifyListeners();
 
     try {
-      await apiService.post('/cases', {
+      final res = await apiService.post('/cases', {
         'animal_id': report.animalId,
         'animal_tag': report.animalTag,
         'species': report.species ?? 'Cow',
@@ -402,6 +419,7 @@ class FarmerDataService extends ChangeNotifier {
         'symptoms': report.symptoms,
         'duration': report.duration,
         'affected_count': report.affectedCount,
+        'description': report.description,
         'village': _profile.village,
         'block': _profile.block,
         'district': _profile.district,
@@ -409,12 +427,108 @@ class FarmerDataService extends ChangeNotifier {
         'has_voice_note': report.hasVoiceNote,
         'has_photo': report.hasPhoto,
         'has_video': report.hasVideo,
+        'voice_transcript': report.voiceTranscript,
       });
+
+      final backendCaseId = res != null && res['id'] != null ? res['id'].toString() : caseId;
+
+      // Real media upload to Supabase Storage via backend
+      final hasMediaToUpload = (report.voicePath != null && report.voicePath!.isNotEmpty) ||
+          (report.photoPath != null && report.photoPath!.isNotEmpty) ||
+          (report.videoPath != null && report.videoPath!.isNotEmpty) ||
+          (report.voiceTranscript != null && report.voiceTranscript!.isNotEmpty);
+
+      if (hasMediaToUpload) {
+        final filePaths = <String, String>{};
+        if (report.voicePath != null && report.voicePath!.isNotEmpty) {
+          filePaths['voice_file'] = report.voicePath!;
+        }
+        if (report.photoPath != null && report.photoPath!.isNotEmpty) {
+          filePaths['photo_file'] = report.photoPath!;
+        }
+        if (report.videoPath != null && report.videoPath!.isNotEmpty) {
+          filePaths['video_file'] = report.videoPath!;
+        }
+
+        final fields = <String, String>{
+          'language': LocalizationService.instance.currentLanguage.voiceLocaleCode,
+        };
+        if (report.voiceTranscript != null && report.voiceTranscript!.isNotEmpty) {
+          fields['voice_transcript'] = report.voiceTranscript!;
+        }
+
+        try {
+          final mediaRes = await apiService.uploadMultipart(
+            '/cases/$backendCaseId/media',
+            fields: fields,
+            filePaths: filePaths,
+          );
+          if (mediaRes != null) {
+            newCase = LivestockCase(
+              caseId: newCase.caseId,
+              reportId: newCase.reportId,
+              farmerId: newCase.farmerId,
+              farmerName: newCase.farmerName,
+              farmName: newCase.farmName,
+              animalId: newCase.animalId,
+              animalTag: newCase.animalTag,
+              species: newCase.species,
+              breed: newCase.breed,
+              age: newCase.age,
+              gender: newCase.gender,
+              symptoms: newCase.symptoms,
+              duration: newCase.duration,
+              affectedCount: newCase.affectedCount,
+              riskLevel: newCase.riskLevel,
+              village: newCase.village,
+              block: newCase.block,
+              district: newCase.district,
+              state: newCase.state,
+              hasVoiceNote: mediaRes['has_voice_note'] ?? newCase.hasVoiceNote,
+              voiceNoteUrl: mediaRes['voice_note_url'],
+              hasPhoto: mediaRes['has_photo'] ?? newCase.hasPhoto,
+              photoUrls: mediaRes['photo_urls'] != null ? List<String>.from(mediaRes['photo_urls']) : null,
+              hasVideo: mediaRes['has_video'] ?? newCase.hasVideo,
+              videoUrl: mediaRes['video_url'],
+              voiceTranscript: mediaRes['voice_transcript'] ?? report.voiceTranscript,
+              localVoicePath: report.voicePath,
+              localPhotoPath: report.photoPath,
+              localVideoPath: report.videoPath,
+              clinicalObservation: mediaRes['description'] ?? report.description,
+              status: newCase.status,
+              createdAt: newCase.createdAt,
+              timeline: newCase.timeline,
+            );
+            _cases.removeWhere((c) => c.caseId == caseId || c.caseId == backendCaseId);
+            _cases.insert(0, newCase);
+            notifyListeners();
+          }
+        } catch (mediaErr) {
+          if (kDebugMode) print('Media upload error, enqueuing offline item: $mediaErr');
+          await OfflineSyncService.instance.enqueue(OfflineMediaItem(
+            caseId: backendCaseId,
+            voicePath: report.voicePath,
+            photoPath: report.photoPath,
+            videoPath: report.videoPath,
+            voiceTranscript: report.voiceTranscript,
+            language: LocalizationService.instance.currentLanguage.voiceLocaleCode,
+          ));
+        }
+      }
+
       await fetchCases();
     } catch (e) {
       if (kDebugMode) {
-        print('Error submitting health report to backend: $e');
+        print('Error submitting health report to backend (offline mode): $e');
       }
+      await OfflineSyncService.instance.enqueue(OfflineMediaItem(
+        caseId: caseId,
+        voicePath: report.voicePath,
+        photoPath: report.photoPath,
+        videoPath: report.videoPath,
+        voiceTranscript: report.voiceTranscript,
+        language: LocalizationService.instance.currentLanguage.voiceLocaleCode,
+      ));
     }
   }
 

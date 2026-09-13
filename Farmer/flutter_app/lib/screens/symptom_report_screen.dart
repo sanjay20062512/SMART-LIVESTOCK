@@ -7,6 +7,8 @@ import '../services/localization_service.dart';
 import '../services/triage_service.dart';
 import '../models/animal.dart';
 import '../models/health_report.dart';
+import '../widgets/language_selector_button.dart';
+import '../services/media_service.dart';
 import 'vet_request_screen.dart';
 import 'assessment_result_screen.dart';
 
@@ -59,8 +61,12 @@ class _SymptomReportScreenState extends State<SymptomReportScreen> {
   bool _isRecordingVoice = false;
   bool _hasVoiceRecorded = false;
   bool _isPlayingVoice = false;
+  String? _voicePath;
+  String? _voiceTranscript;
   bool _hasPhotoAdded = false;
+  String? _photoPath;
   bool _hasVideoAdded = false;
+  String? _videoPath;
   final _descCtrl = TextEditingController();
 
   // Step 9: Location
@@ -142,6 +148,8 @@ class _SymptomReportScreenState extends State<SymptomReportScreen> {
 
   @override
   void dispose() {
+    MediaService.instance.stopAudio();
+    MediaService.instance.stopListening();
     _pageController.dispose();
     _earTagCtrl.dispose();
     _descCtrl.dispose();
@@ -223,29 +231,133 @@ class _SymptomReportScreenState extends State<SymptomReportScreen> {
     }
   }
 
-  void _simulateVoiceRecording() {
-    setState(() => _isRecordingVoice = true);
-    Future.delayed(const Duration(milliseconds: 1600), () {
+  Future<void> _startRealVoiceRecording() async {
+    final lang = LocalizationService.instance.currentLanguage;
+    final path = await MediaService.instance.startRecording();
+    if (path == null) {
       if (!mounted) return;
-      setState(() {
-        _isRecordingVoice = false;
-        _hasVoiceRecorded = true;
-      });
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
-          content: Text('✓ Voice note recorded successfully!'),
-          backgroundColor: Colors.green,
+          content: Text('Could not access microphone. Please check permissions.'),
+          backgroundColor: Colors.red,
         ),
       );
+      return;
+    }
+
+    setState(() {
+      _isRecordingVoice = true;
+      _voicePath = path;
     });
+
+    // Start live speech-to-text recognition
+    await MediaService.instance.startListening(
+      localeId: lang.voiceLocaleCode,
+      onResult: (text) {
+        if (!mounted) return;
+        setState(() {
+          _voiceTranscript = text;
+          if (_descCtrl.text.isEmpty || _descCtrl.text == text) {
+            _descCtrl.text = text;
+          }
+        });
+      },
+    );
   }
 
-  void _simulateVoicePlayback() {
-    setState(() => _isPlayingVoice = true);
-    Future.delayed(const Duration(seconds: 2), () {
-      if (!mounted) return;
-      setState(() => _isPlayingVoice = false);
+  Future<void> _stopRealVoiceRecording() async {
+    final recordedPath = await MediaService.instance.stopRecording();
+    await MediaService.instance.stopListening();
+
+    if (!mounted) return;
+    setState(() {
+      _isRecordingVoice = false;
+      _hasVoiceRecorded = true;
+      if (recordedPath != null && recordedPath.isNotEmpty) {
+        _voicePath = recordedPath;
+      }
     });
+
+    final lang = LocalizationService.instance.currentLanguage;
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Row(
+          children: [
+            const Icon(Icons.check_circle_rounded, color: Colors.white, size: 18),
+            const SizedBox(width: 8),
+            Expanded(child: Text('✓ ${context.tr('voice_recorded')} [${lang.voiceLocaleCode}]')),
+          ],
+        ),
+        backgroundColor: Colors.green,
+      ),
+    );
+  }
+
+  Future<void> _playVoiceRecording() async {
+    if (_voicePath == null || _voicePath!.isEmpty) return;
+    if (_isPlayingVoice) {
+      await MediaService.instance.stopAudio();
+      setState(() => _isPlayingVoice = false);
+      return;
+    }
+
+    setState(() => _isPlayingVoice = true);
+    await MediaService.instance.playAudio(
+      _voicePath!,
+      onComplete: () {
+        if (mounted) {
+          setState(() => _isPlayingVoice = false);
+        }
+      },
+    );
+  }
+
+  Future<void> _captureRealPhoto() async {
+    final photo = await MediaService.instance.capturePhoto();
+    if (photo != null) {
+      setState(() {
+        _photoPath = photo.path;
+        _hasPhotoAdded = true;
+      });
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Row(
+              children: [
+                const Icon(Icons.photo_camera_rounded, color: Colors.white, size: 18),
+                const SizedBox(width: 8),
+                Text(context.tr('photo_added')),
+              ],
+            ),
+            backgroundColor: Colors.blue.shade700,
+          ),
+        );
+      }
+    }
+  }
+
+  Future<void> _captureRealVideo() async {
+    final video = await MediaService.instance.recordVideo();
+    if (video != null) {
+      setState(() {
+        _videoPath = video.path;
+        _hasVideoAdded = true;
+      });
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Row(
+              children: [
+                const Icon(Icons.videocam_rounded, color: Colors.white, size: 18),
+                const SizedBox(width: 8),
+                Text(context.tr('video_added')),
+              ],
+            ),
+            backgroundColor: Colors.teal.shade700,
+          ),
+        );
+      }
+    }
   }
 
   void _simulateReadAloudAdvice(String text) {
@@ -270,12 +382,27 @@ class _SymptomReportScreenState extends State<SymptomReportScreen> {
   }
 
   void _submitReport() {
+    final currentLang = LocalizationService.instance.currentLanguage;
     final result = TriageService.assess(
       symptoms: _selectedSymptoms.toList(),
       affectedCount: _affectedCount,
       notEating: _eatingStatus == 'No',
       notDrinking: _drinkingStatus == 'No',
+      language: currentLang,
     );
+
+    // Also fire off background request to FastAPI backend with language parameter
+    try {
+      widget.dataService.apiService.post('/triage', {
+        'species': _selectedSpecies.displayName,
+        'symptoms': _selectedSymptoms.toList(),
+        'affected_count': _affectedCount,
+        'not_eating': _eatingStatus == 'No',
+        'not_drinking': _drinkingStatus == 'No',
+        'is_mortality_related': false,
+        'language': currentLang.code,
+      }).catchError((_) => null);
+    } catch (_) {}
 
     final reportId = widget.dataService.generateReportId();
     final animalTag = _earTagCtrl.text.trim().isNotEmpty
@@ -308,8 +435,12 @@ class _SymptomReportScreenState extends State<SymptomReportScreen> {
       recommendedAction: result.recommendedAction,
       description: _descCtrl.text.trim().isEmpty ? null : _descCtrl.text.trim(),
       hasVoiceNote: _hasVoiceRecorded,
+      voicePath: _voicePath,
+      voiceTranscript: _voiceTranscript,
       hasPhoto: _hasPhotoAdded,
+      photoPath: _photoPath,
       hasVideo: _hasVideoAdded,
+      videoPath: _videoPath,
       location: reportLocation,
     );
 
@@ -348,9 +479,15 @@ class _SymptomReportScreenState extends State<SymptomReportScreen> {
                 onPressed: () => Navigator.pop(context),
               ),
         title: Text(
-          _step < 10 ? 'Report Issue (Step ${_step + 1})' : 'Assessment Result',
+          _step < 10 ? 'Report Issue (Step ${_step + 1})' : context.tr('assessment_result'),
           style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
         ),
+        actions: const [
+          Padding(
+            padding: EdgeInsets.only(right: 12),
+            child: LanguageSelectorButton(),
+          ),
+        ],
       ),
       body: _step >= 10 && _triageResult != null
           ? _buildStep11Result()
@@ -923,95 +1060,207 @@ class _SymptomReportScreenState extends State<SymptomReportScreen> {
               children: [
                 Row(
                   children: [
-                    Icon(Icons.mic_rounded, color: Colors.orange.shade800, size: 26),
-                    const SizedBox(width: 10),
+                    Container(
+                      padding: const EdgeInsets.all(8),
+                      decoration: BoxDecoration(
+                        color: Colors.orange.shade100,
+                        shape: BoxShape.circle,
+                      ),
+                      child: Icon(Icons.mic_rounded, color: Colors.orange.shade900, size: 26),
+                    ),
+                    const SizedBox(width: 12),
                     Expanded(
-                      child: Text(
-                        context.tr('tell_what_happened'),
-                        style: TextStyle(
-                          fontSize: 16,
-                          fontWeight: FontWeight.bold,
-                          color: Colors.orange.shade900,
-                        ),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            context.tr('speak_in_language'),
+                            style: TextStyle(
+                              fontSize: 17,
+                              fontWeight: FontWeight.bold,
+                              color: Colors.orange.shade900,
+                            ),
+                          ),
+                          const SizedBox(height: 2),
+                          Text(
+                            context.tr('tell_what_happened'),
+                            style: TextStyle(fontSize: 13, color: Colors.orange.shade800),
+                          ),
+                        ],
+                      ),
+                    ),
+                    Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+                      decoration: BoxDecoration(
+                        color: Colors.white,
+                        borderRadius: BorderRadius.circular(16),
+                        border: Border.all(color: Colors.orange.shade200),
+                      ),
+                      child: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          const Icon(Icons.language_rounded, size: 14, color: Colors.deepOrange),
+                          const SizedBox(width: 4),
+                          Text(
+                            LocalizationService.instance.currentLanguage.label,
+                            style: const TextStyle(fontSize: 12, fontWeight: FontWeight.bold, color: Colors.deepOrange),
+                          ),
+                        ],
                       ),
                     ),
                   ],
-                ),
-                const SizedBox(height: 6),
-                Text(
-                  context.tr('speak_in_language'),
-                  style: TextStyle(fontSize: 12.5, color: Colors.orange.shade800),
                 ),
                 const SizedBox(height: 16),
 
                 // Voice status / recorder button
                 if (_isRecordingVoice) ...[
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      const Icon(Icons.fiber_manual_record_rounded, color: Colors.red, size: 18),
-                      const SizedBox(width: 8),
-                      Text(
-                        context.tr('recording'),
-                        style: const TextStyle(color: Colors.red, fontWeight: FontWeight.bold, fontSize: 15),
-                      ),
-                    ],
-                  ),
-                  const SizedBox(height: 12),
-                ] else if (_hasVoiceRecorded) ...[
                   Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
+                    padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
                     decoration: BoxDecoration(
-                      color: Colors.white,
+                      color: Colors.red.shade50,
                       borderRadius: BorderRadius.circular(12),
+                      border: Border.all(color: Colors.red.shade200),
                     ),
                     child: Row(
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: [
-                        const Icon(Icons.check_circle_rounded, color: Colors.green, size: 20),
+                        const Icon(Icons.fiber_manual_record_rounded, color: Colors.red, size: 18),
                         const SizedBox(width: 8),
                         Text(
-                          context.tr('voice_recorded'),
-                          style: const TextStyle(fontWeight: FontWeight.bold, color: Colors.green),
+                          context.tr('recording'),
+                          style: const TextStyle(color: Colors.red, fontWeight: FontWeight.bold, fontSize: 15),
                         ),
                       ],
                     ),
                   ),
-                  const SizedBox(height: 12),
+                  const SizedBox(height: 14),
+                  SizedBox(
+                    width: double.infinity,
+                    height: 54,
+                    child: ElevatedButton.icon(
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: Colors.red.shade700,
+                        foregroundColor: Colors.white,
+                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
+                        elevation: 1,
+                      ),
+                      icon: const Icon(Icons.stop_circle_rounded, size: 26),
+                      label: Text(
+                        context.tr('stop'),
+                        style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+                      ),
+                      onPressed: _stopRealVoiceRecording,
+                    ),
+                  ),
+                ] else if (_hasVoiceRecorded) ...[
+                  Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+                    decoration: BoxDecoration(
+                      color: Colors.green.shade50,
+                      borderRadius: BorderRadius.circular(12),
+                      border: Border.all(color: Colors.green.shade200),
+                    ),
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        const Icon(Icons.check_circle_rounded, color: Colors.green, size: 22),
+                        const SizedBox(width: 8),
+                        Text(
+                          context.tr('voice_recorded'),
+                          style: const TextStyle(fontWeight: FontWeight.bold, color: Colors.green, fontSize: 15),
+                        ),
+                      ],
+                    ),
+                  ),
+                  if (_voiceTranscript != null && _voiceTranscript!.isNotEmpty) ...[
+                    const SizedBox(height: 10),
+                    Container(
+                      padding: const EdgeInsets.all(12),
+                      decoration: BoxDecoration(
+                        color: Colors.white,
+                        borderRadius: BorderRadius.circular(12),
+                        border: Border.all(color: Colors.orange.shade200),
+                      ),
+                      child: Row(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Icon(Icons.format_quote_rounded, size: 20, color: Colors.orange.shade800),
+                          const SizedBox(width: 8),
+                          Expanded(
+                            child: Text(
+                              '"$_voiceTranscript"',
+                              style: TextStyle(fontSize: 13.5, color: Colors.grey.shade900, fontStyle: FontStyle.italic),
+                              maxLines: 3,
+                              overflow: TextOverflow.ellipsis,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ],
+                  const SizedBox(height: 14),
                   Row(
-                    mainAxisAlignment: MainAxisAlignment.center,
                     children: [
-                      ElevatedButton.icon(
-                        style: ElevatedButton.styleFrom(backgroundColor: Colors.white, foregroundColor: primary),
-                        icon: Icon(_isPlayingVoice ? Icons.stop_rounded : Icons.play_arrow_rounded),
-                        label: Text(_isPlayingVoice ? 'Playing...' : context.tr('play')),
-                        onPressed: _simulateVoicePlayback,
+                      Expanded(
+                        child: SizedBox(
+                          height: 50,
+                          child: ElevatedButton.icon(
+                            style: ElevatedButton.styleFrom(
+                              backgroundColor: _isPlayingVoice ? Colors.orange.shade800 : Colors.white,
+                              foregroundColor: _isPlayingVoice ? Colors.white : primary,
+                              side: BorderSide(color: primary, width: 1.5),
+                              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
+                            ),
+                            icon: Icon(
+                              _isPlayingVoice ? Icons.stop_rounded : Icons.volume_up_rounded,
+                              size: 24,
+                            ),
+                            label: Text(
+                              _isPlayingVoice ? 'Stop' : context.tr('listen'),
+                              style: const TextStyle(fontSize: 15, fontWeight: FontWeight.bold),
+                            ),
+                            onPressed: _playVoiceRecording,
+                          ),
+                        ),
                       ),
                       const SizedBox(width: 12),
-                      OutlinedButton.icon(
-                        style: OutlinedButton.styleFrom(foregroundColor: Colors.orange.shade900),
-                        icon: const Icon(Icons.refresh_rounded, size: 18),
-                        label: Text(context.tr('record_again')),
-                        onPressed: _simulateVoiceRecording,
+                      Expanded(
+                        child: SizedBox(
+                          height: 50,
+                          child: OutlinedButton.icon(
+                            style: OutlinedButton.styleFrom(
+                              foregroundColor: Colors.orange.shade900,
+                              side: BorderSide(color: Colors.orange.shade400, width: 1.5),
+                              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
+                            ),
+                            icon: const Icon(Icons.refresh_rounded, size: 22),
+                            label: Text(
+                              context.tr('record_again'),
+                              style: const TextStyle(fontSize: 15, fontWeight: FontWeight.bold),
+                            ),
+                            onPressed: _startRealVoiceRecording,
+                          ),
+                        ),
                       ),
                     ],
                   ),
                 ] else ...[
                   SizedBox(
                     width: double.infinity,
-                    height: 52,
+                    height: 54,
                     child: ElevatedButton.icon(
                       style: ElevatedButton.styleFrom(
                         backgroundColor: Colors.orange.shade800,
                         foregroundColor: Colors.white,
+                        elevation: 1,
                         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
                       ),
-                      icon: const Icon(Icons.mic_rounded, size: 24),
+                      icon: const Icon(Icons.mic_rounded, size: 26),
                       label: Text(
                         context.tr('tap_and_speak'),
-                        style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+                        style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold, letterSpacing: 0.5),
                       ),
-                      onPressed: _simulateVoiceRecording,
+                      onPressed: _startRealVoiceRecording,
                     ),
                   ),
                 ],
@@ -1020,7 +1269,7 @@ class _SymptomReportScreenState extends State<SymptomReportScreen> {
           ),
           const SizedBox(height: 20),
 
-          // Photo & Video Placeholders
+          // Photo & Video
           Row(
             children: [
               Expanded(
@@ -1029,12 +1278,7 @@ class _SymptomReportScreenState extends State<SymptomReportScreen> {
                   label: _hasPhotoAdded ? context.tr('photo_added') : context.tr('take_photo'),
                   color: Colors.blue,
                   isSelected: _hasPhotoAdded,
-                  onTap: () {
-                    setState(() => _hasPhotoAdded = !_hasPhotoAdded);
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      SnackBar(content: Text(_hasPhotoAdded ? 'Photo captured (Demo)' : 'Photo removed')),
-                    );
-                  },
+                  onTap: _captureRealPhoto,
                 ),
               ),
               const SizedBox(width: 12),
@@ -1044,12 +1288,7 @@ class _SymptomReportScreenState extends State<SymptomReportScreen> {
                   label: _hasVideoAdded ? context.tr('video_added') : context.tr('record_video'),
                   color: Colors.teal,
                   isSelected: _hasVideoAdded,
-                  onTap: () {
-                    setState(() => _hasVideoAdded = !_hasVideoAdded);
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      SnackBar(content: Text(_hasVideoAdded ? 'Video recorded (Demo)' : 'Video removed')),
-                    );
-                  },
+                  onTap: _captureRealVideo,
                 ),
               ),
             ],
@@ -1236,13 +1475,15 @@ class _SymptomReportScreenState extends State<SymptomReportScreen> {
                   const Divider(height: 20),
                   _buildSummaryRow('Animals affected', _affectedCount),
                   const Divider(height: 20),
-                  _buildSummaryRow('Voice note', _hasVoiceRecorded ? '✓ Added' : 'None'),
+                  _buildSummaryRow('Voice note', _hasVoiceRecorded ? (_voiceTranscript != null && _voiceTranscript!.isNotEmpty ? '✓ Recorded ("$_voiceTranscript")' : '✓ Added') : 'None'),
                   const Divider(height: 20),
-                  _buildSummaryRow('Photo', _hasPhotoAdded ? '✓ Added' : 'None'),
+                  _buildSummaryRow('Photo', _hasPhotoAdded ? 'Added' : 'None'),
+                  const Divider(height: 20),
+                  _buildSummaryRow('Video', _hasVideoAdded ? 'Added' : 'None'),
                   const Divider(height: 20),
                   _buildSummaryRow(
                     'Location',
-                    _locationMode == '📍 Use Farm Location'
+                    _locationMode == 'Use Farm Location'
                         ? (widget.dataService.profile.farmName ?? "Farm")
                         : (_manualLocationCtrl.text.isNotEmpty ? _manualLocationCtrl.text : 'Manual location'),
                   ),

@@ -97,12 +97,16 @@ class _ProfileScreenState extends State<ProfileScreen> {
               ),
               const SizedBox(height: 12),
               DropdownButtonFormField<String>(
-                initialValue: selectedLang,
-                decoration: const InputDecoration(
-                  labelText: 'Preferred Language',
-                  prefixIcon: Icon(Icons.language_rounded),
+                initialValue: ['English', 'हिन्दी', 'मराठी'].contains(selectedLang)
+                    ? selectedLang
+                    : (selectedLang.toLowerCase().contains('hi')
+                        ? 'हिन्दी'
+                        : (selectedLang.toLowerCase().contains('mr') ? 'मराठी' : 'English')),
+                decoration: InputDecoration(
+                  labelText: context.tr('preferred_language'),
+                  prefixIcon: const Icon(Icons.language_rounded),
                 ),
-                items: ['English', 'Tamil', 'Hindi']
+                items: ['English', 'हिन्दी', 'मराठी']
                     .map((l) => DropdownMenuItem(value: l, child: Text(l)))
                     .toList(),
                 onChanged: (v) => setModalState(() => selectedLang = v!),

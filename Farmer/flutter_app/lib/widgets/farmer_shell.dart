@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../services/farmer_data_service.dart';
+import '../services/localization_service.dart';
 import '../screens/farmer_dashboard.dart';
 import '../screens/my_reports_screen.dart';
 import '../screens/report_hub_screen.dart';
@@ -29,10 +30,12 @@ class _FarmerShellState extends State<FarmerShell> {
     super.initState();
     _currentIndex = widget.initialIndex;
     widget.dataService.addListener(_onDataChanged);
+    LocalizationService.instance.addListener(_onDataChanged);
   }
 
   @override
   void dispose() {
+    LocalizationService.instance.removeListener(_onDataChanged);
     widget.dataService.removeListener(_onDataChanged);
     super.dispose();
   }
@@ -65,53 +68,53 @@ class _FarmerShellState extends State<FarmerShell> {
         children: tabs,
       ),
       bottomNavigationBar: NavigationBar(
-          selectedIndex: _currentIndex,
-          onDestinationSelected: (index) =>
-              setState(() => _currentIndex = index),
-          backgroundColor: AppColors.surface,
-          indicatorColor: AppColors.primaryLight,
-          elevation: 3,
-          shadowColor: AppColors.border,
-          surfaceTintColor: Colors.transparent,
-          labelBehavior: NavigationDestinationLabelBehavior.alwaysShow,
-          destinations: [
-            const NavigationDestination(
-              icon: Icon(Icons.home_outlined),
-              selectedIcon: Icon(Icons.home_rounded, color: AppColors.primary),
-              label: 'Home',
+        selectedIndex: _currentIndex,
+        onDestinationSelected: (index) =>
+            setState(() => _currentIndex = index),
+        backgroundColor: AppColors.surface,
+        indicatorColor: AppColors.primaryLight,
+        elevation: 3,
+        shadowColor: AppColors.border,
+        surfaceTintColor: Colors.transparent,
+        labelBehavior: NavigationDestinationLabelBehavior.alwaysShow,
+        destinations: [
+          NavigationDestination(
+            icon: const Icon(Icons.home_outlined),
+            selectedIcon: const Icon(Icons.home_rounded, color: AppColors.primary),
+            label: context.tr('nav_home'),
+          ),
+          NavigationDestination(
+            icon: const Icon(Icons.folder_shared_outlined),
+            selectedIcon: const Icon(Icons.folder_shared_rounded, color: AppColors.primary),
+            label: context.tr('nav_my_cases'),
+          ),
+          NavigationDestination(
+            icon: const Icon(Icons.add_circle_outline_rounded),
+            selectedIcon: const Icon(Icons.add_circle_rounded, color: AppColors.primary),
+            label: context.tr('nav_report'),
+          ),
+          NavigationDestination(
+            icon: Badge(
+              isLabelVisible: unread > 0,
+              label: Text('$unread'),
+              backgroundColor: AppColors.error,
+              child: const Icon(Icons.notifications_outlined),
             ),
-            const NavigationDestination(
-              icon: Icon(Icons.folder_shared_outlined),
-              selectedIcon: Icon(Icons.folder_shared_rounded, color: AppColors.primary),
-              label: 'My Cases',
+            selectedIcon: Badge(
+              isLabelVisible: unread > 0,
+              label: Text('$unread'),
+              backgroundColor: AppColors.error,
+              child: const Icon(Icons.notifications_rounded, color: AppColors.primary),
             ),
-            const NavigationDestination(
-              icon: Icon(Icons.add_circle_outline_rounded),
-              selectedIcon: Icon(Icons.add_circle_rounded, color: AppColors.primary),
-              label: 'Report',
-            ),
-            NavigationDestination(
-              icon: Badge(
-                isLabelVisible: unread > 0,
-                label: Text('$unread'),
-                backgroundColor: AppColors.error,
-                child: const Icon(Icons.notifications_outlined),
-              ),
-              selectedIcon: Badge(
-                isLabelVisible: unread > 0,
-                label: Text('$unread'),
-                backgroundColor: AppColors.error,
-                child: const Icon(Icons.notifications_rounded, color: AppColors.primary),
-              ),
-              label: 'Alerts',
-            ),
-            const NavigationDestination(
-              icon: Icon(Icons.person_outline_rounded),
-              selectedIcon: Icon(Icons.person_rounded, color: AppColors.primary),
-              label: 'Profile',
-            ),
-          ],
-        ),
+            label: context.tr('nav_alerts'),
+          ),
+          NavigationDestination(
+            icon: const Icon(Icons.person_outline_rounded),
+            selectedIcon: const Icon(Icons.person_rounded, color: AppColors.primary),
+            label: context.tr('nav_profile'),
+          ),
+        ],
+      ),
     );
   }
 }

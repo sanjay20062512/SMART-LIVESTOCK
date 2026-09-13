@@ -31,7 +31,7 @@ void main() {
     expect(find.text('Assessment Result'), findsOneWidget);
 
     // Verify Content
-    expect(find.text('Report Submitted & Logged to Network'), findsOneWidget);
+    expect(find.text('Report Submitted & Logged to Surveillance Network'), findsOneWidget);
     expect(find.text('CRITICAL HEALTH RISK'), findsWidgets);
     expect(find.text('Recommended Action'), findsOneWidget);
     expect(find.text('Immediate veterinary attention is required. Isolate the animal now.'), findsOneWidget);

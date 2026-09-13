@@ -76,8 +76,13 @@ class HealthReport {
   final String advice;
   final String recommendedAction;
   final String? description;
-  final String? photoPath; // placeholder
-  final String? voicePath; // placeholder
+  final String? photoPath;
+  final String? voicePath;
+  final String? videoPath;
+  final String? voiceTranscript;
+  final String? voiceUrl;
+  final List<String>? photoUrls;
+  final String? videoUrl;
   final bool hasVoiceNote;
   final bool hasPhoto;
   final bool hasVideo;
@@ -106,6 +111,11 @@ class HealthReport {
     this.description,
     this.photoPath,
     this.voicePath,
+    this.videoPath,
+    this.voiceTranscript,
+    this.voiceUrl,
+    this.photoUrls,
+    this.videoUrl,
     this.hasVoiceNote = false,
     this.hasPhoto = false,
     this.hasVideo = false,
@@ -133,6 +143,13 @@ class HealthReport {
         'advice': advice,
         'recommendedAction': recommendedAction,
         'description': description,
+        'photoPath': photoPath,
+        'voicePath': voicePath,
+        'videoPath': videoPath,
+        'voiceTranscript': voiceTranscript,
+        'voiceUrl': voiceUrl,
+        'photoUrls': photoUrls,
+        'videoUrl': videoUrl,
         'hasVoiceNote': hasVoiceNote,
         'hasPhoto': hasPhoto,
         'hasVideo': hasVideo,

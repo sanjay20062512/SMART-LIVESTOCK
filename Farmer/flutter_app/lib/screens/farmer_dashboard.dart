@@ -7,6 +7,7 @@ import '../services/farmer_data_service.dart';
 import '../services/localization_service.dart';
 import '../models/dashboard_stats.dart';
 import '../theme/app_theme.dart';
+import '../widgets/language_selector_button.dart';
 import 'symptom_report_screen.dart';
 import 'vet_request_screen.dart';
 
@@ -38,12 +39,27 @@ class FarmerDashboard extends StatelessWidget {
         title: Row(
           children: [
             Container(
-              padding: const EdgeInsets.all(7),
-              decoration: BoxDecoration(
-                color: AppColors.primaryLight,
-                borderRadius: AppRadius.smRadius,
+              width: 32,
+              height: 32,
+              decoration: const BoxDecoration(
+                shape: BoxShape.circle,
               ),
-              child: const Icon(Icons.agriculture_rounded, color: AppColors.primary, size: 22),
+              child: ClipOval(
+                child: Image.asset(
+                  'assets/images/logo.png',
+                  width: 32,
+                  height: 32,
+                  fit: BoxFit.cover,
+                  errorBuilder: (_, _, _) => Container(
+                    padding: const EdgeInsets.all(6),
+                    decoration: BoxDecoration(
+                      color: AppColors.primaryLight,
+                      borderRadius: AppRadius.smRadius,
+                    ),
+                    child: const Icon(Icons.agriculture_rounded, color: AppColors.primary, size: 20),
+                  ),
+                ),
+              ),
             ),
             const SizedBox(width: 10),
             Flexible(
@@ -61,6 +77,13 @@ class FarmerDashboard extends StatelessWidget {
           ],
         ),
         actions: [
+          // Language Selector Button
+          const Padding(
+            padding: EdgeInsets.symmetric(vertical: 8),
+            child: LanguageSelectorButton(),
+          ),
+          const SizedBox(width: 6),
+
           // Online Indicator
           Container(
             padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
@@ -295,9 +318,9 @@ class FarmerDashboard extends StatelessWidget {
                         ),
                       ),
                       const SizedBox(height: 5),
-                      const Text(
-                        'Tap here to describe symptoms & get advice',
-                        style: TextStyle(color: Colors.white70, fontSize: 12.5, height: 1.3),
+                      Text(
+                        context.tr('report_problem_subtitle'),
+                        style: const TextStyle(color: Colors.white70, fontSize: 12.5, height: 1.3),
                       ),
                     ],
                   ),
