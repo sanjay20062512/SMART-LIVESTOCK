@@ -149,7 +149,12 @@ class ReportHubScreen extends StatelessWidget {
                                   fontSize: 14,
                                 ),
                               ),
-                              subtitle: Text(item['subtitle'] as String),
+                              subtitle: Text(
+                                (item['subtitle'] as String)
+                                    .replaceAll('Â·', '•')
+                                    .replaceAll('Â', '')
+                                    .replaceAll('â€”', '—'),
+                              ),
                               trailing: Text(
                                 _timeAgo(item['date'] as DateTime),
                                 style: const TextStyle(

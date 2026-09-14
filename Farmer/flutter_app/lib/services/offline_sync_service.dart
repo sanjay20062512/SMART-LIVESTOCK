@@ -12,6 +12,8 @@ class OfflineMediaItem {
   final String? videoPath;
   final String? voiceTranscript;
   final String language;
+  final double? latitude;
+  final double? longitude;
   final DateTime createdAt;
 
   OfflineMediaItem({
@@ -21,6 +23,8 @@ class OfflineMediaItem {
     this.videoPath,
     this.voiceTranscript,
     this.language = 'en-IN',
+    this.latitude,
+    this.longitude,
     DateTime? createdAt,
   }) : createdAt = createdAt ?? DateTime.now();
 
@@ -31,6 +35,8 @@ class OfflineMediaItem {
         'videoPath': videoPath,
         'voiceTranscript': voiceTranscript,
         'language': language,
+        'latitude': latitude,
+        'longitude': longitude,
         'createdAt': createdAt.toIso8601String(),
       };
 
@@ -41,6 +47,8 @@ class OfflineMediaItem {
         videoPath: json['videoPath'],
         voiceTranscript: json['voiceTranscript'],
         language: json['language'] ?? 'en-IN',
+        latitude: json['latitude'] != null ? (json['latitude'] as num).toDouble() : null,
+        longitude: json['longitude'] != null ? (json['longitude'] as num).toDouble() : null,
         createdAt: json['createdAt'] != null ? DateTime.tryParse(json['createdAt']) : null,
       );
 }
@@ -142,10 +150,11 @@ class OfflineSyncService {
       if (item.voicePath != null && item.voicePath!.isNotEmpty) {
         final file = File(item.voicePath!);
         if (await file.exists()) {
+          final ext = file.path.endsWith('.wav') ? 'wav' : 'm4a';
           request.files.add(await http.MultipartFile.fromPath(
             'voice_file',
             file.path,
-            filename: 'voice_${DateTime.now().millisecondsSinceEpoch}.m4a',
+            filename: 'voice_${DateTime.now().millisecondsSinceEpoch}.$ext',
           ));
         }
       }

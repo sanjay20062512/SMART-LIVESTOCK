@@ -58,7 +58,7 @@ class AppColors {
   // ─── Semantic — Status Colors ──────────────────────────────────────────────
   /// Success green — resolved cases, vaccines administered, online indicators
   static const Color success = Color(0xFF16A34A);
-  static const Color successLight = Color(0xFFDCFCE7);
+  static const Color successLight = Color(0xFFE8F5E9);
   static const Color successDark = Color(0xFF15803D);
 
   /// Warning amber — pending actions, moderate risk, vaccination due

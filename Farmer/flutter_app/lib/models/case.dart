@@ -92,6 +92,8 @@ class LivestockCase {
   final String block;
   final String district;
   final String state;
+  final double? latitude;
+  final double? longitude;
   final bool hasVoiceNote;
   final String? voiceNoteUrl;
   final bool hasPhoto;
@@ -138,6 +140,8 @@ class LivestockCase {
     required this.block,
     required this.district,
     required this.state,
+    this.latitude,
+    this.longitude,
     this.hasVoiceNote = false,
     this.voiceNoteUrl,
     this.hasPhoto = false,

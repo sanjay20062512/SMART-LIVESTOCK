@@ -95,7 +95,7 @@ class ApiService {
       request.fields.addAll(fields);
     }
 
-    if (filePaths != null) {
+    if (filePaths != null && !kIsWeb) {
       for (final entry in filePaths.entries) {
         final path = entry.value;
         if (path.isNotEmpty) {

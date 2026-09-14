@@ -8,6 +8,8 @@ import '../services/localization_service.dart';
 import '../models/dashboard_stats.dart';
 import '../theme/app_theme.dart';
 import '../widgets/language_selector_button.dart';
+import '../widgets/livestock_vector_icon.dart';
+import '../models/animal.dart';
 import 'symptom_report_screen.dart';
 import 'vet_request_screen.dart';
 
@@ -357,7 +359,7 @@ class FarmerDashboard extends StatelessWidget {
             context,
             icon: Icons.pets_rounded,
             title: context.tr('my_animals_cases'),
-            color: const Color(0xFF2E7D32),
+            color: AppColors.success,
             onTap: () => onNavigateToTab(1),
           ),
         ),
@@ -412,7 +414,7 @@ class FarmerDashboard extends StatelessWidget {
                   width: 48,
                   height: 48,
                   decoration: BoxDecoration(
-                    color: color.withValues(alpha: 0.10),
+                    color: color == AppColors.success ? AppColors.successLight : color.withValues(alpha: 0.10),
                     borderRadius: AppRadius.smRadius,
                   ),
                   child: Center(child: Icon(icon, color: color, size: 24)),
@@ -449,7 +451,7 @@ class FarmerDashboard extends StatelessWidget {
           label: context.tr('animals_reported'),
           value: '${stats.totalAnimals}',
           icon: Icons.pets_rounded,
-          color: const Color(0xFF2E7D32),
+          color: AppColors.success,
         ),
         _buildStatCard(
           label: context.tr('active_cases'),
@@ -494,7 +496,7 @@ class FarmerDashboard extends StatelessWidget {
               width: 40,
               height: 40,
               decoration: BoxDecoration(
-                color: color.withValues(alpha: 0.10),
+                color: color == AppColors.success ? AppColors.successLight : color.withValues(alpha: 0.10),
                 borderRadius: AppRadius.smRadius,
               ),
               child: Center(child: Icon(icon, color: color, size: 20)),
@@ -583,8 +585,13 @@ class FarmerDashboard extends StatelessWidget {
 
           Color iconColor = AppColors.success;
           IconData iconData = Icons.pets_rounded;
+          bool isLivestock = false;
+          AnimalSpecies? species;
 
-          if (type == 'health_report') {
+          if (type == 'animal_added') {
+            isLivestock = true;
+            species = item['species'] as AnimalSpecies?;
+          } else if (type == 'health_report') {
             iconColor = AppColors.warning;
             iconData = Icons.medical_services_rounded;
           } else if (type == 'mortality_report') {
@@ -606,7 +613,16 @@ class FarmerDashboard extends StatelessWidget {
                     color: iconColor.withValues(alpha: 0.12),
                     borderRadius: AppRadius.smRadius,
                   ),
-                  child: Center(child: Icon(iconData, color: iconColor, size: 20)),
+                  child: Center(
+                    child: isLivestock
+                        ? LivestockVectorIcon(
+                            species: species,
+                            speciesName: item['speciesName'] as String? ?? item['subtitle'] as String?,
+                            color: iconColor,
+                            size: 22,
+                          )
+                        : Icon(iconData, color: iconColor, size: 20),
+                  ),
                 ),
                 title: Text(
                   item['title'] as String,
@@ -617,7 +633,10 @@ class FarmerDashboard extends StatelessWidget {
                   ),
                 ),
                 subtitle: Text(
-                  item['subtitle'] as String,
+                  (item['subtitle'] as String)
+                      .replaceAll('Â·', '•')
+                      .replaceAll('Â', '')
+                      .replaceAll('â€”', '—'),
                   style: const TextStyle(
                     fontSize: 12,
                     color: AppColors.textSecondary,

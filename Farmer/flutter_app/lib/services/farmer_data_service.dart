@@ -30,6 +30,7 @@ import '../models/government_alert.dart';
 import 'api_service.dart';
 import 'offline_sync_service.dart';
 import 'localization_service.dart';
+import 'location_service.dart';
 
 class FarmerDataService extends ChangeNotifier {
   final ApiService apiService = ApiService();
@@ -359,6 +360,8 @@ class FarmerDataService extends ChangeNotifier {
       block: _profile.block,
       district: _profile.district,
       state: _profile.state,
+      latitude: report.latitude,
+      longitude: report.longitude,
       hasVoiceNote: report.hasVoiceNote,
       voiceNoteUrl: report.voiceUrl,
       hasPhoto: report.hasPhoto,
@@ -424,6 +427,8 @@ class FarmerDataService extends ChangeNotifier {
         'block': _profile.block,
         'district': _profile.district,
         'state': _profile.state,
+        'latitude': report.latitude,
+        'longitude': report.longitude,
         'has_voice_note': report.hasVoiceNote,
         'has_photo': report.hasPhoto,
         'has_video': report.hasVideo,
@@ -512,6 +517,8 @@ class FarmerDataService extends ChangeNotifier {
             videoPath: report.videoPath,
             voiceTranscript: report.voiceTranscript,
             language: LocalizationService.instance.currentLanguage.voiceLocaleCode,
+            latitude: report.latitude,
+            longitude: report.longitude,
           ));
         }
       }
@@ -528,8 +535,64 @@ class FarmerDataService extends ChangeNotifier {
         videoPath: report.videoPath,
         voiceTranscript: report.voiceTranscript,
         language: LocalizationService.instance.currentLanguage.voiceLocaleCode,
+        latitude: report.latitude,
+        longitude: report.longitude,
       ));
     }
+  }
+
+  /// Fetches cases within [radiusKm] of [latitude], [longitude] using PostGIS endpoint
+  /// with automatic Haversine distance fallback.
+  Future<List<LivestockCase>> fetchNearbyCases({
+    required double latitude,
+    required double longitude,
+    double radiusKm = 10.0,
+  }) async {
+    try {
+      final res = await apiService.get(
+        '/cases/nearby?latitude=$latitude&longitude=$longitude&radius_km=$radiusKm',
+      );
+      if (res is List && res.isNotEmpty) {
+        final fetched = <LivestockCase>[];
+        for (final item in res) {
+          if (item is Map<String, dynamic>) {
+            fetched.add(LivestockCase(
+              caseId: item['id'] ?? item['case_code'] ?? '',
+              reportId: item['id'] ?? '',
+              farmerId: item['farmer_id'] ?? '',
+              farmerName: item['farmer_name'] ?? 'Farmer',
+              farmName: item['farm_name'] ?? 'Farm',
+              animalId: item['animal_id'] ?? '',
+              animalTag: item['animal_tag'] ?? '',
+              species: item['species'] ?? 'Cow',
+              symptoms: item['symptoms'] != null ? List<String>.from(item['symptoms']) : [],
+              riskLevel: item['risk_level'] ?? 'LOW',
+              village: item['village'] ?? '',
+              block: item['block'] ?? '',
+              district: item['district'] ?? '',
+              state: item['state'] ?? 'Maharashtra',
+              latitude: item['latitude'] != null ? (item['latitude'] as num).toDouble() : null,
+              longitude: item['longitude'] != null ? (item['longitude'] as num).toDouble() : null,
+            ));
+          }
+        }
+        if (fetched.isNotEmpty) return fetched;
+      }
+    } catch (e) {
+      if (kDebugMode) print('fetchNearbyCases API error, using local fallback: $e');
+    }
+
+    // Local Haversine fallback over in-memory cases
+    final nearby = <LivestockCase>[];
+    for (final c in _cases) {
+      final cLat = c.latitude ?? 18.4870;
+      final cLon = c.longitude ?? 74.1330;
+      final dist = LocationService.haversineDistance(latitude, longitude, cLat, cLon);
+      if (dist <= radiusKm) {
+        nearby.add(c);
+      }
+    }
+    return nearby;
   }
 
   // â”€â”€â”€ Mortality Reports â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
@@ -1489,9 +1552,10 @@ class FarmerDataService extends ChangeNotifier {
       activities.add({
         'type': 'animal_added',
         'title': 'Animal Registered',
-        'subtitle': '${a.species.emoji} ${a.species.displayName} (${a.earTag}) Â· ${a.breed}',
+        'subtitle': '${a.species.displayName} (${a.earTag}) • ${a.breed}',
+        'species': a.species,
         'date': a.createdAt,
-        'icon': 'pets',
+        'icon': 'livestock',
       });
     }
 
@@ -1499,7 +1563,8 @@ class FarmerDataService extends ChangeNotifier {
       activities.add({
         'type': 'health_report',
         'title': 'Health Report: ${r.animalTag}',
-        'subtitle': '${r.riskLevel.displayName} Risk â€” ${r.symptoms.take(2).join(", ")}',
+        'subtitle': '${r.riskLevel.displayName} Risk — ${r.symptoms.take(2).join(", ")}',
+        'species': r.species,
         'date': r.createdAt,
         'icon': 'medical_services',
       });

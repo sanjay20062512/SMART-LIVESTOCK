@@ -9,6 +9,7 @@ import '../models/animal.dart';
 import '../models/health_report.dart';
 import '../widgets/language_selector_button.dart';
 import '../services/media_service.dart';
+import '../services/location_service.dart';
 import 'vet_request_screen.dart';
 import 'assessment_result_screen.dart';
 
@@ -69,9 +70,29 @@ class _SymptomReportScreenState extends State<SymptomReportScreen> {
   String? _videoPath;
   final _descCtrl = TextEditingController();
 
-  // Step 9: Location
+  // Step 9: Location & GPS
   String _locationMode = '📍 Use Farm Location';
   final _manualLocationCtrl = TextEditingController();
+  LocationResult? _gpsLocationResult;
+  bool _isAcquiringGps = false;
+
+  Future<void> _acquireGpsCoordinates() async {
+    if (_isAcquiringGps || _gpsLocationResult?.isGpsAcquired == true) return;
+    setState(() => _isAcquiringGps = true);
+    try {
+      final result = await LocationService.instance.getCurrentLocation();
+      if (mounted) {
+        setState(() {
+          _gpsLocationResult = result;
+          _isAcquiringGps = false;
+        });
+      }
+    } catch (_) {
+      if (mounted) {
+        setState(() => _isAcquiringGps = false);
+      }
+    }
+  }
 
   // Step 11: Result
   TriageResult? _triageResult;
@@ -144,6 +165,7 @@ class _SymptomReportScreenState extends State<SymptomReportScreen> {
     } else {
       _selectedBreed = _selectedSpecies.predefinedBreeds.first;
     }
+    _acquireGpsCoordinates();
   }
 
   @override
@@ -233,6 +255,10 @@ class _SymptomReportScreenState extends State<SymptomReportScreen> {
 
   Future<void> _startRealVoiceRecording() async {
     final lang = LocalizationService.instance.currentLanguage;
+    if (_isPlayingVoice) {
+      await MediaService.instance.stopAudio();
+      setState(() => _isPlayingVoice = false);
+    }
     final path = await MediaService.instance.startRecording();
     if (path == null) {
       if (!mounted) return;
@@ -291,17 +317,58 @@ class _SymptomReportScreenState extends State<SymptomReportScreen> {
         backgroundColor: Colors.green,
       ),
     );
+
+    // If local STT did not populate a transcript, request server-side transcription
+    if ((_voiceTranscript == null || _voiceTranscript!.isEmpty) && _voicePath != null) {
+      _transcribeAudioViaBackend(_voicePath!, lang.voiceLocaleCode);
+    }
+  }
+
+  Future<void> _transcribeAudioViaBackend(String audioPath, String languageCode) async {
+    try {
+      final res = await widget.dataService.apiService.uploadMultipart(
+        '/cases/media/transcribe',
+        fields: {'language': languageCode},
+        filePaths: {'audio_file': audioPath},
+      );
+      if (res != null && res['transcript'] != null && res['transcript'].toString().trim().isNotEmpty) {
+        if (!mounted) return;
+        final transcript = res['transcript'].toString().trim();
+        setState(() {
+          _voiceTranscript = transcript;
+          if (_descCtrl.text.isEmpty) {
+            _descCtrl.text = transcript;
+          }
+        });
+      }
+    } catch (e) {
+      debugPrint('[SymptomReportScreen] Backend transcription notice: $e');
+    }
   }
 
   Future<void> _playVoiceRecording() async {
     if (_voicePath == null || _voicePath!.isEmpty) return;
     if (_isPlayingVoice) {
       await MediaService.instance.stopAudio();
-      setState(() => _isPlayingVoice = false);
+      if (mounted) setState(() => _isPlayingVoice = false);
       return;
     }
 
     setState(() => _isPlayingVoice = true);
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(
+        content: Row(
+          children: [
+            Icon(Icons.volume_up_rounded, color: Colors.white, size: 18),
+            SizedBox(width: 8),
+            Text('Playing voice recording...'),
+          ],
+        ),
+        duration: Duration(seconds: 2),
+        backgroundColor: Color(0xFF0D9488),
+      ),
+    );
+
     await MediaService.instance.playAudio(
       _voicePath!,
       onComplete: () {
@@ -415,6 +482,9 @@ class _SymptomReportScreenState extends State<SymptomReportScreen> {
         ? '${widget.dataService.profile.farmName ?? "Farm"}, ${widget.dataService.profile.village}'
         : (_manualLocationCtrl.text.trim().isNotEmpty ? _manualLocationCtrl.text.trim() : 'Farm Location');
 
+    final double reportLatitude = _gpsLocationResult?.latitude ?? LocationService.defaultFarmLat;
+    final double reportLongitude = _gpsLocationResult?.longitude ?? LocationService.defaultFarmLon;
+
     final report = HealthReport(
       id: reportId,
       animalId: animalId,
@@ -442,6 +512,8 @@ class _SymptomReportScreenState extends State<SymptomReportScreen> {
       hasVideo: _hasVideoAdded,
       videoPath: _videoPath,
       location: reportLocation,
+      latitude: reportLatitude,
+      longitude: reportLongitude,
     );
 
     widget.dataService.addHealthReport(report);
@@ -462,10 +534,8 @@ class _SymptomReportScreenState extends State<SymptomReportScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final colorScheme = Theme.of(context).colorScheme;
-
     return Scaffold(
-      backgroundColor: const Color(0xFFF9FBF9),
+      backgroundColor: const Color(0xFFF6FAF6),
       appBar: AppBar(
         backgroundColor: Colors.white,
         elevation: 0,
@@ -494,12 +564,12 @@ class _SymptomReportScreenState extends State<SymptomReportScreen> {
           : Column(
               children: [
                 SizedBox(
-                  height: 4,
+                  height: 5,
                   child: LinearProgressIndicator(
                     value: (_step + 1) / 10,
-                    backgroundColor: Colors.grey.shade200,
-                    valueColor: AlwaysStoppedAnimation<Color>(colorScheme.primary),
-                    minHeight: 4,
+                    backgroundColor: const Color(0xFFE8F5E9),
+                    valueColor: const AlwaysStoppedAnimation<Color>(Color(0xFF16A34A)),
+                    minHeight: 5,
                   ),
                 ),
                 Expanded(
@@ -525,75 +595,353 @@ class _SymptomReportScreenState extends State<SymptomReportScreen> {
     );
   }
 
-  // ─── Step 1: Select Animal Type ──────────────────────────────────────────────
+  // ─── Step 1 Visual Metadata ──────────────────────────────────────────────────
+  static const Map<AnimalSpecies, _SpeciesVisualInfo> _speciesVisuals = {
+    AnimalSpecies.cow: _SpeciesVisualInfo(
+      emoji: '🐮',
+      tint: Color(0xFFE8F5E9),
+      icon: Icons.agriculture_rounded,
+    ),
+    AnimalSpecies.buffalo: _SpeciesVisualInfo(
+      emoji: '🐃',
+      tint: Color(0xFFE0F2F1),
+      icon: Icons.agriculture_rounded,
+    ),
+    AnimalSpecies.goat: _SpeciesVisualInfo(
+      emoji: '🐐',
+      tint: Color(0xFFFFF8E1),
+      icon: Icons.pets_rounded,
+    ),
+    AnimalSpecies.sheep: _SpeciesVisualInfo(
+      emoji: '🐑',
+      tint: Color(0xFFF3E5F5),
+      icon: Icons.pets_rounded,
+    ),
+    AnimalSpecies.poultry: _SpeciesVisualInfo(
+      emoji: '🐔',
+      tint: Color(0xFFFFF3E0),
+      icon: Icons.egg_rounded,
+    ),
+    AnimalSpecies.pig: _SpeciesVisualInfo(
+      emoji: '🐷',
+      tint: Color(0xFFFCE4EC),
+      icon: Icons.cruelty_free_rounded,
+    ),
+    AnimalSpecies.other: _SpeciesVisualInfo(
+      emoji: '🐾',
+      tint: Color(0xFFEDE7F6),
+      icon: Icons.pets_rounded,
+    ),
+  };
+
+  // ─── Step 1: Select Animal Type (Farmer-Friendly Redesign) ───────────────────
   Widget _buildStep1Species() {
     return SingleChildScrollView(
-      padding: const EdgeInsets.all(20),
+      padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 16),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text(
-            context.tr('what_animal_problem'),
-            style: const TextStyle(fontSize: 22, fontWeight: FontWeight.bold),
-          ),
-          const SizedBox(height: 6),
-          const Text('Tap the animal that needs attention.', style: TextStyle(color: Colors.grey, fontSize: 14)),
-          const SizedBox(height: 20),
-
-          GridView.count(
-            crossAxisCount: 2,
-            crossAxisSpacing: 14,
-            mainAxisSpacing: 14,
-            shrinkWrap: true,
-            physics: const NeverScrollableScrollPhysics(),
-            childAspectRatio: 1.15,
-            children: AnimalSpecies.values.map((species) {
-              final isSelected = _selectedSpecies == species;
-              final primary = Theme.of(context).colorScheme.primary;
-
-              return Card(
-                elevation: isSelected ? 4 : 1,
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(16),
-                  side: BorderSide(
-                    color: isSelected ? primary : Colors.grey.shade300,
-                    width: isSelected ? 2.5 : 1,
+          // Step pill badge
+          Container(
+            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+            decoration: BoxDecoration(
+              color: const Color(0xFFE8F5E9),
+              borderRadius: BorderRadius.circular(20),
+              border: Border.all(color: const Color(0xFFC8E6C9)),
+            ),
+            child: const Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Icon(Icons.grass_rounded, size: 15, color: Color(0xFF16A34A)),
+                SizedBox(width: 5),
+                Text(
+                  'STEP 1 OF 10 • SELECT ANIMAL',
+                  style: TextStyle(
+                    color: Color(0xFF15803D),
+                    fontSize: 12,
+                    fontWeight: FontWeight.w800,
+                    letterSpacing: 0.5,
                   ),
                 ),
-                color: isSelected ? primary.withValues(alpha: 0.08) : Colors.white,
-                child: InkWell(
-                  borderRadius: BorderRadius.circular(16),
-                  onTap: () {
-                    setState(() {
-                      _selectedSpecies = species;
-                      _selectedBreed = species.predefinedBreeds.first;
-                    });
-                  },
-                  child: Padding(
-                    padding: const EdgeInsets.all(12),
-                    child: Column(
-                      mainAxisAlignment: MainAxisAlignment.center,
+              ],
+            ),
+          ),
+          const SizedBox(height: 10),
+
+          // Main Headline (High Contrast, Simple English)
+          Text(
+            context.tr('what_animal_problem'),
+            style: const TextStyle(
+              fontSize: 23,
+              fontWeight: FontWeight.w800,
+              color: Color(0xFF122812),
+              letterSpacing: -0.3,
+            ),
+          ),
+          const SizedBox(height: 4),
+
+          // Minimal, clear instruction
+          const Text(
+            'Tap your animal below to choose it.',
+            style: TextStyle(
+              color: Color(0xFF385538),
+              fontSize: 14.5,
+              fontWeight: FontWeight.w500,
+            ),
+          ),
+          const SizedBox(height: 14),
+
+          // Selected animal reassurance banner
+          Container(
+            padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+            decoration: BoxDecoration(
+              color: const Color(0xFFE8F5E9),
+              borderRadius: BorderRadius.circular(14),
+              border: Border.all(color: const Color(0xFFA5D6A7), width: 1.5),
+            ),
+            child: Row(
+              children: [
+                const Icon(Icons.check_circle_rounded, color: Color(0xFF16A34A), size: 22),
+                const SizedBox(width: 10),
+                Expanded(
+                  child: RichText(
+                    text: TextSpan(
+                      text: 'Selected: ',
+                      style: const TextStyle(
+                        color: Color(0xFF15803D),
+                        fontSize: 14.5,
+                        fontWeight: FontWeight.w600,
+                      ),
                       children: [
-                        Text(species.emoji, style: const TextStyle(fontSize: 44)),
-                        const SizedBox(height: 8),
-                        Text(
-                          species.displayName,
-                          style: TextStyle(
+                        TextSpan(
+                          text: '${_speciesVisuals[_selectedSpecies]?.emoji ?? _selectedSpecies.emoji} ${_selectedSpecies.displayName}',
+                          style: const TextStyle(
+                            color: Color(0xFF15803D),
                             fontSize: 16,
-                            fontWeight: FontWeight.bold,
-                            color: isSelected ? primary : Colors.black87,
+                            fontWeight: FontWeight.w800,
                           ),
                         ),
                       ],
                     ),
                   ),
                 ),
+              ],
+            ),
+          ),
+          const SizedBox(height: 18),
+
+          // 2-Column Grid with Large, Touch-Friendly Cards
+          GridView.count(
+            crossAxisCount: 2,
+            crossAxisSpacing: 14,
+            mainAxisSpacing: 14,
+            shrinkWrap: true,
+            physics: const NeverScrollableScrollPhysics(),
+            childAspectRatio: 0.98,
+            children: AnimalSpecies.values.map((species) {
+              final isSelected = _selectedSpecies == species;
+              final visual = _speciesVisuals[species] ??
+                  _SpeciesVisualInfo(
+                    emoji: species.emoji,
+                    tint: const Color(0xFFE8F5E9),
+                    icon: species.icon,
+                  );
+
+              const selectedGreen = Color(0xFF16A34A);
+              const lightGreenBg = Color(0xFFE8F5E9);
+              const unselectedBorder = Color(0xFFDDE6DC);
+
+              return AnimatedContainer(
+                duration: const Duration(milliseconds: 180),
+                curve: Curves.easeInOut,
+                decoration: BoxDecoration(
+                  color: isSelected ? lightGreenBg : Colors.white,
+                  borderRadius: BorderRadius.circular(20),
+                  border: Border.all(
+                    color: isSelected ? selectedGreen : unselectedBorder,
+                    width: isSelected ? 3.2 : 1.5,
+                  ),
+                  boxShadow: [
+                    if (isSelected)
+                      BoxShadow(
+                        color: selectedGreen.withValues(alpha: 0.24),
+                        blurRadius: 12,
+                        offset: const Offset(0, 4),
+                      )
+                    else
+                      BoxShadow(
+                        color: Colors.black.withValues(alpha: 0.04),
+                        blurRadius: 6,
+                        offset: const Offset(0, 2),
+                      ),
+                  ],
+                ),
+                child: Material(
+                  color: Colors.transparent,
+                  child: InkWell(
+                    borderRadius: BorderRadius.circular(20),
+                    onTap: () {
+                      setState(() {
+                        _selectedSpecies = species;
+                        _selectedBreed = species.predefinedBreeds.first;
+                      });
+                    },
+                    child: Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 12),
+                      child: Column(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          // Top selection checkmark status
+                          Row(
+                            mainAxisAlignment: MainAxisAlignment.end,
+                            children: [
+                              if (isSelected)
+                                Container(
+                                  padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 3),
+                                  decoration: BoxDecoration(
+                                    color: selectedGreen,
+                                    borderRadius: BorderRadius.circular(10),
+                                  ),
+                                  child: const Row(
+                                    mainAxisSize: MainAxisSize.min,
+                                    children: [
+                                      Icon(Icons.check_rounded, color: Colors.white, size: 14),
+                                      SizedBox(width: 3),
+                                      Text(
+                                        'SELECTED',
+                                        style: TextStyle(
+                                          color: Colors.white,
+                                          fontSize: 9.5,
+                                          fontWeight: FontWeight.w800,
+                                          letterSpacing: 0.4,
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                )
+                              else
+                                Container(
+                                  width: 20,
+                                  height: 20,
+                                  decoration: BoxDecoration(
+                                    shape: BoxShape.circle,
+                                    border: Border.all(color: const Color(0xFFCFD8CE), width: 1.8),
+                                    color: const Color(0xFFF9FBF9),
+                                  ),
+                                ),
+                            ],
+                          ),
+
+                          // Large animal image / icon badge
+                          Container(
+                            width: 68,
+                            height: 68,
+                            decoration: BoxDecoration(
+                              shape: BoxShape.circle,
+                              color: isSelected ? const Color(0xFFDCEDC8) : visual.tint,
+                              border: Border.all(
+                                color: isSelected ? const Color(0xFFAED581) : Colors.transparent,
+                                width: 1.5,
+                              ),
+                            ),
+                            alignment: Alignment.center,
+                            child: Text(
+                              visual.emoji,
+                              style: const TextStyle(fontSize: 42),
+                            ),
+                          ),
+
+                          // Main Animal Label
+                          if (isSelected)
+                            Container(
+                              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 5),
+                              decoration: BoxDecoration(
+                                color: selectedGreen,
+                                borderRadius: BorderRadius.circular(8),
+                              ),
+                              child: Text(
+                                species.displayName,
+                                maxLines: 1,
+                                overflow: TextOverflow.ellipsis,
+                                textAlign: TextAlign.center,
+                                style: const TextStyle(
+                                  fontSize: 16.5,
+                                  fontWeight: FontWeight.w800,
+                                  color: Colors.white,
+                                  letterSpacing: 0.2,
+                                ),
+                              ),
+                            )
+                          else
+                            Padding(
+                              padding: const EdgeInsets.symmetric(vertical: 4),
+                              child: Text(
+                                species.displayName,
+                                maxLines: 1,
+                                overflow: TextOverflow.ellipsis,
+                                textAlign: TextAlign.center,
+                                style: const TextStyle(
+                                  fontSize: 16.5,
+                                  fontWeight: FontWeight.w700,
+                                  color: Color(0xFF1C2C1C),
+                                ),
+                              ),
+                            ),
+                        ],
+                      ),
+                    ),
+                  ),
+                ),
               );
             }).toList(),
           ),
-          const SizedBox(height: 28),
+          const SizedBox(height: 24),
 
-          _buildNextButton(onPressed: _next),
+          // Big, Touch-Friendly Primary CTA
+          SizedBox(
+            width: double.infinity,
+            height: 58,
+            child: ElevatedButton(
+              style: ElevatedButton.styleFrom(
+                backgroundColor: const Color(0xFF0D9488),
+                foregroundColor: Colors.white,
+                elevation: 3,
+                shadowColor: const Color(0x500D9488),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(16),
+                ),
+              ),
+              onPressed: _next,
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Flexible(
+                    child: Text(
+                      'Continue with ${_selectedSpecies.displayName}',
+                      overflow: TextOverflow.ellipsis,
+                      style: const TextStyle(
+                        fontSize: 16.5,
+                        fontWeight: FontWeight.w800,
+                        letterSpacing: 0.2,
+                      ),
+                    ),
+                  ),
+                  const SizedBox(width: 8),
+                  const Text(
+                    'Next',
+                    style: TextStyle(
+                      fontSize: 16.5,
+                      fontWeight: FontWeight.w800,
+                      letterSpacing: 0.2,
+                    ),
+                  ),
+                  const SizedBox(width: 8),
+                  const Icon(Icons.arrow_forward_rounded, size: 22),
+                ],
+              ),
+            ),
+          ),
+          const SizedBox(height: 16),
         ],
       ),
     );
@@ -1369,6 +1717,40 @@ class _SymptomReportScreenState extends State<SymptomReportScreen> {
                             '${profile.farmName ?? "Farm"} · ${profile.village}, ${profile.district}',
                             style: const TextStyle(color: Colors.grey, fontSize: 13),
                           ),
+                          const SizedBox(height: 4),
+                          if (_isAcquiringGps)
+                            Row(
+                              children: [
+                                Icon(Icons.gps_not_fixed_rounded, size: 14, color: primary),
+                                const SizedBox(width: 4),
+                                Text(
+                                  'Acquiring device GPS...',
+                                  style: TextStyle(fontSize: 12, color: Colors.grey.shade600),
+                                ),
+                              ],
+                            )
+                          else if (_gpsLocationResult != null && _gpsLocationResult!.isGpsAcquired)
+                            Row(
+                              children: [
+                                const Icon(Icons.gps_fixed_rounded, size: 13, color: Colors.green),
+                                const SizedBox(width: 4),
+                                Text(
+                                  'GPS: ${_gpsLocationResult!.latitude.toStringAsFixed(4)}° N, ${_gpsLocationResult!.longitude.toStringAsFixed(4)}° E',
+                                  style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w600, color: Colors.green),
+                                ),
+                              ],
+                            )
+                          else
+                            Row(
+                              children: [
+                                Icon(Icons.pin_drop_outlined, size: 13, color: Colors.grey.shade600),
+                                const SizedBox(width: 4),
+                                Text(
+                                  'GPS: ${LocationService.defaultFarmLat}° N, ${LocationService.defaultFarmLon}° E (Default)',
+                                  style: TextStyle(fontSize: 12, color: Colors.grey.shade600),
+                                ),
+                              ],
+                            ),
                         ],
                       ),
                     ),
@@ -1486,6 +1868,13 @@ class _SymptomReportScreenState extends State<SymptomReportScreen> {
                     _locationMode == 'Use Farm Location'
                         ? (widget.dataService.profile.farmName ?? "Farm")
                         : (_manualLocationCtrl.text.isNotEmpty ? _manualLocationCtrl.text : 'Manual location'),
+                  ),
+                  const Divider(height: 20),
+                  _buildSummaryRow(
+                    'GPS Fix',
+                    _gpsLocationResult != null && _gpsLocationResult!.isGpsAcquired
+                        ? '${_gpsLocationResult!.latitude.toStringAsFixed(4)}° N, ${_gpsLocationResult!.longitude.toStringAsFixed(4)}° E'
+                        : 'Farm Registered (${LocationService.defaultFarmLat}, ${LocationService.defaultFarmLon})',
                   ),
                 ],
               ),
@@ -1806,3 +2195,16 @@ class _SymptomReportScreenState extends State<SymptomReportScreen> {
     );
   }
 }
+
+class _SpeciesVisualInfo {
+  final String emoji;
+  final Color tint;
+  final IconData icon;
+
+  const _SpeciesVisualInfo({
+    required this.emoji,
+    required this.tint,
+    required this.icon,
+  });
+}
+

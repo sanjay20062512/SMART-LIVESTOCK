@@ -87,6 +87,8 @@ class HealthReport {
   final bool hasPhoto;
   final bool hasVideo;
   final String? location;
+  final double? latitude;
+  final double? longitude;
   CaseStatus caseStatus;
   final DateTime createdAt;
 
@@ -120,6 +122,8 @@ class HealthReport {
     this.hasPhoto = false,
     this.hasVideo = false,
     this.location,
+    this.latitude,
+    this.longitude,
     this.caseStatus = CaseStatus.open,
     DateTime? createdAt,
   }) : createdAt = createdAt ?? DateTime.now();
@@ -154,6 +158,8 @@ class HealthReport {
         'hasPhoto': hasPhoto,
         'hasVideo': hasVideo,
         'location': location,
+        'latitude': latitude,
+        'longitude': longitude,
         'caseStatus': caseStatus.name,
         'createdAt': createdAt.toIso8601String(),
       };
