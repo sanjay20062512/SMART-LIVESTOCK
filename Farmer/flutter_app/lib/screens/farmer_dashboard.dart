@@ -7,6 +7,7 @@ import '../services/farmer_data_service.dart';
 import '../services/localization_service.dart';
 import '../models/dashboard_stats.dart';
 import '../theme/app_theme.dart';
+import '../widgets/brand_logo.dart';
 import 'symptom_report_screen.dart';
 import 'vet_request_screen.dart';
 
@@ -37,14 +38,8 @@ class FarmerDashboard extends StatelessWidget {
         shadowColor: AppColors.border,
         title: Row(
           children: [
-            Container(
-              padding: const EdgeInsets.all(7),
-              decoration: BoxDecoration(
-                color: AppColors.primaryLight,
-                borderRadius: AppRadius.smRadius,
-              ),
-              child: const Icon(Icons.agriculture_rounded, color: AppColors.primary, size: 22),
-            ),
+            // Compact brand logo — preserves aspect ratio, no square container
+            const BrandLogo.small(),
             const SizedBox(width: 10),
             Flexible(
               child: Text(

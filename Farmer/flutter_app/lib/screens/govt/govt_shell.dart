@@ -9,6 +9,7 @@ import 'govt_vaccination_screen.dart';
 import 'govt_alerts_screen.dart';
 import 'govt_reports_screen.dart';
 import '../../services/farmer_data_service.dart';
+import '../../widgets/brand_logo.dart';
 
 class GovtShell extends StatefulWidget {
   final FarmerDataService dataService;
@@ -85,17 +86,8 @@ class _GovtShellState extends State<GovtShell> {
       titleSpacing: 16,
       title: Row(
         children: [
-          Container(
-            width: 34,
-            height: 34,
-            decoration: BoxDecoration(
-              color: GovtColors.brandLight,
-              borderRadius: BorderRadius.circular(8),
-            ),
-            child: const Center(
-              child: Icon(Icons.account_balance_rounded, size: 18, color: GovtColors.brandDark),
-            ),
-          ),
+          // Compact brand logo — no icon container, no circular crop
+          const BrandLogo.small(),
           const SizedBox(width: 10),
           Expanded(
             child: Column(
@@ -295,7 +287,12 @@ class _GovtShellState extends State<GovtShell> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const SizedBox(height: 16),
+          // Brand logo at the top of the sidebar
+          const Padding(
+            padding: EdgeInsets.fromLTRB(18, 20, 18, 4),
+            child: BrandLogo.small(),
+          ),
+          const SizedBox(height: 12),
           const Padding(
             padding: EdgeInsets.symmetric(horizontal: 18),
             child: Text(

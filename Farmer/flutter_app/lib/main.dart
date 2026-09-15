@@ -6,8 +6,10 @@ import 'package:flutter/services.dart';
 import 'services/farmer_data_service.dart';
 import 'services/localization_service.dart';
 import 'widgets/farmer_shell.dart';
+import 'widgets/brand_logo.dart';
 import 'screens/registration_screen.dart';
 import 'screens/language_selection_screen.dart';
+import 'screens/splash_screen.dart';
 import 'screens/vet/vet_shell.dart';
 import 'screens/govt/govt_shell.dart';
 import 'theme/app_theme.dart';
@@ -61,7 +63,10 @@ class _FarmerAppState extends State<FarmerApp> {
       debugShowCheckedModeBanner: false,
       title: 'Smart Livestock',
       theme: AppTheme.light(),
-      home: RoleSelectionScreen(dataService: widget.dataService),
+      home: SplashScreen(
+        dataService: widget.dataService,
+        onReady: (ds) => RoleSelectionScreen(dataService: ds),
+      ),
     );
   }
 }
@@ -75,82 +80,47 @@ class RoleSelectionScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xFF0A1628),
+      backgroundColor: Colors.white,
       body: SafeArea(
         child: SingleChildScrollView(
           padding: const EdgeInsets.symmetric(horizontal: 22, vertical: 24),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
-              const SizedBox(height: 16),
+              const SizedBox(height: 20),
 
-              // ── App Logo & Brand ─────────────────────────────────────────
+              // ── Brand Logo & Platform Name ────────────────────────────────
               Center(
                 child: Column(
                   children: [
-                    // Logo container
-                    Container(
-                      width: 88,
-                      height: 88,
-                      decoration: BoxDecoration(
-                        gradient: const LinearGradient(
-                          colors: [AppColors.primary, AppColors.primaryDark],
-                          begin: Alignment.topLeft,
-                          end: Alignment.bottomRight,
-                        ),
-                        borderRadius: AppRadius.lgRadius,
-                        boxShadow: [
-                          BoxShadow(
-                            color: AppColors.primary.withValues(alpha: 0.45),
-                            blurRadius: 28,
-                            spreadRadius: 2,
-                            offset: const Offset(0, 8),
-                          ),
-                        ],
-                      ),
-                      child: const Center(
-                        child: Icon(
-                          Icons.agriculture_rounded,
-                          size: 48,
-                          color: Colors.white,
-                        ),
-                      ),
-                    ),
-                    const SizedBox(height: 18),
+                    const BrandLogo.medium(),
+                    const SizedBox(height: 20),
                     const Text(
                       'Smart Livestock',
                       style: TextStyle(
-                        color: Colors.white,
-                        fontSize: 28,
+                        fontFamily: 'Roboto',
+                        color: Color(0xFF0F2444),
+                        fontSize: 26,
                         fontWeight: FontWeight.w800,
                         letterSpacing: -0.5,
                       ),
                     ),
                     const SizedBox(height: 6),
-                    Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
-                      decoration: BoxDecoration(
-                        color: AppColors.primary.withValues(alpha: 0.18),
-                        borderRadius: AppRadius.fullRadius,
-                        border: Border.all(
-                          color: AppColors.primary.withValues(alpha: 0.35),
-                        ),
-                      ),
-                      child: const Text(
-                        'Animal Health Surveillance System',
-                        style: TextStyle(
-                          color: AppColors.primaryLight,
-                          fontSize: 12,
-                          fontWeight: FontWeight.w500,
-                          letterSpacing: 0.3,
-                        ),
+                    const Text(
+                      'Animal Health Surveillance System',
+                      style: TextStyle(
+                        fontFamily: 'Roboto',
+                        color: Color(0xFF0D9488),
+                        fontSize: 12,
+                        fontWeight: FontWeight.w500,
+                        letterSpacing: 0.3,
                       ),
                     ),
                   ],
                 ),
               ),
 
-              const SizedBox(height: 36),
+              const SizedBox(height: 32),
 
               // ── Role Selection Label ──────────────────────────────────────
               const Padding(
@@ -158,7 +128,8 @@ class RoleSelectionScreen extends StatelessWidget {
                 child: Text(
                   'SELECT YOUR ROLE',
                   style: TextStyle(
-                    color: AppColors.primaryLight,
+                    fontFamily: 'Roboto',
+                    color: Color(0xFF64748B),
                     fontSize: 11,
                     fontWeight: FontWeight.w700,
                     letterSpacing: 2.5,
@@ -422,7 +393,6 @@ class __VetLoginScreenState extends State<_VetLoginScreen> {
         begin: Alignment.topLeft,
         end: Alignment.bottomRight,
       ),
-      icon: Icons.medical_services_rounded,
       title: 'Veterinary Login',
       subtitle: 'Veterinary Officer',
       fields: [
@@ -507,7 +477,6 @@ class __GovtLoginScreenState extends State<_GovtLoginScreen> {
         begin: Alignment.topLeft,
         end: Alignment.bottomRight,
       ),
-      icon: Icons.account_balance_rounded,
       title: 'Government Login',
       subtitle: 'District Animal Husbandry Officer',
       fields: [
@@ -553,7 +522,6 @@ Widget _loginScaffold(
   BuildContext context, {
   required Color accentColor,
   required Gradient headerGradient,
-  required IconData icon,
   required String title,
   required String subtitle,
   required List<Widget> fields,
@@ -589,17 +557,7 @@ Widget _loginScaffold(
               ),
               child: Column(
                 children: [
-                  Container(
-                    width: 64,
-                    height: 64,
-                    decoration: BoxDecoration(
-                      color: Colors.white.withValues(alpha: 0.15),
-                      borderRadius: AppRadius.smRadius,
-                    ),
-                    child: Center(
-                      child: Icon(icon, size: 34, color: Colors.white),
-                    ),
-                  ),
+                  const BrandLogo.small(),
                   const SizedBox(height: 14),
                   Text(
                     title,
@@ -852,31 +810,22 @@ class _LoginScreenState extends State<LoginScreen> {
             crossAxisAlignment: CrossAxisAlignment.center,
             children: [
               const SizedBox(height: 10),
-              Container(
-                padding: const EdgeInsets.all(18),
-                decoration: BoxDecoration(
-                  color: colorScheme.primaryContainer,
-                  shape: BoxShape.circle,
-                ),
-                child: Icon(
-                  Icons.agriculture_rounded,
-                  size: 52,
-                  color: colorScheme.primary,
-                ),
-              ),
+              const BrandLogo.medium(),
               const SizedBox(height: 16),
               Text(
                 context.tr('app_title'),
-                style: TextStyle(
-                  fontSize: 28,
-                  fontWeight: FontWeight.bold,
-                  color: colorScheme.primary,
+                style: const TextStyle(
+                  fontFamily: 'Roboto',
+                  fontSize: 24,
+                  fontWeight: FontWeight.w800,
+                  color: Color(0xFF0F2444),
+                  letterSpacing: -0.4,
                 ),
               ),
               const SizedBox(height: 4),
               Text(
                 context.tr('login_title'),
-                style: const TextStyle(fontSize: 16, color: Colors.grey),
+                style: const TextStyle(fontSize: 14, color: Color(0xFF64748B)),
               ),
               const SizedBox(height: 32),
               TextField(

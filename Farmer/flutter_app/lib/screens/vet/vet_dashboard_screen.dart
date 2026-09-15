@@ -5,6 +5,7 @@ import '../../services/farmer_data_service.dart';
 import '../../models/case.dart';
 import '../../models/alert.dart';
 import '../../theme/app_theme.dart';
+import '../../widgets/brand_logo.dart';
 import 'vet_case_detail_screen.dart';
 import 'vet_case_queue_screen.dart';
 
@@ -42,6 +43,22 @@ class VetDashboardScreen extends StatelessWidget {
                 pinned: true,
                 backgroundColor: AppColors.primaryDark,
                 surfaceTintColor: Colors.transparent,
+                // Compact header with brand logo when scrolled/pinned
+                title: Row(
+                  children: const [
+                    BrandLogo.small(),
+                    SizedBox(width: 10),
+                    Text(
+                      'Smart Livestock',
+                      style: TextStyle(
+                        color: Colors.white,
+                        fontSize: 16,
+                        fontWeight: FontWeight.w700,
+                        letterSpacing: -0.2,
+                      ),
+                    ),
+                  ],
+                ),
                 flexibleSpace: FlexibleSpaceBar(
                   background: Container(
                     decoration: const BoxDecoration(
@@ -58,11 +75,14 @@ class VetDashboardScreen extends StatelessWidget {
                       children: [
                         Row(
                           children: [
-                            const Icon(Icons.medical_services, color: Colors.white70, size: 16),
-                            const SizedBox(width: 8),
-                            Text(
-                              'Dr. Rajesh Kumar · Veterinary Officer',
-                              style: const TextStyle(color: Colors.white70, fontSize: 13),
+                            const BrandLogo.small(),
+                            const SizedBox(width: 10),
+                            Expanded(
+                              child: Text(
+                                'Dr. Rajesh Kumar · Veterinary Officer',
+                                style: const TextStyle(color: Colors.white70, fontSize: 13),
+                                overflow: TextOverflow.ellipsis,
+                              ),
                             ),
                           ],
                         ),
