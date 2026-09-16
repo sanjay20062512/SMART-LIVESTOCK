@@ -29,19 +29,39 @@ extension AnimalSpeciesExt on AnimalSpecies {
     }
   }
 
-  // Deprecated emoji replacement
-  String get emoji => '';
+  String get emoji {
+    switch (this) {
+      case AnimalSpecies.cow:
+        return '🐮';
+      case AnimalSpecies.buffalo:
+        return '🐃';
+      case AnimalSpecies.goat:
+        return '🐐';
+      case AnimalSpecies.sheep:
+        return '🐑';
+      case AnimalSpecies.poultry:
+        return '🐔';
+      case AnimalSpecies.pig:
+        return '🐷';
+      case AnimalSpecies.other:
+        return '🐾';
+    }
+  }
 
   IconData get icon {
     switch (this) {
       case AnimalSpecies.cow:
       case AnimalSpecies.buffalo:
+        return Icons.agriculture_rounded;
       case AnimalSpecies.goat:
       case AnimalSpecies.sheep:
-      case AnimalSpecies.pig:
+        return Icons.pets_rounded;
       case AnimalSpecies.poultry:
+        return Icons.egg_rounded;
+      case AnimalSpecies.pig:
+        return Icons.cruelty_free_rounded;
       case AnimalSpecies.other:
-        return Icons.pets;
+        return Icons.category_rounded;
     }
   }
 

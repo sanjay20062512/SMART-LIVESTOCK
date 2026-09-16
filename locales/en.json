@@ -1,0 +1,18 @@
+{
+  "app_title": "Smart Livestock",
+  "app_subtitle": "Animal Health Surveillance System",
+  "choose_language": "Choose your language",
+  "select_language_subtitle": "Select a language to continue with the app",
+  "select_role": "SELECT YOUR ROLE",
+  "continue": "CONTINUE",
+  "next": "Next",
+  "back": "Back",
+  "save": "Save",
+  "cancel": "Cancel",
+  "done": "Done",
+  "submit": "SUBMIT",
+  "edit": "Edit",
+  "home": "Home",
+  "start_assessment": "Start Assessment",
+  "loading": "Loading..."
+}

@@ -1,5 +1,5 @@
 // Language Selection Screen — First screen before login.
-// Large, accessible language cards designed for farmers.
+// Large, accessible language cards for English, हिन्दी, and मराठी.
 
 import 'package:flutter/material.dart';
 import '../services/localization_service.dart';
@@ -38,22 +38,37 @@ class _LanguageSelectionScreenState extends State<LanguageSelectionScreen> {
                 child: Column(
                   children: [
                     Container(
-                      padding: const EdgeInsets.all(18),
+                      width: 92,
+                      height: 92,
                       decoration: BoxDecoration(
-                        color: colorScheme.primaryContainer,
                         shape: BoxShape.circle,
                         boxShadow: [
                           BoxShadow(
-                            color: colorScheme.primary.withValues(alpha: 0.15),
-                            blurRadius: 16,
+                            color: colorScheme.primary.withValues(alpha: 0.20),
+                            blurRadius: 18,
                             offset: const Offset(0, 6),
                           ),
                         ],
                       ),
-                      child: Icon(
-                        Icons.agriculture_rounded,
-                        size: 54,
-                        color: colorScheme.primary,
+                      child: ClipOval(
+                        child: Image.asset(
+                          'assets/images/logo.png',
+                          width: 92,
+                          height: 92,
+                          fit: BoxFit.cover,
+                          errorBuilder: (_, _, _) => Container(
+                            padding: const EdgeInsets.all(18),
+                            decoration: BoxDecoration(
+                              color: colorScheme.primaryContainer,
+                              shape: BoxShape.circle,
+                            ),
+                            child: Icon(
+                              Icons.agriculture_rounded,
+                              size: 54,
+                              color: colorScheme.primary,
+                            ),
+                          ),
+                        ),
                       ),
                     ),
                     const SizedBox(height: 16),
@@ -68,8 +83,8 @@ class _LanguageSelectionScreenState extends State<LanguageSelectionScreen> {
                     ),
                     const SizedBox(height: 6),
                     const Text(
-                      'கால்நடை பராமரிப்பு · पशुधन सेवा',
-                      style: TextStyle(fontSize: 14, color: Colors.grey),
+                      'पशुधन सेवा · पशु आरोग्य पाळत',
+                      style: TextStyle(fontSize: 14, color: Colors.grey, fontWeight: FontWeight.w500),
                     ),
                   ],
                 ),
@@ -79,7 +94,7 @@ class _LanguageSelectionScreenState extends State<LanguageSelectionScreen> {
 
               // Title
               const Text(
-                'Choose your language\nஉங்கள் மொழியைத் தேர்ந்தெடுக்கவும்\nअपनी भाषा चुनें',
+                'Choose your language\nअपनी भाषा चुनें\nआपली भाषा निवडा',
                 textAlign: TextAlign.center,
                 style: TextStyle(
                   fontSize: 16,
@@ -91,7 +106,7 @@ class _LanguageSelectionScreenState extends State<LanguageSelectionScreen> {
 
               const SizedBox(height: 20),
 
-              // Language Cards
+              // Language Cards: English, Hindi, Marathi
               _buildLanguageCard(
                 language: AppLanguage.english,
                 nativeName: 'English',
@@ -101,18 +116,18 @@ class _LanguageSelectionScreenState extends State<LanguageSelectionScreen> {
               const SizedBox(height: 12),
 
               _buildLanguageCard(
-                language: AppLanguage.tamil,
-                nativeName: 'தமிழ்',
-                subText: 'தமிழில் தொடர இதை அழுத்தவும்',
-                icon: Icons.translate_rounded,
+                language: AppLanguage.hindi,
+                nativeName: 'हिन्दी',
+                subText: 'हिन्दी में जारी रखने के लिए चुनें',
+                icon: Icons.g_translate_rounded,
               ),
               const SizedBox(height: 12),
 
               _buildLanguageCard(
-                language: AppLanguage.hindi,
-                nativeName: 'हिन्दी',
-                subText: 'हिंदी में जारी रखने के लिए चुनें',
-                icon: Icons.g_translate_rounded,
+                language: AppLanguage.marathi,
+                nativeName: 'मराठी',
+                subText: 'मराठीत पुढे सुरू ठेवण्यासाठी निवडा',
+                icon: Icons.translate_rounded,
               ),
 
               const SizedBox(height: 28),
@@ -143,15 +158,15 @@ class _LanguageSelectionScreenState extends State<LanguageSelectionScreen> {
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
                       Text(
-                        _selected == AppLanguage.tamil
-                            ? 'தொடர்க'
+                        _selected == AppLanguage.marathi
+                            ? 'पुढे सुरू ठेवा'
                             : (_selected == AppLanguage.hindi
                                 ? 'आगे बढ़ें'
                                 : 'CONTINUE'),
                         style: const TextStyle(
                           fontSize: 18,
                           fontWeight: FontWeight.bold,
-                          letterSpacing: 1,
+                          letterSpacing: 0.5,
                         ),
                       ),
                       const SizedBox(width: 8),
@@ -184,15 +199,23 @@ class _LanguageSelectionScreenState extends State<LanguageSelectionScreen> {
         borderRadius: BorderRadius.circular(16),
         border: Border.all(
           color: isSelected ? primaryColor : Colors.grey.shade300,
-          width: isSelected ? 2.5 : 1,
+          width: isSelected ? 2.2 : 1,
         ),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withValues(alpha: isSelected ? 0.08 : 0.03),
-            blurRadius: 10,
-            offset: const Offset(0, 4),
-          ),
-        ],
+        boxShadow: isSelected
+            ? [
+                BoxShadow(
+                  color: primaryColor.withValues(alpha: 0.15),
+                  blurRadius: 10,
+                  offset: const Offset(0, 4),
+                ),
+              ]
+            : [
+                BoxShadow(
+                  color: Colors.black.withValues(alpha: 0.03),
+                  blurRadius: 6,
+                  offset: const Offset(0, 2),
+                ),
+              ],
       ),
       child: Material(
         color: Colors.transparent,
@@ -203,19 +226,21 @@ class _LanguageSelectionScreenState extends State<LanguageSelectionScreen> {
             LocalizationService.instance.setLanguage(language);
           },
           child: Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
+            padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 16),
             child: Row(
               children: [
                 Container(
                   padding: const EdgeInsets.all(10),
                   decoration: BoxDecoration(
-                    color: isSelected ? primaryColor.withValues(alpha: 0.15) : Colors.grey.shade100,
+                    color: isSelected
+                        ? primaryColor.withValues(alpha: 0.15)
+                        : Colors.grey.shade100,
                     shape: BoxShape.circle,
                   ),
                   child: Icon(
                     icon,
-                    size: 24,
-                    color: isSelected ? primaryColor : Colors.grey.shade700,
+                    color: isSelected ? primaryColor : Colors.grey.shade600,
+                    size: 26,
                   ),
                 ),
                 const SizedBox(width: 16),
@@ -226,28 +251,41 @@ class _LanguageSelectionScreenState extends State<LanguageSelectionScreen> {
                       Text(
                         nativeName,
                         style: TextStyle(
-                          fontSize: 21,
+                          fontSize: 20,
                           fontWeight: FontWeight.bold,
-                          color: isSelected ? primaryColor : Colors.black87,
+                          color: isSelected
+                              ? primaryColor
+                              : const Color(0xFF2C3E50),
                         ),
                       ),
                       const SizedBox(height: 2),
                       Text(
                         subText,
                         style: TextStyle(
-                          fontSize: 12.5,
-                          color: isSelected ? primaryColor : Colors.grey.shade600,
+                          fontSize: 13,
+                          color: isSelected
+                              ? primaryColor.withValues(alpha: 0.8)
+                              : Colors.grey.shade600,
                         ),
                       ),
                     ],
                   ),
                 ),
-                Icon(
-                  isSelected
-                      ? Icons.check_circle_rounded
-                      : Icons.radio_button_unchecked_rounded,
-                  color: isSelected ? primaryColor : Colors.grey.shade400,
-                  size: 28,
+                AnimatedContainer(
+                  duration: const Duration(milliseconds: 200),
+                  width: 24,
+                  height: 24,
+                  decoration: BoxDecoration(
+                    shape: BoxShape.circle,
+                    color: isSelected ? primaryColor : Colors.transparent,
+                    border: Border.all(
+                      color: isSelected ? primaryColor : Colors.grey.shade400,
+                      width: 2,
+                    ),
+                  ),
+                  child: isSelected
+                      ? const Icon(Icons.check, size: 16, color: Colors.white)
+                      : null,
                 ),
               ],
             ),

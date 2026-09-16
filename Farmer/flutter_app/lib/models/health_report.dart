@@ -76,12 +76,19 @@ class HealthReport {
   final String advice;
   final String recommendedAction;
   final String? description;
-  final String? photoPath; // placeholder
-  final String? voicePath; // placeholder
+  final String? photoPath;
+  final String? voicePath;
+  final String? videoPath;
+  final String? voiceTranscript;
+  final String? voiceUrl;
+  final List<String>? photoUrls;
+  final String? videoUrl;
   final bool hasVoiceNote;
   final bool hasPhoto;
   final bool hasVideo;
   final String? location;
+  final double? latitude;
+  final double? longitude;
   CaseStatus caseStatus;
   final DateTime createdAt;
 
@@ -106,10 +113,17 @@ class HealthReport {
     this.description,
     this.photoPath,
     this.voicePath,
+    this.videoPath,
+    this.voiceTranscript,
+    this.voiceUrl,
+    this.photoUrls,
+    this.videoUrl,
     this.hasVoiceNote = false,
     this.hasPhoto = false,
     this.hasVideo = false,
     this.location,
+    this.latitude,
+    this.longitude,
     this.caseStatus = CaseStatus.open,
     DateTime? createdAt,
   }) : createdAt = createdAt ?? DateTime.now();
@@ -133,10 +147,19 @@ class HealthReport {
         'advice': advice,
         'recommendedAction': recommendedAction,
         'description': description,
+        'photoPath': photoPath,
+        'voicePath': voicePath,
+        'videoPath': videoPath,
+        'voiceTranscript': voiceTranscript,
+        'voiceUrl': voiceUrl,
+        'photoUrls': photoUrls,
+        'videoUrl': videoUrl,
         'hasVoiceNote': hasVoiceNote,
         'hasPhoto': hasPhoto,
         'hasVideo': hasVideo,
         'location': location,
+        'latitude': latitude,
+        'longitude': longitude,
         'caseStatus': caseStatus.name,
         'createdAt': createdAt.toIso8601String(),
       };

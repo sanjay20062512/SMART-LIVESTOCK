@@ -6,9 +6,11 @@
 // Page 5: OTP Verification (Demo 123456)
 // Page 6: Create Password & Success -> Farmer Home
 
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import '../services/farmer_data_service.dart';
 import '../services/localization_service.dart';
+import '../services/media_service.dart';
 import '../models/farmer_profile.dart';
 import '../widgets/farmer_shell.dart';
 
@@ -149,6 +151,8 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
 
   @override
   void dispose() {
+    MediaService.instance.stopListening();
+    MediaService.instance.stopRecording();
     _pageController.dispose();
     _nameCtrl.dispose();
     _mobileCtrl.dispose();
@@ -204,21 +208,137 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
     );
   }
 
-  void _simulateVoiceNameInput() {
-    setState(() => _isSpeakingName = true);
-    Future.delayed(const Duration(milliseconds: 1200), () {
-      if (!mounted) return;
-      setState(() {
-        _isSpeakingName = false;
-        _nameCtrl.text = 'Sanjay Kumar';
-      });
+  Future<void> _toggleVoiceNameInput() async {
+    if (_isSpeakingName) {
+      await _stopVoiceNameInput();
+    } else {
+      await _startVoiceNameInput();
+    }
+  }
+
+  Future<void> _startVoiceNameInput() async {
+    final lang = LocalizationService.instance.currentLanguage;
+    if (_nameCtrl.text == 'Sanjay Kumar') {
+      _nameCtrl.clear();
+    }
+
+    setState(() {
+      _isSpeakingName = true;
+    });
+
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Row(
+          children: [
+            const Icon(Icons.mic_rounded, color: Colors.white, size: 20),
+            const SizedBox(width: 8),
+            Text('Listening... Speak your name clearly [${lang.label}]'),
+          ],
+        ),
+        duration: const Duration(seconds: 3),
+        backgroundColor: const Color(0xFF0D9488),
+      ),
+    );
+
+    // Start native audio recorder
+    await MediaService.instance.startRecording();
+
+    // Start live speech-to-text recognition
+    await MediaService.instance.startListening(
+      localeId: lang.voiceLocaleCode,
+      onResult: (words) {
+        if (!mounted) return;
+        if (words.trim().isNotEmpty) {
+          final formatted = _capitalizeWords(words.trim());
+          setState(() {
+            _nameCtrl.text = formatted;
+          });
+        }
+      },
+    );
+  }
+
+  Future<void> _stopVoiceNameInput() async {
+    final recordedPath = await MediaService.instance.stopRecording();
+    await MediaService.instance.stopListening();
+
+    if (!mounted) return;
+    setState(() {
+      _isSpeakingName = false;
+    });
+
+    final lang = LocalizationService.instance.currentLanguage;
+
+    // If local STT produced no transcript (e.g. on Windows desktop),
+    // transcribe the recorded audio via backend API
+    if (_nameCtrl.text.trim().isEmpty && recordedPath != null && !kIsWeb) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
-          content: Text('✓ Voice captured: "Sanjay Kumar"'),
-          backgroundColor: Colors.green,
+          content: Row(
+            children: [
+              SizedBox(
+                width: 16,
+                height: 16,
+                child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white),
+              ),
+              SizedBox(width: 10),
+              Text('Transcribing spoken name...'),
+            ],
+          ),
+          duration: Duration(seconds: 2),
+          backgroundColor: Color(0xFF0D9488),
         ),
       );
-    });
+
+      try {
+        final res = await widget.dataService.apiService.uploadMultipart(
+          '/cases/media/transcribe',
+          fields: {'language': lang.voiceLocaleCode},
+          filePaths: {'audio_file': recordedPath},
+        );
+        if (res != null && res['transcript'] != null && res['transcript'].toString().trim().isNotEmpty) {
+          if (!mounted) return;
+          final transcript = res['transcript'].toString().trim();
+          final formatted = _capitalizeWords(transcript);
+          setState(() {
+            _nameCtrl.text = formatted;
+          });
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text('✓ Voice captured: "$formatted"'),
+              backgroundColor: const Color(0xFF16A34A),
+            ),
+          );
+          return;
+        }
+      } catch (e) {
+        debugPrint('[RegistrationScreen] Backend voice transcription notice: $e');
+      }
+    }
+
+    if (!mounted) return;
+    if (_nameCtrl.text.trim().isNotEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('✓ Voice captured: "${_nameCtrl.text.trim()}"'),
+          backgroundColor: const Color(0xFF16A34A),
+        ),
+      );
+    } else {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('No speech detected. Please speak louder or type your name.'),
+          backgroundColor: Colors.orange,
+        ),
+      );
+    }
+  }
+
+  String _capitalizeWords(String input) {
+    return input.split(' ').map((word) {
+      if (word.isEmpty) return word;
+      return word[0].toUpperCase() + word.substring(1).toLowerCase();
+    }).join(' ');
   }
 
   void _verifyOtp() {
@@ -401,46 +521,76 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
             style: const TextStyle(fontSize: 17),
             decoration: InputDecoration(
               labelText: '${context.tr('full_name')} *',
+              hintText: 'e.g. Ramesh Patil (or speak)',
               prefixIcon: const Icon(Icons.person_rounded),
               suffixIcon: IconButton(
-                tooltip: 'Speak your name',
+                tooltip: _isSpeakingName ? 'Stop listening' : 'Speak your name',
                 icon: _isSpeakingName
-                    ? const SizedBox(
-                        width: 20,
-                        height: 20,
-                        child: CircularProgressIndicator(strokeWidth: 2, color: Colors.red),
-                      )
-                    : const Icon(Icons.mic_rounded, color: Color(0xFF2E7D32), size: 28),
-                onPressed: _simulateVoiceNameInput,
+                    ? const Icon(Icons.stop_circle_rounded, color: Colors.red, size: 28)
+                    : const Icon(Icons.mic_rounded, color: Color(0xFF0D9488), size: 28),
+                onPressed: _toggleVoiceNameInput,
               ),
             ),
           ),
-          const SizedBox(height: 8),
+          const SizedBox(height: 10),
 
-          // Speak name button badge
+          // Speak name interactive card
           InkWell(
-            onTap: _simulateVoiceNameInput,
-            borderRadius: BorderRadius.circular(10),
+            onTap: _toggleVoiceNameInput,
+            borderRadius: BorderRadius.circular(12),
             child: Container(
-              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+              width: double.infinity,
+              padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
               decoration: BoxDecoration(
-                color: Colors.green.shade50,
-                borderRadius: BorderRadius.circular(10),
-                border: Border.all(color: Colors.green.shade200),
+                color: _isSpeakingName ? Colors.red.shade50 : const Color(0xFFE8F5E9),
+                borderRadius: BorderRadius.circular(12),
+                border: Border.all(
+                  color: _isSpeakingName ? Colors.red.shade400 : const Color(0xFF16A34A),
+                  width: 1.5,
+                ),
               ),
               child: Row(
-                mainAxisSize: MainAxisSize.min,
                 children: [
-                  Icon(Icons.mic_rounded, size: 18, color: Colors.green.shade800),
-                  const SizedBox(width: 6),
-                  Text(
-                    context.tr('speak_name'),
-                    style: TextStyle(
-                      fontSize: 13,
-                      fontWeight: FontWeight.bold,
-                      color: Colors.green.shade800,
+                  Icon(
+                    _isSpeakingName ? Icons.stop_circle_rounded : Icons.mic_rounded,
+                    size: 22,
+                    color: _isSpeakingName ? Colors.red.shade700 : const Color(0xFF16A34A),
+                  ),
+                  const SizedBox(width: 8),
+                  Expanded(
+                    child: Text(
+                      _isSpeakingName ? 'Listening... Tap to Stop & Save' : 'Tap to speak your name',
+                      style: TextStyle(
+                        fontSize: 14,
+                        fontWeight: FontWeight.w700,
+                        color: _isSpeakingName ? Colors.red.shade800 : const Color(0xFF16A34A),
+                      ),
                     ),
                   ),
+                  if (_isSpeakingName) ...[
+                    const SizedBox(
+                      width: 18,
+                      height: 18,
+                      child: CircularProgressIndicator(strokeWidth: 2.2, color: Colors.red),
+                    ),
+                  ] else ...[
+                    Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                      decoration: BoxDecoration(
+                        color: Colors.white,
+                        borderRadius: BorderRadius.circular(6),
+                        border: Border.all(color: const Color(0xFF16A34A).withAlpha(77)),
+                      ),
+                      child: Text(
+                        LocalizationService.instance.currentLanguage.label,
+                        style: const TextStyle(
+                          fontSize: 11,
+                          fontWeight: FontWeight.w600,
+                          color: Color(0xFF0D9488),
+                        ),
+                      ),
+                    ),
+                  ],
                 ],
               ),
             ),

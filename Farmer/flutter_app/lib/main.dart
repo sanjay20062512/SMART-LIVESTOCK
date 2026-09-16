@@ -13,9 +13,11 @@ import 'screens/splash_screen.dart';
 import 'screens/vet/vet_shell.dart';
 import 'screens/govt/govt_shell.dart';
 import 'theme/app_theme.dart';
+import 'widgets/language_selector_button.dart';
 
-void main() {
+void main() async {
   WidgetsFlutterBinding.ensureInitialized();
+  await LocalizationService.instance.init();
   SystemChrome.setSystemUIOverlayStyle(
     const SystemUiOverlayStyle(
       statusBarColor: Colors.transparent,
@@ -80,40 +82,95 @@ class RoleSelectionScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Colors.white,
+      backgroundColor: const Color(0xFFF8FAFC),
       body: SafeArea(
         child: SingleChildScrollView(
           padding: const EdgeInsets.symmetric(horizontal: 22, vertical: 24),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
-              const SizedBox(height: 20),
+              // ── Top Bar with Language Selector ───────────────────────────
+              Row(
+                mainAxisAlignment: MainAxisAlignment.end,
+                children: const [
+                  LanguageSelectorButton(),
+                ],
+              ),
+              const SizedBox(height: 12),
 
               // ── Brand Logo & Platform Name ────────────────────────────────
               Center(
                 child: Column(
                   children: [
-                    const BrandLogo.medium(),
-                    const SizedBox(height: 20),
-                    const Text(
-                      'Smart Livestock',
-                      style: TextStyle(
-                        fontFamily: 'Roboto',
-                        color: Color(0xFF0F2444),
-                        fontSize: 26,
+                    // Logo container
+                    Container(
+                      width: 96,
+                      height: 96,
+                      decoration: BoxDecoration(
+                        shape: BoxShape.circle,
+                        boxShadow: [
+                          BoxShadow(
+                            color: AppColors.primary.withValues(alpha: 0.25),
+                            blurRadius: 20,
+                            spreadRadius: 2,
+                            offset: const Offset(0, 6),
+                          ),
+                        ],
+                      ),
+                      child: ClipOval(
+                        child: Image.asset(
+                          'assets/images/logo.png',
+                          width: 96,
+                          height: 96,
+                          fit: BoxFit.cover,
+                          errorBuilder: (_, _, _) => Container(
+                            decoration: const BoxDecoration(
+                              gradient: LinearGradient(
+                                colors: [AppColors.primary, AppColors.primaryDark],
+                                begin: Alignment.topLeft,
+                                end: Alignment.bottomRight,
+                              ),
+                              shape: BoxShape.circle,
+                            ),
+                            child: const Center(
+                              child: Icon(
+                                Icons.agriculture_rounded,
+                                size: 48,
+                                color: Colors.white,
+                              ),
+                            ),
+                          ),
+                        ),
+                      ),
+                    ),
+                    const SizedBox(height: 18),
+                    Text(
+                      context.tr('app_title'),
+                      style: const TextStyle(
+                        color: AppColors.textPrimary,
+                        fontSize: 28,
                         fontWeight: FontWeight.w800,
                         letterSpacing: -0.5,
                       ),
                     ),
                     const SizedBox(height: 6),
-                    const Text(
-                      'Animal Health Surveillance System',
-                      style: TextStyle(
-                        fontFamily: 'Roboto',
-                        color: Color(0xFF0D9488),
-                        fontSize: 12,
-                        fontWeight: FontWeight.w500,
-                        letterSpacing: 0.3,
+                    Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 6),
+                      decoration: BoxDecoration(
+                        color: AppColors.primaryLight,
+                        borderRadius: AppRadius.fullRadius,
+                        border: Border.all(
+                          color: AppColors.primary.withValues(alpha: 0.25),
+                        ),
+                      ),
+                      child: Text(
+                        context.tr('app_subtitle'),
+                        style: const TextStyle(
+                          color: AppColors.primaryDark,
+                          fontSize: 12,
+                          fontWeight: FontWeight.w600,
+                          letterSpacing: 0.2,
+                        ),
                       ),
                     ),
                   ],
@@ -123,16 +180,16 @@ class RoleSelectionScreen extends StatelessWidget {
               const SizedBox(height: 32),
 
               // ── Role Selection Label ──────────────────────────────────────
-              const Padding(
-                padding: EdgeInsets.only(left: 2, bottom: 12),
+              Padding(
+                padding: const EdgeInsets.only(left: 4, bottom: 12),
                 child: Text(
-                  'SELECT YOUR ROLE',
-                  style: TextStyle(
-                    fontFamily: 'Roboto',
-                    color: Color(0xFF64748B),
+                  context.tr('select_role'),
+                  style: const TextStyle(
+                    color: AppColors.textMuted,
+>>>>>>> b5ca1b8da4bf34acd1e8c6409337b1c758140293
                     fontSize: 11,
                     fontWeight: FontWeight.w700,
-                    letterSpacing: 2.5,
+                    letterSpacing: 1.5,
                   ),
                 ),
               ),
@@ -141,15 +198,10 @@ class RoleSelectionScreen extends StatelessWidget {
               _roleCard(
                 context,
                 icon: Icons.agriculture_rounded,
-                title: 'Farmer',
-                subtitle: 'Report animal problems, track cases, receive advisories',
-                gradient: const LinearGradient(
-                  colors: [Color(0xFF0D9488), Color(0xFF0F766E)],
-                  begin: Alignment.topLeft,
-                  end: Alignment.bottomRight,
-                ),
-                accentColor: AppColors.primaryLight,
-                badgeText: 'Farmer Portal',
+                title: context.tr('role_farmer_title'),
+                subtitle: context.tr('role_farmer_sub'),
+                accentColor: AppColors.primary,
+                badgeText: context.tr('role_farmer_badge'),
                 onTap: () => _goFarmer(context),
               ),
 
@@ -159,15 +211,10 @@ class RoleSelectionScreen extends StatelessWidget {
               _roleCard(
                 context,
                 icon: Icons.medical_services_rounded,
-                title: 'Veterinarian',
-                subtitle: 'Review cases, schedule visits, collect samples, manage treatments',
-                gradient: const LinearGradient(
-                  colors: [Color(0xFF1E40AF), Color(0xFF1E3A8A)],
-                  begin: Alignment.topLeft,
-                  end: Alignment.bottomRight,
-                ),
-                accentColor: const Color(0xFFBFDBFE),
-                badgeText: 'Field Veterinary Services',
+                title: context.tr('role_vet_title'),
+                subtitle: context.tr('role_vet_sub'),
+                accentColor: const Color(0xFF1E40AF),
+                badgeText: context.tr('role_vet_badge'),
                 onTap: () => _goVet(context),
               ),
 
@@ -177,15 +224,10 @@ class RoleSelectionScreen extends StatelessWidget {
               _roleCard(
                 context,
                 icon: Icons.account_balance_rounded,
-                title: 'Government',
-                subtitle: 'Surveillance dashboard, cluster detection, advisories, response',
-                gradient: const LinearGradient(
-                  colors: [Color(0xFF0B192C), Color(0xFF132743)],
-                  begin: Alignment.topLeft,
-                  end: Alignment.bottomRight,
-                ),
-                accentColor: const Color(0xFF93C5FD),
-                badgeText: 'Animal Health Authority',
+                title: context.tr('role_govt_title'),
+                subtitle: context.tr('role_govt_sub'),
+                accentColor: AppColors.govtNavy,
+                badgeText: context.tr('role_govt_badge'),
                 onTap: () => _goGovt(context),
               ),
 
@@ -202,7 +244,6 @@ class RoleSelectionScreen extends StatelessWidget {
     required IconData icon,
     required String title,
     required String subtitle,
-    required Gradient gradient,
     required Color accentColor,
     required String badgeText,
     required VoidCallback onTap,
@@ -215,11 +256,19 @@ class RoleSelectionScreen extends StatelessWidget {
         onTap: onTap,
         child: Ink(
           decoration: BoxDecoration(
-            gradient: gradient,
+            color: Colors.white,
             borderRadius: AppRadius.lgRadius,
             border: Border.all(
-              color: Colors.white.withValues(alpha: 0.10),
+              color: const Color(0xFFE2E8F0),
+              width: 1.2,
             ),
+            boxShadow: [
+              BoxShadow(
+                color: Colors.black.withValues(alpha: 0.04),
+                blurRadius: 12,
+                offset: const Offset(0, 4),
+              ),
+            ],
           ),
           child: Padding(
             padding: const EdgeInsets.all(18),
@@ -230,11 +279,14 @@ class RoleSelectionScreen extends StatelessWidget {
                   width: 52,
                   height: 52,
                   decoration: BoxDecoration(
-                    color: Colors.white.withValues(alpha: 0.15),
-                    borderRadius: AppRadius.smRadius,
+                    color: accentColor.withValues(alpha: 0.10),
+                    borderRadius: AppRadius.mdRadius,
+                    border: Border.all(
+                      color: accentColor.withValues(alpha: 0.20),
+                    ),
                   ),
                   child: Center(
-                    child: Icon(icon, size: 26, color: Colors.white),
+                    child: Icon(icon, size: 26, color: accentColor),
                   ),
                 ),
                 const SizedBox(width: 14),
@@ -246,7 +298,7 @@ class RoleSelectionScreen extends StatelessWidget {
                       Text(
                         title,
                         style: const TextStyle(
-                          color: Colors.white,
+                          color: AppColors.textPrimary,
                           fontSize: 17,
                           fontWeight: FontWeight.w700,
                           letterSpacing: -0.2,
@@ -255,25 +307,25 @@ class RoleSelectionScreen extends StatelessWidget {
                       const SizedBox(height: 3),
                       Text(
                         subtitle,
-                        style: TextStyle(
-                          color: Colors.white.withValues(alpha: 0.7),
-                          fontSize: 12,
-                          height: 1.4,
+                        style: const TextStyle(
+                          color: AppColors.textSecondary,
+                          fontSize: 12.5,
+                          height: 1.35,
                         ),
                       ),
                       const SizedBox(height: 8),
                       Container(
                         padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
                         decoration: BoxDecoration(
-                          color: Colors.black.withValues(alpha: 0.22),
+                          color: accentColor.withValues(alpha: 0.08),
                           borderRadius: AppRadius.xsRadius,
                         ),
                         child: Text(
                           badgeText,
                           style: TextStyle(
                             color: accentColor,
-                            fontSize: 10.5,
-                            fontWeight: FontWeight.w500,
+                            fontSize: 11,
+                            fontWeight: FontWeight.w600,
                           ),
                         ),
                       ),
@@ -282,16 +334,16 @@ class RoleSelectionScreen extends StatelessWidget {
                 ),
                 const SizedBox(width: 8),
                 Container(
-                  width: 28,
-                  height: 28,
+                  width: 32,
+                  height: 32,
                   decoration: BoxDecoration(
-                    color: Colors.white.withValues(alpha: 0.12),
+                    color: const Color(0xFFF1F5F9),
                     borderRadius: AppRadius.xsRadius,
                   ),
                   child: const Center(
                     child: Icon(
                       Icons.arrow_forward_ios_rounded,
-                      color: Colors.white70,
+                      color: AppColors.textSecondary,
                       size: 14,
                     ),
                   ),
@@ -393,38 +445,22 @@ class __VetLoginScreenState extends State<_VetLoginScreen> {
         begin: Alignment.topLeft,
         end: Alignment.bottomRight,
       ),
-      title: 'Veterinary Login',
-      subtitle: 'Veterinary Officer',
+      icon: Icons.medical_services_rounded,
+      title: context.tr('vet_login_title'),
+      subtitle: context.tr('role_vet_title'),
       fields: [
-        _field('Vet ID / Mobile', _idCtrl, Icons.badge_outlined),
+        _field(context.tr('official_id'), _idCtrl, Icons.badge_outlined),
         const SizedBox(height: 14),
-        _field('Password', _passCtrl, Icons.lock_outline,
+        _field(context.tr('password'), _passCtrl, Icons.lock_outline,
             obscure: _obscure,
             suffixIcon: IconButton(
               icon: Icon(
                 _obscure ? Icons.visibility_outlined : Icons.visibility_off_outlined,
-                color: Colors.white60,
+                color: AppColors.textSecondary,
               ),
               onPressed: () => setState(() => _obscure = !_obscure),
             )),
         const SizedBox(height: 8),
-        Container(
-          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-          decoration: BoxDecoration(
-            color: Colors.white.withValues(alpha: 0.08),
-            borderRadius: AppRadius.xsRadius,
-          ),
-          child: Row(
-            children: [
-              const Icon(Icons.info_outline_rounded, size: 14, color: Colors.white54),
-              const SizedBox(width: 8),
-              const Text(
-                'Demo credentials: VET001 / vet123',
-                style: TextStyle(color: Colors.white54, fontSize: 12),
-              ),
-            ],
-          ),
-        ),
       ],
       loading: _loading,
       onLogin: _login,
@@ -443,8 +479,8 @@ class _GovtLoginScreen extends StatefulWidget {
 }
 
 class __GovtLoginScreenState extends State<_GovtLoginScreen> {
-  final _idCtrl = TextEditingController(text: 'GOV001');
-  final _passCtrl = TextEditingController(text: 'gov123');
+  final _idCtrl = TextEditingController(text: 'GOVT001');
+  final _passCtrl = TextEditingController(text: 'govt123');
   bool _obscure = true;
   bool _loading = false;
 
@@ -455,16 +491,32 @@ class __GovtLoginScreenState extends State<_GovtLoginScreen> {
     super.dispose();
   }
 
-  void _login() {
+  Future<void> _login() async {
     setState(() => _loading = true);
-    Future.delayed(const Duration(milliseconds: 500), () {
-      if (!mounted) return;
-      setState(() => _loading = false);
-      Navigator.pushReplacement(
-        context,
-        MaterialPageRoute(builder: (_) => GovtShell(dataService: widget.dataService)),
-      );
-    });
+    try {
+      final res = await widget.dataService.apiService.post('/auth/login', {
+        'phone_or_id': _idCtrl.text.trim(),
+        'password': _passCtrl.text.trim(),
+      });
+      if (res != null && res['access_token'] != null) {
+        await widget.dataService.apiService.setToken(res['access_token']);
+      }
+    } catch (e) {
+      debugPrint('Govt backend login fallback: $e');
+    }
+
+    // Fetch live cases AND alerts as govt authority
+    await Future.wait([
+      widget.dataService.fetchCases(role: 'government'),
+      widget.dataService.fetchAlerts(role: 'government'),
+    ]);
+
+    if (!mounted) return;
+    setState(() => _loading = false);
+    Navigator.pushReplacement(
+      context,
+      MaterialPageRoute(builder: (_) => GovtShell(dataService: widget.dataService)),
+    );
   }
 
   @override
@@ -477,38 +529,22 @@ class __GovtLoginScreenState extends State<_GovtLoginScreen> {
         begin: Alignment.topLeft,
         end: Alignment.bottomRight,
       ),
-      title: 'Government Login',
-      subtitle: 'District Animal Husbandry Officer',
+      icon: Icons.account_balance_rounded,
+      title: context.tr('govt_login_title'),
+      subtitle: context.tr('role_govt_title'),
       fields: [
-        _field('Officer ID / Mobile', _idCtrl, Icons.badge_outlined),
+        _field(context.tr('officer_id'), _idCtrl, Icons.badge_outlined),
         const SizedBox(height: 14),
-        _field('Password', _passCtrl, Icons.lock_outline,
+        _field(context.tr('password'), _passCtrl, Icons.lock_outline,
             obscure: _obscure,
             suffixIcon: IconButton(
               icon: Icon(
                 _obscure ? Icons.visibility_outlined : Icons.visibility_off_outlined,
-                color: Colors.white60,
+                color: AppColors.textSecondary,
               ),
               onPressed: () => setState(() => _obscure = !_obscure),
             )),
         const SizedBox(height: 8),
-        Container(
-          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-          decoration: BoxDecoration(
-            color: Colors.white.withValues(alpha: 0.08),
-            borderRadius: AppRadius.xsRadius,
-          ),
-          child: Row(
-            children: [
-              const Icon(Icons.info_outline_rounded, size: 14, color: Colors.white54),
-              const SizedBox(width: 8),
-              const Text(
-                'Demo credentials: GOV001 / gov123',
-                style: TextStyle(color: Colors.white54, fontSize: 12),
-              ),
-            ],
-          ),
-        ),
       ],
       loading: _loading,
       onLogin: _login,
@@ -522,6 +558,7 @@ Widget _loginScaffold(
   BuildContext context, {
   required Color accentColor,
   required Gradient headerGradient,
+  required IconData icon,
   required String title,
   required String subtitle,
   required List<Widget> fields,
@@ -529,15 +566,21 @@ Widget _loginScaffold(
   required VoidCallback onLogin,
 }) {
   return Scaffold(
-    backgroundColor: const Color(0xFF0A1628),
+    backgroundColor: const Color(0xFFF8FAFC),
     appBar: AppBar(
       backgroundColor: Colors.transparent,
-      foregroundColor: Colors.white,
+      foregroundColor: AppColors.textPrimary,
       elevation: 0,
       leading: IconButton(
-        icon: const Icon(Icons.arrow_back_rounded, color: Colors.white),
+        icon: const Icon(Icons.arrow_back_rounded, color: AppColors.textPrimary),
         onPressed: () => Navigator.pop(context),
       ),
+      actions: const [
+        Padding(
+          padding: EdgeInsets.only(right: 16),
+          child: LanguageSelectorButton(),
+        ),
+      ],
     ),
     body: SafeArea(
       child: SingleChildScrollView(
@@ -545,24 +588,45 @@ Widget _loginScaffold(
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
-            // ── Header ────────────────────────────────────────────────────
+            // ── Header Card ───────────────────────────────────────────────
             Container(
-              padding: const EdgeInsets.all(28),
+              padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 26),
               decoration: BoxDecoration(
-                gradient: headerGradient,
+                color: Colors.white,
                 borderRadius: AppRadius.lgRadius,
                 border: Border.all(
-                  color: Colors.white.withValues(alpha: 0.10),
+                  color: const Color(0xFFE2E8F0),
+                  width: 1.2,
                 ),
+                boxShadow: [
+                  BoxShadow(
+                    color: Colors.black.withValues(alpha: 0.04),
+                    blurRadius: 14,
+                    offset: const Offset(0, 4),
+                  ),
+                ],
               ),
               child: Column(
                 children: [
-                  const BrandLogo.small(),
+                  Container(
+                    width: 64,
+                    height: 64,
+                    decoration: BoxDecoration(
+                      color: accentColor.withValues(alpha: 0.10),
+                      borderRadius: AppRadius.mdRadius,
+                      border: Border.all(
+                        color: accentColor.withValues(alpha: 0.20),
+                      ),
+                    ),
+                    child: Center(
+                      child: Icon(icon, size: 32, color: accentColor),
+                    ),
+                  ),
                   const SizedBox(height: 14),
                   Text(
                     title,
                     style: const TextStyle(
-                      color: Colors.white,
+                      color: AppColors.textPrimary,
                       fontSize: 22,
                       fontWeight: FontWeight.w700,
                       letterSpacing: -0.3,
@@ -571,9 +635,10 @@ Widget _loginScaffold(
                   const SizedBox(height: 4),
                   Text(
                     subtitle,
-                    style: TextStyle(
-                      color: Colors.white.withValues(alpha: 0.65),
+                    style: const TextStyle(
+                      color: AppColors.textSecondary,
                       fontSize: 13,
+                      fontWeight: FontWeight.w500,
                     ),
                   ),
                 ],
@@ -584,14 +649,14 @@ Widget _loginScaffold(
 
             // ── Credentials section label ─────────────────────────────────
             const Padding(
-              padding: EdgeInsets.only(left: 2, bottom: 12),
+              padding: EdgeInsets.only(left: 4, bottom: 12),
               child: Text(
                 'CREDENTIALS',
                 style: TextStyle(
-                  color: Colors.white38,
+                  color: AppColors.textMuted,
                   fontSize: 11,
                   fontWeight: FontWeight.w700,
-                  letterSpacing: 2,
+                  letterSpacing: 1.5,
                 ),
               ),
             ),
@@ -601,15 +666,15 @@ Widget _loginScaffold(
 
             // ── Login button ──────────────────────────────────────────────
             SizedBox(
-              height: 56,
+              height: 54,
               child: ElevatedButton(
                 style: ElevatedButton.styleFrom(
-                  backgroundColor: AppColors.primary,
+                  backgroundColor: accentColor,
                   foregroundColor: Colors.white,
                   shape: RoundedRectangleBorder(
                     borderRadius: AppRadius.mdRadius,
                   ),
-                  elevation: 0,
+                  elevation: 1,
                 ),
                 onPressed: loading ? null : onLogin,
                 child: loading
@@ -621,12 +686,12 @@ Widget _loginScaffold(
                           color: Colors.white,
                         ),
                       )
-                    : const Text(
-                        'SIGN IN',
-                        style: TextStyle(
+                    : Text(
+                        context.tr('login_button'),
+                        style: const TextStyle(
                           fontSize: 15,
                           fontWeight: FontWeight.w700,
-                          letterSpacing: 1.5,
+                          letterSpacing: 1.2,
                         ),
                       ),
               ),
@@ -649,25 +714,25 @@ Widget _field(
     controller: ctrl,
     obscureText: obscure,
     style: const TextStyle(
-      color: Colors.white,
+      color: AppColors.textPrimary,
       fontSize: 15,
       fontWeight: FontWeight.w500,
     ),
     decoration: InputDecoration(
       labelText: label,
-      labelStyle: const TextStyle(color: Colors.white54, fontSize: 14),
-      prefixIcon: Icon(icon, color: Colors.white54, size: 20),
+      labelStyle: const TextStyle(color: AppColors.textSecondary, fontSize: 14),
+      prefixIcon: Icon(icon, color: AppColors.textSecondary, size: 20),
       suffixIcon: suffixIcon,
       filled: true,
-      fillColor: Colors.white.withValues(alpha: 0.08),
+      fillColor: Colors.white,
       contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 18),
       border: OutlineInputBorder(
         borderRadius: AppRadius.mdRadius,
-        borderSide: BorderSide(color: Colors.white.withValues(alpha: 0.18)),
+        borderSide: const BorderSide(color: Color(0xFFE2E8F0)),
       ),
       enabledBorder: OutlineInputBorder(
         borderRadius: AppRadius.mdRadius,
-        borderSide: BorderSide(color: Colors.white.withValues(alpha: 0.18)),
+        borderSide: const BorderSide(color: Color(0xFFCBD5E1)),
       ),
       focusedBorder: OutlineInputBorder(
         borderRadius: AppRadius.mdRadius,
@@ -730,54 +795,9 @@ class _LoginScreenState extends State<LoginScreen> {
     });
   }
 
-  void _showLanguagePicker() {
-    showModalBottomSheet(
-      context: context,
-      shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
-      ),
-      builder: (ctx) => SafeArea(
-        child: Padding(
-          padding: const EdgeInsets.all(20),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Text(
-                context.tr('choose_language'),
-                style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-              ),
-              const SizedBox(height: 16),
-              ...AppLanguage.values.map((lang) {
-                final isSelected = LocalizationService.instance.currentLanguage == lang;
-                return ListTile(
-                  title: Text(
-                    lang.label,
-                    style: TextStyle(
-                      fontSize: 18,
-                      fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
-                      color: isSelected ? Theme.of(context).colorScheme.primary : null,
-                    ),
-                  ),
-                  trailing: isSelected
-                      ? Icon(Icons.check, color: Theme.of(context).colorScheme.primary)
-                      : null,
-                  onTap: () {
-                    LocalizationService.instance.setLanguage(lang);
-                    Navigator.pop(ctx);
-                  },
-                );
-              }),
-            ],
-          ),
-        ),
-      ),
-    );
-  }
-
   @override
   Widget build(BuildContext context) {
     final colorScheme = Theme.of(context).colorScheme;
-    final currentLang = LocalizationService.instance.currentLanguage;
 
     return Scaffold(
       backgroundColor: Colors.white,
@@ -788,18 +808,10 @@ class _LoginScreenState extends State<LoginScreen> {
           icon: const Icon(Icons.arrow_back),
           onPressed: () => Navigator.pop(context),
         ),
-        actions: [
+        actions: const [
           Padding(
-            padding: const EdgeInsets.only(right: 16),
-            child: ActionChip(
-              avatar: const Icon(Icons.language_rounded, size: 18),
-              label: Text(
-                '🌐 ${currentLang.label}',
-                style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 13),
-              ),
-              onPressed: _showLanguagePicker,
-              backgroundColor: colorScheme.primaryContainer.withValues(alpha: 0.5),
-            ),
+            padding: EdgeInsets.only(right: 16),
+            child: LanguageSelectorButton(),
           ),
         ],
       ),
@@ -810,7 +822,40 @@ class _LoginScreenState extends State<LoginScreen> {
             crossAxisAlignment: CrossAxisAlignment.center,
             children: [
               const SizedBox(height: 10),
-              const BrandLogo.medium(),
+              Container(
+                width: 88,
+                height: 88,
+                decoration: BoxDecoration(
+                  shape: BoxShape.circle,
+                  boxShadow: [
+                    BoxShadow(
+                      color: colorScheme.primary.withValues(alpha: 0.20),
+                      blurRadius: 16,
+                      offset: const Offset(0, 6),
+                    ),
+                  ],
+                ),
+                child: ClipOval(
+                  child: Image.asset(
+                    'assets/images/logo.png',
+                    width: 88,
+                    height: 88,
+                    fit: BoxFit.cover,
+                    errorBuilder: (_, _, _) => Container(
+                      padding: const EdgeInsets.all(18),
+                      decoration: BoxDecoration(
+                        color: colorScheme.primaryContainer,
+                        shape: BoxShape.circle,
+                      ),
+                      child: Icon(
+                        Icons.agriculture_rounded,
+                        size: 52,
+                        color: colorScheme.primary,
+                      ),
+                    ),
+                  ),
+                ),
+              ),
               const SizedBox(height: 16),
               Text(
                 context.tr('app_title'),

@@ -92,9 +92,18 @@ class LivestockCase {
   final String block;
   final String district;
   final String state;
+  final double? latitude;
+  final double? longitude;
   final bool hasVoiceNote;
+  final String? voiceNoteUrl;
   final bool hasPhoto;
+  final List<String>? photoUrls;
   final bool hasVideo;
+  final String? videoUrl;
+  final String? voiceTranscript;
+  final String? localVoicePath;
+  final String? localPhotoPath;
+  final String? localVideoPath;
   FullCaseStatus status;
   String? assignedVetId;
   String? assignedVetName;
@@ -131,9 +140,18 @@ class LivestockCase {
     required this.block,
     required this.district,
     required this.state,
+    this.latitude,
+    this.longitude,
     this.hasVoiceNote = false,
+    this.voiceNoteUrl,
     this.hasPhoto = false,
+    this.photoUrls,
     this.hasVideo = false,
+    this.videoUrl,
+    this.voiceTranscript,
+    this.localVoicePath,
+    this.localPhotoPath,
+    this.localVideoPath,
     this.status = FullCaseStatus.submitted,
     this.assignedVetId,
     this.assignedVetName,

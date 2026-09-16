@@ -442,31 +442,44 @@ class _LoginScreenState extends State<LoginScreen>
 
                   // Brand Logo Badge
                   Container(
-                    width: 76,
-                    height: 76,
+                    width: 82,
+                    height: 82,
                     decoration: BoxDecoration(
                       shape: BoxShape.circle,
-                      gradient: LinearGradient(
-                        colors: isDark
-                            ? const [Color(0xFF43A047), Color(0xFF1B5E20)]
-                            : const [Color(0xFF66BB6A), Color(0xFF2E7D32)],
-                        begin: Alignment.topLeft,
-                        end: Alignment.bottomRight,
-                      ),
                       boxShadow: [
                         BoxShadow(
-                          color: Colors.black.withValues(alpha: 0.3),
-                          blurRadius: 14,
+                          color: Colors.black.withValues(alpha: 0.25),
+                          blurRadius: 16,
                           offset: const Offset(0, 6),
                         ),
                       ],
                       border: Border.all(color: Colors.white, width: 2.5),
                     ),
-                    child: const Center(
-                      child: Icon(
-                        Icons.agriculture_rounded,
-                        size: 42,
-                        color: Colors.white,
+                    child: ClipOval(
+                      child: Image.asset(
+                        'assets/images/logo.png',
+                        width: 82,
+                        height: 82,
+                        fit: BoxFit.cover,
+                        errorBuilder: (_, _, _) => Container(
+                          decoration: BoxDecoration(
+                            shape: BoxShape.circle,
+                            gradient: LinearGradient(
+                              colors: isDark
+                                  ? const [Color(0xFF43A047), Color(0xFF1B5E20)]
+                                  : const [Color(0xFF66BB6A), Color(0xFF2E7D32)],
+                              begin: Alignment.topLeft,
+                              end: Alignment.bottomRight,
+                            ),
+                          ),
+                          child: const Center(
+                            child: Icon(
+                              Icons.agriculture_rounded,
+                              size: 42,
+                              color: Colors.white,
+                            ),
+                          ),
+                        ),
                       ),
                     ),
                   ),

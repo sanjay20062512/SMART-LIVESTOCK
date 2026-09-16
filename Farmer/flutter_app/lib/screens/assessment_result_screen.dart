@@ -1,11 +1,13 @@
 // Assessment Result Screen — Displays automated triage findings and clinical recommendations.
-// Shown immediately after a farmer submits a symptom report.
+// Shown immediately after a farmer submits a symptom report. Fully localized in English, हिन्दी, and मराठी.
 
 import 'package:flutter/material.dart';
 import '../models/health_report.dart';
 import '../services/farmer_data_service.dart';
 import '../services/localization_service.dart';
 import '../services/triage_service.dart';
+import '../theme/app_colors.dart';
+import '../widgets/language_selector_button.dart';
 import 'vet_request_screen.dart';
 
 class AssessmentResultScreen extends StatefulWidget {
@@ -33,13 +35,14 @@ class _AssessmentResultScreenState extends State<AssessmentResultScreen> {
 
   void _readAloud(String text) {
     setState(() => _isSpeaking = true);
+    final voiceTag = LocalizationService.instance.currentLanguage.voiceLocaleCode;
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
         content: Row(
           children: [
             const Icon(Icons.volume_up_rounded, color: Colors.white),
             const SizedBox(width: 10),
-            Expanded(child: Text('🔊 Reading advice aloud: "$text"')),
+            Expanded(child: Text('🔊 [$voiceTag] $text')),
           ],
         ),
         backgroundColor: const Color(0xFF2E7D32),
@@ -63,22 +66,22 @@ class _AssessmentResultScreenState extends State<AssessmentResultScreen> {
       case RiskLevel.low:
         riskColor = const Color(0xFF2E7D32);
         riskIcon = Icons.check_circle_rounded;
-        riskBadgeText = 'LOW RISK';
+        riskBadgeText = context.tr('risk_low');
         break;
       case RiskLevel.medium:
         riskColor = Colors.orange.shade800;
         riskIcon = Icons.info_rounded;
-        riskBadgeText = 'MEDIUM RISK';
+        riskBadgeText = context.tr('risk_medium');
         break;
       case RiskLevel.high:
         riskColor = Colors.deepOrange.shade700;
         riskIcon = Icons.warning_rounded;
-        riskBadgeText = 'HIGH RISK';
+        riskBadgeText = context.tr('risk_high');
         break;
       case RiskLevel.critical:
         riskColor = Colors.red.shade900;
         riskIcon = Icons.emergency_rounded;
-        riskBadgeText = 'CRITICAL HEALTH RISK';
+        riskBadgeText = context.tr('risk_critical');
         break;
     }
 
@@ -91,10 +94,16 @@ class _AssessmentResultScreenState extends State<AssessmentResultScreen> {
           icon: const Icon(Icons.close_rounded, color: Colors.black87),
           onPressed: () => Navigator.pop(context),
         ),
-        title: const Text(
-          'Assessment Result',
-          style: TextStyle(fontWeight: FontWeight.bold, fontSize: 17, color: Colors.black87),
+        title: Text(
+          context.tr('assessment_result'),
+          style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 17, color: Colors.black87),
         ),
+        actions: const [
+          Padding(
+            padding: EdgeInsets.only(right: 12),
+            child: LanguageSelectorButton(),
+          ),
+        ],
       ),
       body: SafeArea(
         child: SingleChildScrollView(
@@ -111,14 +120,14 @@ class _AssessmentResultScreenState extends State<AssessmentResultScreen> {
                     borderRadius: BorderRadius.circular(20),
                     border: Border.all(color: const Color(0xFF81C784)),
                   ),
-                  child: const Row(
+                  child: Row(
                     mainAxisSize: MainAxisSize.min,
                     children: [
-                      Icon(Icons.check_circle_rounded, color: Color(0xFF2E7D32), size: 16),
-                      SizedBox(width: 6),
+                      const Icon(Icons.check_circle_rounded, color: Color(0xFF2E7D32), size: 16),
+                      const SizedBox(width: 6),
                       Text(
-                        'Report Submitted & Logged to Network',
-                        style: TextStyle(
+                        context.tr('report_submitted_net'),
+                        style: const TextStyle(
                           color: Color(0xFF2E7D32),
                           fontSize: 12,
                           fontWeight: FontWeight.bold,
@@ -202,15 +211,15 @@ class _AssessmentResultScreenState extends State<AssessmentResultScreen> {
                       Row(
                         mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         children: [
-                          const Expanded(
+                          Expanded(
                             child: Row(
                               children: [
-                                Icon(Icons.lightbulb_outline_rounded, color: Color(0xFFE65100), size: 20),
-                                SizedBox(width: 8),
+                                const Icon(Icons.lightbulb_outline_rounded, color: Color(0xFFE65100), size: 20),
+                                const SizedBox(width: 8),
                                 Expanded(
                                   child: Text(
-                                    'Recommended Action',
-                                    style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
+                                    context.tr('recommended_action'),
+                                    style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
                                     overflow: TextOverflow.ellipsis,
                                   ),
                                 ),
@@ -246,6 +255,29 @@ class _AssessmentResultScreenState extends State<AssessmentResultScreen> {
                         result.recommendedAction,
                         style: const TextStyle(color: Colors.black54, fontSize: 13.5, height: 1.4),
                       ),
+                      if (result.suspectedConditions.isNotEmpty) ...[
+                        const Divider(height: 24),
+                        Text(
+                          context.tr('suspected_diseases'),
+                          style: TextStyle(fontWeight: FontWeight.w700, fontSize: 13, color: AppColors.textPrimary),
+                        ),
+                        const SizedBox(height: 8),
+                        Wrap(
+                          spacing: 8,
+                          runSpacing: 6,
+                          children: result.suspectedConditions.map((condition) {
+                            return Chip(
+                              label: Text(
+                                condition,
+                                style: TextStyle(fontSize: 12, fontWeight: FontWeight.w600, color: AppColors.primaryDark),
+                              ),
+                              backgroundColor: AppColors.primaryLight.withValues(alpha: 0.6),
+                              padding: const EdgeInsets.symmetric(horizontal: 4),
+                              side: BorderSide(color: AppColors.primary.withValues(alpha: 0.2)),
+                            );
+                          }).toList(),
+                        ),
+                      ],
                     ],
                   ),
                 ),

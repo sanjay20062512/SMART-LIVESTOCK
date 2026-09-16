@@ -13,6 +13,13 @@ class AppTypography {
   AppTypography._();
 
   static const String _fontFamily = 'Roboto';
+  static const List<String> fontFallbacks = [
+    'Noto Sans Devanagari',
+    'Nirmala UI',
+    'Mangal',
+    'Segoe UI',
+    'sans-serif',
+  ];
 
   // Display — App title on splash/role screens
   static const TextStyle display = TextStyle(
@@ -203,6 +210,7 @@ class AppTheme {
     return ThemeData(
       useMaterial3: true,
       fontFamily: 'Roboto',
+      fontFamilyFallback: AppTypography.fontFallbacks,
       colorScheme: ColorScheme.fromSeed(
         seedColor: AppColors.primary,
         primary: AppColors.primary,

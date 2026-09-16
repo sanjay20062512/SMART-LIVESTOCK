@@ -1,0 +1,31 @@
+# Environment Variables
+.env
+*.env
+!.env.example
+
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.pytest_cache/
+.coverage
+htmlcov/
+.venv/
+env/
+venv/
+ENV/
+
+# Logs & Dumps
+*.log
+hs_err_pid*.log
+
+# Editors & IDEs
+.idea/
+.vscode/
+*.swp
+*.swo
+
+# OS files
+.DS_Store
+Thumbs.db

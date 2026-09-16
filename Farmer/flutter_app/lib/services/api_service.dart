@@ -1,12 +1,15 @@
+import 'dart:io';
 import 'dart:convert';
 import 'package:flutter/foundation.dart';
 import 'package:http/http.dart' as http;
 import 'package:shared_preferences/shared_preferences.dart';
 
 class ApiService {
-  static const String baseUrl = kIsWeb 
+  static final String baseUrl = kIsWeb 
     ? 'http://127.0.0.1:8000/api/v1' 
-    : 'http://10.0.2.2:8000/api/v1';
+    : (defaultTargetPlatform == TargetPlatform.android
+        ? 'http://10.0.2.2:8000/api/v1'
+        : 'http://127.0.0.1:8000/api/v1');
 
   String? _token;
 
@@ -38,7 +41,7 @@ class ApiService {
     return headers;
   }
 
-  static const Duration requestTimeout = Duration(seconds: 2);
+  static const Duration requestTimeout = Duration(seconds: 4);
 
   Future<dynamic> get(String endpoint) async {
     final response = await http
@@ -73,6 +76,42 @@ class ApiService {
     final response = await http
         .delete(Uri.parse('$baseUrl$endpoint'), headers: _headers)
         .timeout(requestTimeout);
+    return _handleResponse(response);
+  }
+
+  Future<dynamic> uploadMultipart(
+    String endpoint, {
+    Map<String, String>? fields,
+    Map<String, String>? filePaths,
+  }) async {
+    final uri = Uri.parse('$baseUrl$endpoint');
+    final request = http.MultipartRequest('POST', uri);
+
+    if (_token != null) {
+      request.headers['Authorization'] = 'Bearer $_token';
+    }
+
+    if (fields != null) {
+      request.fields.addAll(fields);
+    }
+
+    if (filePaths != null && !kIsWeb) {
+      for (final entry in filePaths.entries) {
+        final path = entry.value;
+        if (path.isNotEmpty) {
+          final file = File(path);
+          if (await file.exists()) {
+            request.files.add(await http.MultipartFile.fromPath(
+              entry.key,
+              path,
+            ));
+          }
+        }
+      }
+    }
+
+    final streamedResponse = await request.send().timeout(const Duration(seconds: 30));
+    final response = await http.Response.fromStream(streamedResponse);
     return _handleResponse(response);
   }
 
