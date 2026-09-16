@@ -29,3 +29,15 @@ hs_err_pid*.log
 # OS files
 .DS_Store
 Thumbs.db
+
+# Node / Web
+node_modules/
+**/node_modules/
+.next/
+**/.next/
+dist/
+**/dist/
+build/
+**/build/
+.turbo/
+
