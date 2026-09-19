@@ -937,30 +937,14 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
             'We sent a verification code to ${_mobileCtrl.text.trim()}.',
             style: const TextStyle(color: Colors.grey),
           ),
-          const SizedBox(height: 20),
+          const SizedBox(height: 24),
 
-          // Prototype OTP Banner
-          Container(
-            padding: const EdgeInsets.all(16),
-            decoration: BoxDecoration(
-              color: Colors.amber.shade50,
-              borderRadius: BorderRadius.circular(12),
-              border: Border.all(color: Colors.amber.shade300),
-            ),
-            child: Row(
-              children: [
-                Icon(Icons.info_outline_rounded, color: Colors.amber.shade900),
-                const SizedBox(width: 12),
-                Expanded(
-                  child: Text(
-                    context.tr('demo_otp_notice'),
-                    style: TextStyle(fontSize: 13, fontWeight: FontWeight.bold, color: Colors.amber.shade900),
-                  ),
-                ),
-              ],
-            ),
+          // Enter OTP
+          Text(
+            context.tr('enter_otp'),
+            style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
           ),
-          const SizedBox(height: 28),
+          const SizedBox(height: 12),
 
           // OTP Input
           TextField(
