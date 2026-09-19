@@ -3,6 +3,7 @@
 // simplified dynamic health summaries, and multi-language support.
 
 import 'package:flutter/material.dart';
+import '../theme/app_theme.dart';
 import '../services/farmer_data_service.dart';
 import '../services/localization_service.dart';
 import '../models/dashboard_stats.dart';

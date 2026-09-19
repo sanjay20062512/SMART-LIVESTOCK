@@ -33,11 +33,11 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
   final _emailCtrl = TextEditingController();
   bool _isSpeakingName = false;
 
-  // Page 2 - Location
-  String _selectedState = 'Tamil Nadu';
-  String _selectedDistrict = 'Coimbatore';
-  String _selectedBlock = 'Mettupalayam';
-  final _villageCtrl = TextEditingController(text: 'Karunaigoundenpudur');
+  // Page 2 - Location (locked to Maharashtra)
+  final String _selectedState = 'Maharashtra';
+  String _selectedDistrict = 'Pune';
+  String _selectedBlock = 'Haveli';
+  final _villageCtrl = TextEditingController(text: '');
 
   // Page 3 - Farm Details
   final _farmNameCtrl = TextEditingController(text: 'Green Meadows Farm');
@@ -61,76 +61,54 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
   bool _obscurePassword = true;
   bool _obscureConfirm = true;
 
-  // Predefined Location catalogues
-  final Map<String, List<String>> _stateDistricts = {
-    'Tamil Nadu': [
-      'Coimbatore',
-      'Erode',
-      'Tiruppur',
-      'Salem',
-      'Madurai',
-      'Thanjavur',
-      'Dindigul',
-      'Namakkal',
-      'Other',
-    ],
-    'Karnataka': [
-      'Bengaluru Rural',
-      'Mysuru',
-      'Mandya',
-      'Hassan',
-      'Tumakuru',
-      'Other',
-    ],
-    'Andhra Pradesh': [
-      'Chittoor',
-      'Anantapur',
-      'Guntur',
-      'Krishna',
-      'Kurnool',
-      'Other',
-    ],
-    'Kerala': [
-      'Palakkad',
-      'Wayanad',
-      'Thrissur',
-      'Kozhikode',
-      'Idukki',
-      'Other',
-    ],
-    'Maharashtra': [
-      'Pune',
-      'Nashik',
-      'Kolhapur',
-      'Ahmednagar',
-      'Satara',
-      'Other',
-    ],
-    'Uttar Pradesh': [
-      'Varanasi',
-      'Prayagraj',
-      'Meerut',
-      'Bareilly',
-      'Gorakhpur',
-      'Other',
-    ],
-  };
+  // Maharashtra — all 36 districts
+  final List<String> _maharashtraDistricts = [
+    'Ahmednagar', 'Akola', 'Amravati', 'Aurangabad', 'Beed', 'Bhandara',
+    'Buldhana', 'Chandrapur', 'Dhule', 'Gadchiroli', 'Gondia', 'Hingoli',
+    'Jalgaon', 'Jalna', 'Kolhapur', 'Latur', 'Mumbai City', 'Mumbai Suburban',
+    'Nagpur', 'Nanded', 'Nandurbar', 'Nashik', 'Osmanabad', 'Palghar',
+    'Parbhani', 'Pune', 'Raigad', 'Ratnagiri', 'Sangli', 'Satara',
+    'Sindhudurg', 'Solapur', 'Thane', 'Wardha', 'Washim', 'Yavatmal',
+  ];
 
+  // Talukas for each Maharashtra district
   final Map<String, List<String>> _districtBlocks = {
-    'Coimbatore': [
-      'Mettupalayam',
-      'Pollachi North',
-      'Pollachi South',
-      'Sulur',
-      'Thondamuthur',
-      'Annur',
-      'Karamadai',
-      'Other',
-    ],
-    'Erode': ['Bhavani', 'Gobichettipalayam', 'Perundurai', 'Sathyamangalam', 'Other'],
-    'Tiruppur': ['Avinashi', 'Dharapuram', 'Kangeyam', 'Udumalaipettai', 'Other'],
-    'Salem': ['Attur', 'Omalur', 'Mettur', 'Sankari', 'Other'],
-    'Madurai': ['Melur', 'Vadipatti', 'Usilampatti', 'Thirumangalam', 'Other'],
+    'Ahmednagar': ['Ahmednagar', 'Akole', 'Jamkhed', 'Karjat', 'Kopargaon', 'Nagar', 'Nevasa', 'Parner', 'Pathardi', 'Rahata', 'Rahuri', 'Sangamner', 'Shevgaon', 'Shrigonda', 'Shrirampur'],
+    'Akola': ['Akola', 'Akot', 'Balapur', 'Barshitakli', 'Murtizapur', 'Patur', 'Telhara'],
+    'Amravati': ['Achalpur', 'Amravati', 'Anjangaon Surji', 'Chandur Bazar', 'Chandurbazar', 'Chikhaldara', 'Daryapur', 'Dhamangaon Rly', 'Morshi', 'Nandgaon Khandeshwar', 'Teosa', 'Warud'],
+    'Aurangabad': ['Aurangabad', 'Gangapur', 'Kannad', 'Khuldabad', 'Paithan', 'Phulambri', 'Silod', 'Soegaon', 'Soyegaon', 'Vaijapur'],
+    'Beed': ['Ambajogai', 'Ashti', 'Beed', 'Dharur', 'Georai', 'Kaij', 'Manjlegaon', 'Parli', 'Patoda', 'Shirur Kasar', 'Wadwani'],
+    'Bhandara': ['Bhandara', 'Lakhandur', 'Lakhani', 'Mohadi', 'Pauni', 'Sakoli', 'Tumsar'],
+    'Buldhana': ['Buldhana', 'Chikhli', 'Deolgaon Raja', 'Jalgaon Jamod', 'Khamgaon', 'Lonar', 'Malkapur', 'Mehkar', 'Motala', 'Nandura', 'Sangrampur', 'Shegaon', 'Sindkhed Raja'],
+    'Chandrapur': ['Ballarpur', 'Bhadravati', 'Brahmapuri', 'Chandrapur', 'Chimur', 'Gondpipri', 'Jiwati', 'Korpana', 'Mul', 'Nagbhid', 'Pombhurna', 'Rajura', 'Sawali', 'Sindewahi', 'Warora'],
+    'Dhule': ['Dhule', 'Sakri', 'Shirpur', 'Sindkheda'],
+    'Gadchiroli': ['Aheri', 'Armori', 'Bhamragad', 'Chamorshi', 'Dhanora', 'Desaiganj', 'Etapalli', 'Gadchiroli', 'Korchi', 'Kurkheda', 'Mulchera', 'Sironcha'],
+    'Gondia': ['Amgaon', 'Arjuni Morgaon', 'Deori', 'Gondia', 'Goregaon', 'Salekasa', 'Sadak Arjuni', 'Tirora'],
+    'Hingoli': ['Aundha Nagnath', 'Basmath', 'Hingoli', 'Kalamnuri', 'Sengaon'],
+    'Jalgaon': ['Amalner', 'Bhadgaon', 'Bhusawal', 'Bodwad', 'Chalisgaon', 'Chopda', 'Dharangaon', 'Erandol', 'Jalgaon', 'Jamner', 'Muktainagar', 'Pachora', 'Parola', 'Raver', 'Yawal'],
+    'Jalna': ['Ambad', 'Badnapur', 'Bhokardan', 'Ghansawangi', 'Jafrabad', 'Jalna', 'Mantha', 'Partur'],
+    'Kolhapur': ['Ajra', 'Bavada', 'Bhudargad', 'Chandgad', 'Gadhinglaj', 'Hatkanangle', 'Kagal', 'Karvir', 'Panhala', 'Radhanagari', 'Shahuwadi', 'Shirol'],
+    'Latur': ['Ahmedpur', 'Ausa', 'Chakur', 'Deoni', 'Jalkot', 'Latur', 'Nilanga', 'Renapur', 'Shirur Anantpal', 'Udgir'],
+    'Mumbai City': ['Mumbai City'],
+    'Mumbai Suburban': ['Andheri', 'Borivali', 'Kurla'],
+    'Nagpur': ['Bhiwapur', 'Hingna', 'Kadpar', 'Kamthi', 'Katol', 'Kuhi', 'Mauda', 'Nagpur Rural', 'Nagpur Urban', 'Narkhed', 'Parseoni', 'Ramtek', 'Savner', 'Umred'],
+    'Nanded': ['Ardhapur', 'Biloli', 'Bhokar', 'Deglur', 'Dharmabad', 'Hadgaon', 'Himayatnagar', 'Kandhar', 'Kinwat', 'Loha', 'Mahur', 'Mudkhed', 'Mukhed', 'Naigaon', 'Nanded', 'Nandgaon', 'Umri'],
+    'Nandurbar': ['Akkalkuwa', 'Akrani', 'Nandurbar', 'Nawapur', 'Shahada', 'Talode'],
+    'Nashik': ['Baglan', 'Chandwad', 'Deola', 'Dindori', 'Igatpuri', 'Kalwan', 'Malegaon', 'Nandgaon', 'Nashik', 'Niphad', 'Peint', 'Sinnar', 'Surgana', 'Trimbakeshwar', 'Yeola'],
+    'Osmanabad': ['Bhum', 'Kalamb', 'Lohara', 'Osmanabad', 'Paranda', 'Tuljapur', 'Umarga', 'Washi'],
+    'Palghar': ['Dahanu', 'Jawhar', 'Mokhada', 'Palghar', 'Talasari', 'Vasai', 'Vikramgad', 'Wada'],
+    'Parbhani': ['Gangakhed', 'Jintur', 'Manwath', 'Palam', 'Parbhani', 'Pathri', 'Purna', 'Selu', 'Sonpeth'],
+    'Pune': ['Ambegaon', 'Baramati', 'Bhor', 'Daund', 'Haveli', 'Indapur', 'Junnar', 'Khed', 'Mawal', 'Mulshi', 'Purandar', 'Shirur', 'Velhe'],
+    'Raigad': ['Alibag', 'Karjat', 'Khalapur', 'Mahad', 'Mangaon', 'Mhasla', 'Murud', 'Panvel', 'Pen', 'Poladpur', 'Roha', 'Shriwardhan', 'Sudhagad', 'Tala', 'Uran'],
+    'Ratnagiri': ['Chiplun', 'Dapoli', 'Guhagar', 'Khed', 'Lanja', 'Mandangad', 'Rajapur', 'Ratnagiri', 'Sangameshwar'],
+    'Sangli': ['Atpadi', 'Jat', 'Kadegaon', 'Kavathemahankal', 'Khanapur', 'Miraj', 'Palus', 'Shirala', 'Tasgaon', 'Valva', 'Waltepattan'],
+    'Satara': ['Jaoli', 'Karad', 'Khandala', 'Khatav', 'Koregaon', 'Mahabaleshwar', 'Man', 'Patan', 'Phaltan', 'Satara', 'Wai'],
+    'Sindhudurg': ['Deogad', 'Dodamarg', 'Kankavli', 'Kudal', 'Malvan', 'Sawantwadi', 'Vaibhavvadi', 'Vengurla'],
+    'Solapur': ['Akkalkot', 'Barshi', 'Karmala', 'Madha', 'Malshiras', 'Mangalvedhe', 'Mohol', 'Pandharpur', 'Sangola', 'Solapur North', 'Solapur South'],
+    'Thane': ['Ambarnath', 'Bhiwandi', 'Kalyan', 'Murbad', 'Shahapur', 'Thane', 'Ulhasnagar'],
+    'Wardha': ['Arvi', 'Ashti', 'Deoli', 'Hinganghat', 'Karanja', 'Samudrapur', 'Seloo', 'Wardha'],
+    'Washim': ['Karanja', 'Malegaon', 'Mangrulpir', 'Manora', 'Risod', 'Washim'],
+    'Yavatmal': ['Arni', 'Babhulgaon', 'Darwha', 'Digras', 'Ghatanji', 'Kalamb', 'Kelapur', 'Mahagaon', 'Maregaon', 'Ner', 'Pusad', 'Ralegaon', 'Umarkhed', 'Wani', 'Yavatmal', 'Zari Jamni'],
   };
 
   final List<Map<String, String>> _livestockOptions = [
@@ -631,8 +609,8 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
 
   // ─── Page 2: Farmer Location ─────────────────────────────────────────────────
   Widget _buildPage2Location() {
-    final districts = _stateDistricts[_selectedState] ?? ['Other'];
-    final blocks = _districtBlocks[_selectedDistrict] ?? ['Default Block', 'Other'];
+    final districts = _maharashtraDistricts;
+    final talukas = _districtBlocks[_selectedDistrict] ?? ['Other'];
 
     return SingleChildScrollView(
       padding: const EdgeInsets.all(24),
@@ -647,46 +625,67 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
           const Text('Select your location details from dropdowns.', style: TextStyle(color: Colors.grey)),
           const SizedBox(height: 24),
 
-          // State Dropdown
+          // State — Static (Maharashtra only)
           Text('${context.tr('state')} *', style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 14)),
           const SizedBox(height: 6),
-          DropdownButtonFormField<String>(
-            initialValue: _selectedState,
-            decoration: const InputDecoration(prefixIcon: Icon(Icons.map_rounded)),
-            items: _stateDistricts.keys.map((s) => DropdownMenuItem(value: s, child: Text(s))).toList(),
-            onChanged: (val) {
-              setState(() {
-                _selectedState = val!;
-                _selectedDistrict = _stateDistricts[_selectedState]!.first;
-                _selectedBlock = _districtBlocks[_selectedDistrict]?.first ?? 'General';
-              });
-            },
+          Container(
+            width: double.infinity,
+            padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 16),
+            decoration: BoxDecoration(
+              color: const Color(0xFFF1F5F9),
+              borderRadius: BorderRadius.circular(12),
+              border: Border.all(color: const Color(0xFFCBD5E1)),
+            ),
+            child: Row(
+              children: [
+                const Icon(Icons.map_rounded, color: Color(0xFF64748B), size: 20),
+                const SizedBox(width: 12),
+                const Text(
+                  'Maharashtra',
+                  style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600, color: Color(0xFF1E293B)),
+                ),
+                const Spacer(),
+                Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                  decoration: BoxDecoration(
+                    color: const Color(0xFFDCFCE7),
+                    borderRadius: BorderRadius.circular(6),
+                  ),
+                  child: const Text(
+                    'Fixed',
+                    style: TextStyle(fontSize: 11, fontWeight: FontWeight.bold, color: Color(0xFF16A34A)),
+                  ),
+                ),
+              ],
+            ),
           ),
           const SizedBox(height: 16),
 
-          // District Dropdown
+          // District Dropdown — all 36 Maharashtra districts
           Text('${context.tr('district')} *', style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 14)),
           const SizedBox(height: 6),
           DropdownButtonFormField<String>(
-            initialValue: districts.contains(_selectedDistrict) ? _selectedDistrict : districts.first,
+            value: districts.contains(_selectedDistrict) ? _selectedDistrict : districts.first,
             decoration: const InputDecoration(prefixIcon: Icon(Icons.location_city_rounded)),
+            isExpanded: true,
             items: districts.map((d) => DropdownMenuItem(value: d, child: Text(d))).toList(),
             onChanged: (val) {
               setState(() {
                 _selectedDistrict = val!;
-                _selectedBlock = _districtBlocks[_selectedDistrict]?.first ?? 'General';
+                _selectedBlock = _districtBlocks[_selectedDistrict]?.first ?? 'Other';
               });
             },
           ),
           const SizedBox(height: 16),
 
-          // Block / Taluk Dropdown
-          Text('${context.tr('block_taluk')} *', style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 14)),
+          // Taluk Dropdown — based on selected district
+          Text('Taluk *', style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 14)),
           const SizedBox(height: 6),
           DropdownButtonFormField<String>(
-            initialValue: blocks.contains(_selectedBlock) ? _selectedBlock : blocks.first,
+            value: talukas.contains(_selectedBlock) ? _selectedBlock : talukas.first,
             decoration: const InputDecoration(prefixIcon: Icon(Icons.apartment_rounded)),
-            items: blocks.map((b) => DropdownMenuItem(value: b, child: Text(b))).toList(),
+            isExpanded: true,
+            items: talukas.map((b) => DropdownMenuItem(value: b, child: Text(b))).toList(),
             onChanged: (val) => setState(() => _selectedBlock = val!),
           ),
           const SizedBox(height: 16),
@@ -699,7 +698,7 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
             style: const TextStyle(fontSize: 16),
             decoration: const InputDecoration(
               prefixIcon: Icon(Icons.villa_rounded),
-              hintText: 'Enter village name',
+              hintText: 'Enter your village name',
             ),
           ),
           const SizedBox(height: 36),

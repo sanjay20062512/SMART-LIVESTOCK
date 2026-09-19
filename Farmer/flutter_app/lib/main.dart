@@ -6,7 +6,6 @@ import 'package:flutter/services.dart';
 import 'services/farmer_data_service.dart';
 import 'services/localization_service.dart';
 import 'widgets/farmer_shell.dart';
-import 'widgets/brand_logo.dart';
 import 'screens/registration_screen.dart';
 import 'screens/language_selection_screen.dart';
 import 'screens/splash_screen.dart';
@@ -186,7 +185,6 @@ class RoleSelectionScreen extends StatelessWidget {
                   context.tr('select_role'),
                   style: const TextStyle(
                     color: AppColors.textMuted,
->>>>>>> b5ca1b8da4bf34acd1e8c6409337b1c758140293
                     fontSize: 11,
                     fontWeight: FontWeight.w700,
                     letterSpacing: 1.5,
