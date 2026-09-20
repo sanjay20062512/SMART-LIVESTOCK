@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../services/farmer_data_service.dart';
+import '../services/localization_service.dart';
 import '../models/treatment_record.dart';
 import '../theme/app_theme.dart';
 
@@ -47,9 +48,9 @@ class _TreatmentScreenState extends State<TreatmentScreen> {
     return Scaffold(
       backgroundColor: AppColors.background,
       appBar: AppBar(
-        title: const Text(
-          'Treatment Records',
-          style: TextStyle(
+        title: Text(
+          context.tr('treatment_records'),
+          style: const TextStyle(
             fontWeight: FontWeight.w800,
             fontSize: 18,
             letterSpacing: -0.2,
@@ -82,20 +83,19 @@ class _TreatmentScreenState extends State<TreatmentScreen> {
                       ),
                     ),
                     const SizedBox(height: 16),
-                    const Text(
-                      'No treatment records yet',
-                      style: TextStyle(
+                    Text(
+                      context.tr('no_treatments'),
+                      style: const TextStyle(
                         color: AppColors.textPrimary,
                         fontSize: 16,
                         fontWeight: FontWeight.w700,
                       ),
                     ),
                     const SizedBox(height: 8),
-                    const Text(
-                      'Treatment records are created by the veterinarian\n'
-                      'through the veterinarian module.',
+                    Text(
+                      context.tr('treatment_records_created_by_vet'),
                       textAlign: TextAlign.center,
-                      style: TextStyle(color: AppColors.textSecondary, fontSize: 13, height: 1.4),
+                      style: const TextStyle(color: AppColors.textSecondary, fontSize: 13, height: 1.4),
                     ),
                   ],
                 ),
@@ -152,28 +152,28 @@ class _TreatmentScreenState extends State<TreatmentScreen> {
                         ),
                         const SizedBox(height: 4),
                         Text(
-                          'Animal Tag: ${t.animalTag}',
+                          '${context.tr('animal_id_tag')}: ${t.animalTag}',
                           style: const TextStyle(color: AppColors.textSecondary, fontSize: 12),
                         ),
                         const Divider(height: 24, color: AppColors.borderLight),
-                        _row('Treatment', t.treatment),
-                        _row('Medicine', t.medicine),
+                        _row(context.tr('treatment'), t.treatment),
+                        _row(context.tr('medicine'), t.medicine),
                         if (t.veterinarian != null)
-                          _row('Veterinarian', t.veterinarian!),
+                          _row(context.tr('veterinarian'), t.veterinarian!),
                         _row(
-                          'Start Date',
+                          context.tr('start_date'),
                           '${t.startDate.day}/${t.startDate.month}/${t.startDate.year}',
                         ),
                         if (t.followUpDate != null)
                           _row(
-                            'Follow-up',
+                            context.tr('follow_up'),
                             '${t.followUpDate!.day}/${t.followUpDate!.month}/${t.followUpDate!.year}',
                           ),
                         if (t.instructions != null) ...[
                           const SizedBox(height: 12),
-                          const Text(
-                            'Instructions:',
-                            style: TextStyle(
+                          Text(
+                            '${context.tr('instructions')}:',
+                            style: const TextStyle(
                               fontWeight: FontWeight.w700,
                               fontSize: 12,
                               color: AppColors.textPrimary,

@@ -2,6 +2,7 @@
 
 import 'package:flutter/material.dart';
 import '../services/farmer_data_service.dart';
+import '../services/localization_service.dart';
 import '../models/vaccination_record.dart';
 import '../models/animal.dart';
 
@@ -51,7 +52,7 @@ class _VaccinationScreenState extends State<VaccinationScreen>
     final animals = widget.dataService.getAnimals();
     if (animals.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Please add animals first.')),
+        SnackBar(content: Text(context.tr('please_add_animals_first'))),
       );
       return;
     }
@@ -61,7 +62,6 @@ class _VaccinationScreenState extends State<VaccinationScreen>
     final vetCtrl = TextEditingController();
     VaccinationStatus status = VaccinationStatus.completed;
     DateTime? date = DateTime.now();
-
 
     showModalBottomSheet(
       context: context,
@@ -81,15 +81,15 @@ class _VaccinationScreenState extends State<VaccinationScreen>
             mainAxisSize: MainAxisSize.min,
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              const Text(
-                'Add Vaccination Record',
-                style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+              Text(
+                context.tr('add_vaccination_record'),
+                style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
               ),
               const SizedBox(height: 16),
               DropdownButtonFormField<Animal>(
                 initialValue: selectedAnimal,
                 decoration: InputDecoration(
-                  labelText: 'Select Animal *',
+                  labelText: '${context.tr('select_animal')} *',
                   border: OutlineInputBorder(
                       borderRadius: BorderRadius.circular(12)),
                 ),
@@ -106,7 +106,7 @@ class _VaccinationScreenState extends State<VaccinationScreen>
               TextField(
                 controller: vaccineCtrl,
                 decoration: InputDecoration(
-                  labelText: 'Vaccine Name *',
+                  labelText: '${context.tr('vaccine_name')} *',
                   border: OutlineInputBorder(
                       borderRadius: BorderRadius.circular(12)),
                 ),
@@ -115,7 +115,7 @@ class _VaccinationScreenState extends State<VaccinationScreen>
               TextField(
                 controller: vetCtrl,
                 decoration: InputDecoration(
-                  labelText: 'Veterinarian (optional)',
+                  labelText: '${context.tr('veterinarian')} (${context.tr('optional')})',
                   border: OutlineInputBorder(
                       borderRadius: BorderRadius.circular(12)),
                 ),
@@ -124,7 +124,7 @@ class _VaccinationScreenState extends State<VaccinationScreen>
               DropdownButtonFormField<VaccinationStatus>(
                 initialValue: status,
                 decoration: InputDecoration(
-                  labelText: 'Status',
+                  labelText: context.tr('status'),
                   border: OutlineInputBorder(
                       borderRadius: BorderRadius.circular(12)),
                 ),
@@ -159,7 +159,7 @@ class _VaccinationScreenState extends State<VaccinationScreen>
                     widget.dataService.addVaccination(record);
                     Navigator.pop(ctx);
                   },
-                  child: const Text('Save Record'),
+                  child: Text(context.tr('save_record')),
                 ),
               ),
             ],
@@ -183,34 +183,34 @@ class _VaccinationScreenState extends State<VaccinationScreen>
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text(
-          'Vaccination Records',
-          style: TextStyle(fontWeight: FontWeight.bold),
+        title: Text(
+          context.tr('vaccination_records'),
+          style: const TextStyle(fontWeight: FontWeight.bold),
         ),
         bottom: TabBar(
           controller: _tabController,
           tabs: [
-            Tab(text: 'Upcoming (${upcoming.length})'),
-            Tab(text: 'History (${completed.length})'),
+            Tab(text: '${context.tr('upcoming')} (${upcoming.length})'),
+            Tab(text: '${context.tr('history')} (${completed.length})'),
           ],
         ),
       ),
       floatingActionButton: FloatingActionButton.extended(
         onPressed: _showAddVaccinationDialog,
         icon: const Icon(Icons.add),
-        label: const Text('Add Record'),
+        label: Text(context.tr('add_record')),
       ),
       body: TabBarView(
         controller: _tabController,
         children: [
           // Upcoming
           upcoming.isEmpty
-              ? _emptyState('No upcoming vaccinations.')
+              ? _emptyState(context.tr('no_upcoming_vaccinations'))
               : _buildList(upcoming),
 
           // History
           completed.isEmpty
-              ? _emptyState('No vaccination history.')
+              ? _emptyState(context.tr('no_vaccination_history'))
               : _buildList(completed),
         ],
       ),
@@ -254,14 +254,14 @@ class _VaccinationScreenState extends State<VaccinationScreen>
             subtitle: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text('Animal: ${v.animalTag}'),
+                Text('${context.tr('animal')}: ${v.animalTag}'),
                 if (v.date != null)
                   Text(
-                      'Date: ${v.date!.day}/${v.date!.month}/${v.date!.year}'),
-                if (v.veterinarian != null) Text('Vet: ${v.veterinarian}'),
+                      '${context.tr('date')}: ${v.date!.day}/${v.date!.month}/${v.date!.year}'),
+                if (v.veterinarian != null) Text('${context.tr('veterinarian')}: ${v.veterinarian}'),
                 if (v.isVerified)
-                  const Text('Verified',
-                      style: TextStyle(color: Colors.green, fontWeight: FontWeight.bold)),
+                  Text(context.tr('verified'),
+                      style: const TextStyle(color: Colors.green, fontWeight: FontWeight.bold)),
               ],
             ),
             trailing: Container(

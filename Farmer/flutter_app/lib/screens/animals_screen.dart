@@ -2,6 +2,7 @@
 
 import 'package:flutter/material.dart';
 import '../services/farmer_data_service.dart';
+import '../services/localization_service.dart';
 import '../models/animal.dart';
 import '../models/herd.dart';
 import 'add_animal_screen.dart';
@@ -81,24 +82,27 @@ class _AnimalsScreenState extends State<AnimalsScreen>
     showDialog(
       context: context,
       builder: (ctx) => AlertDialog(
-        title: const Text('Remove Animal'),
+        title: Text(context.tr('remove_animal')),
         content: Text(
-          'Remove ${animal.species.displayName} — ${animal.earTag}? This action cannot be undone.',
+          context.tr('remove_animal_confirm', params: {
+            'species': context.translateSpecies(animal.species.displayName),
+            'tag': context.translateTag(animal.earTag),
+          }),
         ),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(ctx),
-            child: const Text('Cancel'),
+            child: Text(context.tr('cancel')),
           ),
           TextButton(
             onPressed: () {
               Navigator.pop(ctx);
               widget.dataService.removeAnimal(animal.id);
               ScaffoldMessenger.of(context).showSnackBar(
-                SnackBar(content: Text('${animal.earTag} removed.')),
+                SnackBar(content: Text('${context.translateTag(animal.earTag)} ${context.tr("removed")}.')),
               );
             },
-            child: const Text('Remove', style: TextStyle(color: Colors.red)),
+            child: Text(context.tr('remove'), style: const TextStyle(color: Colors.red)),
           ),
         ],
       ),
@@ -119,20 +123,20 @@ class _AnimalsScreenState extends State<AnimalsScreen>
               mainAxisSize: MainAxisSize.min,
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                const Text(
-                  'Filter Animals',
-                  style: TextStyle(
+                Text(
+                  context.tr('filter_animals'),
+                  style: const TextStyle(
                     fontSize: 18,
                     fontWeight: FontWeight.bold,
                   ),
                 ),
                 const SizedBox(height: 16),
-                const Text('Health Status'),
+                Text(context.tr('health_status')),
                 Wrap(
                   spacing: 8,
                   children: HealthStatus.values.map((s) {
                     return FilterChip(
-                      label: Text(s.displayName),
+                      label: Text(context.translateText(s.displayName)),
                       selected: _filterStatus == s,
                       onSelected: (v) {
                         setSheetState(
@@ -144,12 +148,12 @@ class _AnimalsScreenState extends State<AnimalsScreen>
                   }).toList(),
                 ),
                 const SizedBox(height: 16),
-                const Text('Species'),
+                Text(context.tr('species')),
                 Wrap(
                   spacing: 8,
                   children: AnimalSpecies.values.map((s) {
                     return FilterChip(
-                      label: Text(s.displayName),
+                      label: Text(context.translateSpecies(s.displayName)),
                       selected: _filterSpecies == s,
                       onSelected: (v) {
                         setSheetState(
@@ -172,7 +176,7 @@ class _AnimalsScreenState extends State<AnimalsScreen>
                       setState(() {});
                       Navigator.pop(ctx);
                     },
-                    child: const Text('Clear Filters'),
+                    child: Text(context.tr('clear_filters')),
                   ),
                 ),
               ],
@@ -190,22 +194,22 @@ class _AnimalsScreenState extends State<AnimalsScreen>
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text(
-          'My Animals',
-          style: TextStyle(fontWeight: FontWeight.bold),
+        title: Text(
+          context.tr('my_animals'),
+          style: const TextStyle(fontWeight: FontWeight.bold),
         ),
         actions: [
           IconButton(
             icon: const Icon(Icons.filter_list),
-            tooltip: 'Filter',
+            tooltip: context.tr('filter'),
             onPressed: _showFilterSheet,
           ),
         ],
         bottom: TabBar(
           controller: _tabController,
-          tabs: const [
-            Tab(text: 'Individual'),
-            Tab(text: 'Herds'),
+          tabs: [
+            Tab(text: context.tr('individual')),
+            Tab(text: context.tr('herds')),
           ],
         ),
       ),
@@ -223,7 +227,7 @@ class _AnimalsScreenState extends State<AnimalsScreen>
                       child: TextField(
                         controller: _searchCtrl,
                         decoration: InputDecoration(
-                          hintText: 'Search by tag, breed or species...',
+                          hintText: context.tr('search_animals_hint'),
                           prefixIcon: const Icon(Icons.search),
                           filled: true,
                           border: OutlineInputBorder(
@@ -245,7 +249,10 @@ class _AnimalsScreenState extends State<AnimalsScreen>
                 child: Row(
                   children: [
                     Text(
-                      'Showing ${animals.length} of $total animals',
+                      context.tr('showing_animals_count', params: {
+                        'count': '${animals.length}',
+                        'total': '$total',
+                      }),
                       style: const TextStyle(color: Colors.grey),
                     ),
                   ],
@@ -253,20 +260,20 @@ class _AnimalsScreenState extends State<AnimalsScreen>
               ),
               Expanded(
                 child: animals.isEmpty
-                    ? const Center(
+                    ? Center(
                         child: Column(
                           mainAxisAlignment: MainAxisAlignment.center,
                           children: [
-                            Icon(Icons.pets, size: 60, color: Colors.grey),
-                            SizedBox(height: 16),
+                            const Icon(Icons.pets, size: 60, color: Colors.grey),
+                            const SizedBox(height: 16),
                             Text(
-                              'No animals found.',
-                              style: TextStyle(color: Colors.grey, fontSize: 16),
+                              context.tr('no_animals_found'),
+                              style: const TextStyle(color: Colors.grey, fontSize: 16),
                             ),
-                            SizedBox(height: 8),
+                            const SizedBox(height: 8),
                             Text(
-                              'Add your first animal using the + button.',
-                              style: TextStyle(color: Colors.grey),
+                              context.tr('add_first_animal'),
+                              style: const TextStyle(color: Colors.grey),
                             ),
                           ],
                         ),
@@ -293,8 +300,8 @@ class _AnimalsScreenState extends State<AnimalsScreen>
       floatingActionButton: FloatingActionButton.extended(
         onPressed: _openAddAnimal,
         icon: const Icon(Icons.add),
-        label: const Text('Add Animal'),
-        tooltip: 'Add a new animal',
+        label: Text(context.tr('add_animal')),
+        tooltip: context.tr('add_animal'),
       ),
     );
   }
@@ -376,7 +383,7 @@ class _AnimalCard extends StatelessWidget {
                     Row(
                       children: [
                         Text(
-                          animal.earTag,
+                          context.translateTag(animal.earTag),
                           style: const TextStyle(
                             fontWeight: FontWeight.bold,
                             fontSize: 15,
@@ -391,7 +398,7 @@ class _AnimalCard extends StatelessWidget {
                             borderRadius: BorderRadius.circular(8),
                           ),
                           child: Text(
-                            animal.healthStatus.displayName,
+                            context.translateText(animal.healthStatus.displayName),
                             style: TextStyle(
                               color: statusColor,
                               fontSize: 11,
@@ -403,11 +410,11 @@ class _AnimalCard extends StatelessWidget {
                     ),
                     const SizedBox(height: 4),
                     Text(
-                      '${animal.species.displayName} · ${animal.breed}',
+                      '${context.translateSpecies(animal.species.displayName)} · ${context.translateBreed(animal.breed)}',
                       style: const TextStyle(fontSize: 13),
                     ),
                     Text(
-                      '${animal.gender.displayName} · ${animal.age}',
+                      '${context.translateText(animal.gender.displayName)} · ${context.translateText(animal.age)}',
                       style: const TextStyle(color: Colors.grey, fontSize: 12),
                     ),
                   ],
@@ -419,12 +426,12 @@ class _AnimalCard extends StatelessWidget {
                   if (v == 'edit') onEdit();
                   if (v == 'delete') onDelete();
                 },
-                itemBuilder: (_) => const [
-                  PopupMenuItem(value: 'view', child: Text('View Details')),
-                  PopupMenuItem(value: 'edit', child: Text('Edit')),
+                itemBuilder: (_) => [
+                  PopupMenuItem(value: 'view', child: Text(context.tr('view_details'))),
+                  PopupMenuItem(value: 'edit', child: Text(context.tr('edit'))),
                   PopupMenuItem(
                     value: 'delete',
-                    child: Text('Remove', style: TextStyle(color: Colors.red)),
+                    child: Text(context.tr('remove'), style: const TextStyle(color: Colors.red)),
                   ),
                 ],
               ),
@@ -447,15 +454,15 @@ class _HerdsTab extends StatelessWidget {
   Widget build(BuildContext context) {
     final herds = dataService.getHerds();
     return herds.isEmpty
-        ? const Center(
+        ? Center(
             child: Column(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                Icon(Icons.group_work, size: 60, color: Colors.grey),
-                SizedBox(height: 16),
+                const Icon(Icons.group_work, size: 60, color: Colors.grey),
+                const SizedBox(height: 16),
                 Text(
-                  'No herds added yet.',
-                  style: TextStyle(color: Colors.grey, fontSize: 16),
+                  context.tr('no_herds_found'),
+                  style: const TextStyle(color: Colors.grey, fontSize: 16),
                 ),
               ],
             ),

@@ -179,7 +179,7 @@ class _AssessmentResultScreenState extends State<AssessmentResultScreen> {
                     ),
                     const SizedBox(height: 10),
                     Text(
-                      result.title,
+                      context.translateText(result.title),
                       textAlign: TextAlign.center,
                       style: TextStyle(
                         fontSize: 22,
@@ -190,7 +190,7 @@ class _AssessmentResultScreenState extends State<AssessmentResultScreen> {
                     ),
                     const SizedBox(height: 8),
                     Text(
-                      'Case ID: #${widget.reportId} • Tag: ${widget.animalTag ?? "Livestock"}',
+                      '${context.tr("case_id")}: #${widget.reportId} • ${context.tr("animal")}: ${widget.animalTag ?? ""}',
                       style: const TextStyle(color: Colors.black54, fontSize: 13, fontWeight: FontWeight.w600),
                     ),
                   ],
@@ -241,18 +241,18 @@ class _AssessmentResultScreenState extends State<AssessmentResultScreen> {
                               size: 16,
                             ),
                             label: Text(context.tr('listen'), style: const TextStyle(fontSize: 12.5)),
-                            onPressed: () => _readAloud(result.advice),
+                            onPressed: () => _readAloud(context.translateText(result.advice)),
                           ),
                         ],
                       ),
                       const SizedBox(height: 14),
                       Text(
-                        result.advice,
+                        context.translateText(result.advice),
                         style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w700, height: 1.4, color: Colors.black87),
                       ),
                       const SizedBox(height: 10),
                       Text(
-                        result.recommendedAction,
+                        context.translateText(result.recommendedAction),
                         style: const TextStyle(color: Colors.black54, fontSize: 13.5, height: 1.4),
                       ),
                       if (result.suspectedConditions.isNotEmpty) ...[
@@ -268,7 +268,7 @@ class _AssessmentResultScreenState extends State<AssessmentResultScreen> {
                           children: result.suspectedConditions.map((condition) {
                             return Chip(
                               label: Text(
-                                condition,
+                                context.translateText(condition),
                                 style: TextStyle(fontSize: 12, fontWeight: FontWeight.w600, color: AppColors.primaryDark),
                               ),
                               backgroundColor: AppColors.primaryLight.withValues(alpha: 0.6),

@@ -13,6 +13,7 @@ import '../services/localization_service.dart';
 import '../services/media_service.dart';
 import '../models/farmer_profile.dart';
 import '../widgets/farmer_shell.dart';
+import '../widgets/language_selector_button.dart';
 
 class RegistrationScreen extends StatefulWidget {
   final FarmerDataService dataService;
@@ -112,23 +113,51 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
   };
 
   final List<Map<String, String>> _livestockOptions = [
-    {'label': 'Cow', 'emoji': '🐄'},
-    {'label': 'Buffalo', 'emoji': '🐃'},
-    {'label': 'Goat', 'emoji': '🐐'},
-    {'label': 'Sheep', 'emoji': '🐑'},
-    {'label': 'Pig', 'emoji': '🐖'},
-    {'label': 'Poultry', 'emoji': '🐔'},
-    {'label': 'Other', 'emoji': '🐾'},
+    {'label': 'Cow', 'key': 'cow', 'emoji': '🐄'},
+    {'label': 'Buffalo', 'key': 'buffalo', 'emoji': '🐃'},
+    {'label': 'Goat', 'key': 'goat', 'emoji': '🐐'},
+    {'label': 'Sheep', 'key': 'sheep', 'emoji': '🐑'},
+    {'label': 'Pig', 'key': 'pig', 'emoji': '🐖'},
+    {'label': 'Poultry', 'key': 'poultry', 'emoji': '🐔'},
+    {'label': 'Other', 'key': 'other', 'emoji': '🐾'},
   ];
+
+  void _onLocaleChange() {
+    if (!mounted) return;
+    final lang = LocalizationService.instance.currentLanguage;
+    _preferredLang = lang.label;
+    _applyLanguageDefaults(lang);
+    setState(() {});
+  }
+
+  void _applyLanguageDefaults(AppLanguage lang) {
+    if (_nameCtrl.text.isEmpty ||
+        _nameCtrl.text == 'Sanjay Kumar' ||
+        _nameCtrl.text == 'संजय कुमार') {
+      _nameCtrl.text = lang == AppLanguage.english ? 'Sanjay Kumar' : 'संजय कुमार';
+    }
+    if (_farmNameCtrl.text.isEmpty ||
+        _farmNameCtrl.text == 'Green Meadows Farm' ||
+        _farmNameCtrl.text == 'ग्रीन मीडोज फार्म' ||
+        _farmNameCtrl.text == 'ग्रीन मेडोज फार्म') {
+      _farmNameCtrl.text = lang == AppLanguage.marathi
+          ? 'ग्रीन मेडोज फार्म'
+          : (lang == AppLanguage.hindi ? 'ग्रीन मीडोज फार्म' : 'Green Meadows Farm');
+    }
+  }
 
   @override
   void initState() {
     super.initState();
-    _preferredLang = LocalizationService.instance.currentLanguage.label;
+    final lang = LocalizationService.instance.currentLanguage;
+    _preferredLang = lang.label;
+    _applyLanguageDefaults(lang);
+    LocalizationService.instance.addListener(_onLocaleChange);
   }
 
   @override
   void dispose() {
+    LocalizationService.instance.removeListener(_onLocaleChange);
     MediaService.instance.stopListening();
     MediaService.instance.stopRecording();
     _pageController.dispose();
@@ -148,21 +177,21 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
     // Validations per page
     if (_currentPage == 0) {
       if (_nameCtrl.text.trim().isEmpty) {
-        _showError('Please enter your full name.');
+        _showError(context.tr('enter_full_name'));
         return;
       }
       if (_mobileCtrl.text.trim().length != 10) {
-        _showError('Please enter a valid 10-digit mobile number.');
+        _showError(context.tr('enter_valid_mobile'));
         return;
       }
     } else if (_currentPage == 1) {
       if (_villageCtrl.text.trim().isEmpty) {
-        _showError('Please enter your village name.');
+        _showError(context.tr('enter_village'));
         return;
       }
     } else if (_currentPage == 2) {
       if (_selectedLivestock.isEmpty) {
-        _showError('Please select at least one livestock type.');
+        _showError(context.tr('select_one_livestock'));
         return;
       }
     }
@@ -210,7 +239,7 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
           children: [
             const Icon(Icons.mic_rounded, color: Colors.white, size: 20),
             const SizedBox(width: 8),
-            Text('Listening... Speak your name clearly [${lang.label}]'),
+            Text('${context.tr('listening_speak_name')} [${lang.label}]'),
           ],
         ),
         duration: const Duration(seconds: 3),
@@ -251,20 +280,20 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
     // transcribe the recorded audio via backend API
     if (_nameCtrl.text.trim().isEmpty && recordedPath != null && !kIsWeb) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
+        SnackBar(
           content: Row(
             children: [
-              SizedBox(
+              const SizedBox(
                 width: 16,
                 height: 16,
                 child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white),
               ),
-              SizedBox(width: 10),
-              Text('Transcribing spoken name...'),
+              const SizedBox(width: 10),
+              Text(context.tr('transcribing_name')),
             ],
           ),
-          duration: Duration(seconds: 2),
-          backgroundColor: Color(0xFF0D9488),
+          duration: const Duration(seconds: 2),
+          backgroundColor: const Color(0xFF0D9488),
         ),
       );
 
@@ -283,7 +312,7 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
           });
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
-              content: Text('✓ Voice captured: "$formatted"'),
+              content: Text('✓ ${context.tr('voice_captured')}: "$formatted"'),
               backgroundColor: const Color(0xFF16A34A),
             ),
           );
@@ -298,14 +327,14 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
     if (_nameCtrl.text.trim().isNotEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: Text('✓ Voice captured: "${_nameCtrl.text.trim()}"'),
+          content: Text('✓ ${context.tr('voice_captured')}: "${_nameCtrl.text.trim()}"'),
           backgroundColor: const Color(0xFF16A34A),
         ),
       );
     } else {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('No speech detected. Please speak louder or type your name.'),
+        SnackBar(
+          content: Text(context.tr('no_speech_detected')),
           backgroundColor: Colors.orange,
         ),
       );
@@ -322,7 +351,7 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
   void _verifyOtp() {
     final code = _otpCtrl.text.trim();
     if (code != '123456') {
-      setState(() => _otpError = 'Incorrect OTP. Use 123456 for demo.');
+      setState(() => _otpError = context.tr('incorrect_otp'));
       return;
     }
 
@@ -340,11 +369,11 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
 
   void _createAccount() {
     if (_passwordCtrl.text.length < 4) {
-      _showError('Password must be at least 4 characters.');
+      _showError(context.tr('password_min_4'));
       return;
     }
     if (_passwordCtrl.text != _confirmPasswordCtrl.text) {
-      _showError('Passwords do not match.');
+      _showError(context.tr('passwords_dont_match'));
       return;
     }
 
@@ -389,7 +418,7 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
             ),
             const SizedBox(height: 8),
             Text(
-              'Welcome, ${newProfile.fullName}! You are ready to manage your farm.',
+              context.tr('welcome_ready', params: {'name': newProfile.fullName}),
               textAlign: TextAlign.center,
               style: const TextStyle(color: Colors.grey, fontSize: 14),
             ),
@@ -443,9 +472,15 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
                 onPressed: () => Navigator.pop(context),
               ),
         title: Text(
-          'Step ${_currentPage + 1} of 6',
+          context.tr('step_counter', params: {'step': '${_currentPage + 1}', 'total': '6'}),
           style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w600, color: Colors.grey),
         ),
+        actions: const [
+          Padding(
+            padding: EdgeInsets.symmetric(horizontal: 8, vertical: 8),
+            child: LanguageSelectorButton(),
+          ),
+        ],
       ),
       body: Column(
         children: [
@@ -490,7 +525,7 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
             style: const TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
           ),
           const SizedBox(height: 6),
-          const Text('Please provide your basic contact information.', style: TextStyle(color: Colors.grey)),
+          Text(context.tr('basic_info_subtitle'), style: const TextStyle(color: Colors.grey)),
           const SizedBox(height: 28),
 
           // Full Name with microphone speak button
@@ -499,10 +534,10 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
             style: const TextStyle(fontSize: 17),
             decoration: InputDecoration(
               labelText: '${context.tr('full_name')} *',
-              hintText: 'e.g. Ramesh Patil (or speak)',
+              hintText: context.tr('name_hint'),
               prefixIcon: const Icon(Icons.person_rounded),
               suffixIcon: IconButton(
-                tooltip: _isSpeakingName ? 'Stop listening' : 'Speak your name',
+                tooltip: _isSpeakingName ? context.tr('stop_listening') : context.tr('speak_your_name'),
                 icon: _isSpeakingName
                     ? const Icon(Icons.stop_circle_rounded, color: Colors.red, size: 28)
                     : const Icon(Icons.mic_rounded, color: Color(0xFF0D9488), size: 28),
@@ -537,7 +572,7 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
                   const SizedBox(width: 8),
                   Expanded(
                     child: Text(
-                      _isSpeakingName ? 'Listening... Tap to Stop & Save' : 'Tap to speak your name',
+                      _isSpeakingName ? context.tr('listening_tap_stop') : context.tr('tap_speak_name'),
                       style: TextStyle(
                         fontSize: 14,
                         fontWeight: FontWeight.w700,
@@ -622,7 +657,7 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
             style: const TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
           ),
           const SizedBox(height: 6),
-          const Text('Select your location details from dropdowns.', style: TextStyle(color: Colors.grey)),
+          Text(context.tr('location_subtitle'), style: const TextStyle(color: Colors.grey)),
           const SizedBox(height: 24),
 
           // State — Static (Maharashtra only)
@@ -640,9 +675,9 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
               children: [
                 const Icon(Icons.map_rounded, color: Color(0xFF64748B), size: 20),
                 const SizedBox(width: 12),
-                const Text(
-                  'Maharashtra',
-                  style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600, color: Color(0xFF1E293B)),
+                Text(
+                  context.translateText('Maharashtra'),
+                  style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w600, color: Color(0xFF1E293B)),
                 ),
                 const Spacer(),
                 Container(
@@ -651,9 +686,9 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
                     color: const Color(0xFFDCFCE7),
                     borderRadius: BorderRadius.circular(6),
                   ),
-                  child: const Text(
-                    'Fixed',
-                    style: TextStyle(fontSize: 11, fontWeight: FontWeight.bold, color: Color(0xFF16A34A)),
+                  child: Text(
+                    context.tr('fixed'),
+                    style: const TextStyle(fontSize: 11, fontWeight: FontWeight.bold, color: Color(0xFF16A34A)),
                   ),
                 ),
               ],
@@ -665,7 +700,7 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
           Text('${context.tr('district')} *', style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 14)),
           const SizedBox(height: 6),
           DropdownButtonFormField<String>(
-            value: districts.contains(_selectedDistrict) ? _selectedDistrict : districts.first,
+            initialValue: districts.contains(_selectedDistrict) ? _selectedDistrict : districts.first,
             decoration: const InputDecoration(prefixIcon: Icon(Icons.location_city_rounded)),
             isExpanded: true,
             items: districts.map((d) => DropdownMenuItem(value: d, child: Text(d))).toList(),
@@ -679,10 +714,10 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
           const SizedBox(height: 16),
 
           // Taluk Dropdown — based on selected district
-          Text('Taluk *', style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 14)),
+          Text('${context.tr('taluk')} *', style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 14)),
           const SizedBox(height: 6),
           DropdownButtonFormField<String>(
-            value: talukas.contains(_selectedBlock) ? _selectedBlock : talukas.first,
+            initialValue: talukas.contains(_selectedBlock) ? _selectedBlock : talukas.first,
             decoration: const InputDecoration(prefixIcon: Icon(Icons.apartment_rounded)),
             isExpanded: true,
             items: talukas.map((b) => DropdownMenuItem(value: b, child: Text(b))).toList(),
@@ -696,9 +731,9 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
           TextField(
             controller: _villageCtrl,
             style: const TextStyle(fontSize: 16),
-            decoration: const InputDecoration(
-              prefixIcon: Icon(Icons.villa_rounded),
-              hintText: 'Enter your village name',
+            decoration: InputDecoration(
+              prefixIcon: const Icon(Icons.villa_rounded),
+              hintText: context.tr('village_hint'),
             ),
           ),
           const SizedBox(height: 36),
@@ -721,7 +756,7 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
             style: const TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
           ),
           const SizedBox(height: 6),
-          const Text('Enter farm size and select your livestock.', style: TextStyle(color: Colors.grey)),
+          Text(context.tr('farm_details_subtitle'), style: const TextStyle(color: Colors.grey)),
           const SizedBox(height: 24),
 
           // Farm Name (Optional)
@@ -758,7 +793,7 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
                     labelText: context.tr('farm_size_unit'),
                   ),
                   items: ['Acres', 'Hectares', 'Cent']
-                      .map((u) => DropdownMenuItem(value: u, child: Text(u)))
+                      .map((u) => DropdownMenuItem(value: u, child: Text(context.translateText(u))))
                       .toList(),
                   onChanged: (val) => setState(() => _farmSizeUnit = val!),
                 ),
@@ -774,12 +809,12 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
             children: [
               Expanded(
                 child: _buildChoiceChip(
-                  label: context.tr('use_current_location'),
+                  label: context.translateText('📍 Current Location'),
                   selected: _locationMode == '📍 Current Location',
                   onTap: () {
                     setState(() => _locationMode = '📍 Current Location');
                     ScaffoldMessenger.of(context).showSnackBar(
-                      const SnackBar(content: Text('Using current location (Frontend placeholder)')),
+                      SnackBar(content: Text(context.tr('using_current_loc'))),
                     );
                   },
                 ),
@@ -787,7 +822,7 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
               const SizedBox(width: 8),
               Expanded(
                 child: _buildChoiceChip(
-                  label: context.tr('enter_location_manually'),
+                  label: context.translateText('📝 Enter Location Manually'),
                   selected: _locationMode == '📝 Enter Location Manually',
                   onTap: () => setState(() => _locationMode = '📝 Enter Location Manually'),
                 ),
@@ -798,7 +833,7 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
 
           // Livestock Multi-Select
           Text(
-            '${context.tr('livestock_type')} (Select all that apply) *',
+            context.tr('livestock_type_select_all'),
             style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 14),
           ),
           const SizedBox(height: 10),
@@ -807,12 +842,16 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
             runSpacing: 10,
             children: _livestockOptions.map((opt) {
               final label = opt['label']!;
+              final key = opt['key'] ?? 'other';
               final emoji = opt['emoji']!;
               final isSelected = _selectedLivestock.contains(label);
               return FilterChip(
                 selected: isSelected,
                 avatar: Text(emoji, style: const TextStyle(fontSize: 18)),
-                label: Text(label, style: TextStyle(fontWeight: isSelected ? FontWeight.bold : FontWeight.normal)),
+                label: Text(
+                  context.tr(key),
+                  style: TextStyle(fontWeight: isSelected ? FontWeight.bold : FontWeight.normal),
+                ),
                 selectedColor: Theme.of(context).colorScheme.primaryContainer,
                 checkmarkColor: Theme.of(context).colorScheme.primary,
                 onSelected: (selected) {
@@ -847,7 +886,7 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
             style: const TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
           ),
           const SizedBox(height: 6),
-          const Text('Choose how you want to interact with the app.', style: TextStyle(color: Colors.grey)),
+          Text(context.tr('pref_subtitle'), style: const TextStyle(color: Colors.grey)),
           const SizedBox(height: 24),
 
           // Language Selector
@@ -901,7 +940,7 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
               const SizedBox(width: 8),
               Expanded(
                 child: _buildChoiceChip(
-                  label: 'Both',
+                  label: context.tr('comm_both'),
                   selected: _commPref == 'Both',
                   onTap: () => setState(() => _commPref = 'Both'),
                 ),
@@ -934,7 +973,7 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
           ),
           const SizedBox(height: 6),
           Text(
-            'We sent a verification code to ${_mobileCtrl.text.trim()}.',
+            context.tr('verification_code_sent', params: {'mobile': _mobileCtrl.text.trim()}),
             style: const TextStyle(color: Colors.grey),
           ),
           const SizedBox(height: 24),
@@ -965,7 +1004,7 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
           Center(
             child: TextButton.icon(
               icon: const Icon(Icons.flash_on_rounded, size: 18),
-              label: const Text('Auto-fill Demo OTP (123456)'),
+              label: Text(context.tr('autofill_demo_otp', params: {'otp': '123456'})),
               onPressed: () {
                 _otpCtrl.text = '123456';
                 _verifyOtp();
@@ -986,9 +1025,9 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
               onPressed: _otpVerifying ? null : _verifyOtp,
               child: _otpVerifying
                   ? const CircularProgressIndicator(color: Colors.white)
-                  : const Text(
-                      'VERIFY & CONTINUE',
-                      style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, letterSpacing: 1),
+                  : Text(
+                      context.tr('verify_and_continue'),
+                      style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold, letterSpacing: 1),
                     ),
             ),
           ),
@@ -1012,7 +1051,7 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
           ),
           const SizedBox(height: 6),
           Text(
-            'Create a password for ${ _nameCtrl.text.trim()} to log in easily.',
+            context.tr('create_password_subtitle', params: {'name': _nameCtrl.text.trim()}),
             style: const TextStyle(color: Colors.grey),
           ),
           const SizedBox(height: 24),
@@ -1114,8 +1153,11 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
           child: Text(
             label,
             textAlign: TextAlign.center,
+            softWrap: true,
+            maxLines: 2,
+            overflow: TextOverflow.ellipsis,
             style: TextStyle(
-              fontSize: 12.5,
+              fontSize: 12,
               fontWeight: selected ? FontWeight.bold : FontWeight.normal,
               color: selected ? primary : Colors.black87,
             ),

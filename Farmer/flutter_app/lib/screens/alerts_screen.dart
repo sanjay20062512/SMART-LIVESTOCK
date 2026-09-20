@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../services/farmer_data_service.dart';
+import '../services/localization_service.dart';
 import '../models/alert.dart';
 import '../theme/app_theme.dart';
 
@@ -17,11 +18,13 @@ class _AlertsScreenState extends State<AlertsScreen> {
   void initState() {
     super.initState();
     widget.dataService.addListener(_onDataChanged);
+    LocalizationService.instance.addListener(_onDataChanged);
   }
 
   @override
   void dispose() {
     widget.dataService.removeListener(_onDataChanged);
+    LocalizationService.instance.removeListener(_onDataChanged);
     super.dispose();
   }
 
@@ -69,9 +72,9 @@ class _AlertsScreenState extends State<AlertsScreen> {
     return Scaffold(
       backgroundColor: AppColors.background,
       appBar: AppBar(
-        title: const Text(
-          'Alerts & Advisories',
-          style: TextStyle(
+        title: Text(
+          context.tr('alerts_and_advisories'),
+          style: const TextStyle(
             fontWeight: FontWeight.w800,
             fontSize: 18,
             letterSpacing: -0.2,
@@ -88,9 +91,9 @@ class _AlertsScreenState extends State<AlertsScreen> {
               child: TextButton.icon(
                 onPressed: () => widget.dataService.markAllAlertsRead(),
                 icon: const Icon(Icons.done_all_rounded, size: 16, color: Colors.white),
-                label: const Text(
-                  'Mark All Read',
-                  style: TextStyle(
+                label: Text(
+                  context.tr('mark_all_read'),
+                  style: const TextStyle(
                     color: Colors.white,
                     fontWeight: FontWeight.w600,
                     fontSize: 12,
@@ -122,19 +125,19 @@ class _AlertsScreenState extends State<AlertsScreen> {
                       ),
                     ),
                     const SizedBox(height: 16),
-                    const Text(
-                      'No alerts yet',
-                      style: TextStyle(
+                    Text(
+                      context.tr('no_alerts_yet'),
+                      style: const TextStyle(
                         color: AppColors.textPrimary,
                         fontSize: 16,
                         fontWeight: FontWeight.w700,
                       ),
                     ),
                     const SizedBox(height: 8),
-                    const Text(
-                      'Alerts will appear here when health reports,\nmortality events, or advisories are created.',
+                    Text(
+                      context.tr('no_alerts_subtitle'),
                       textAlign: TextAlign.center,
-                      style: TextStyle(color: AppColors.textSecondary, fontSize: 13, height: 1.4),
+                      style: const TextStyle(color: AppColors.textSecondary, fontSize: 13, height: 1.4),
                     ),
                   ],
                 ),
@@ -223,7 +226,7 @@ class _AlertsScreenState extends State<AlertsScreen> {
                                     children: [
                                       Expanded(
                                         child: Text(
-                                          alert.title,
+                                          context.translateText(alert.title),
                                           style: TextStyle(
                                             fontWeight: alert.isRead
                                                 ? FontWeight.w600
@@ -263,7 +266,7 @@ class _AlertsScreenState extends State<AlertsScreen> {
                                   ),
                                   const SizedBox(height: 5),
                                   Text(
-                                    alert.message,
+                                    context.translateText(alert.message),
                                     maxLines: 2,
                                     overflow: TextOverflow.ellipsis,
                                     style: const TextStyle(
@@ -274,7 +277,7 @@ class _AlertsScreenState extends State<AlertsScreen> {
                                   ),
                                   const SizedBox(height: 6),
                                   Text(
-                                    _formatDate(alert.date),
+                                    _formatDate(context, alert.date),
                                     style: const TextStyle(
                                         color: AppColors.textTertiary, fontSize: 11),
                                   ),
@@ -307,7 +310,7 @@ class _AlertsScreenState extends State<AlertsScreen> {
             const SizedBox(width: 10),
             Expanded(
               child: Text(
-                alert.title,
+                context.translateText(alert.title),
                 style: const TextStyle(fontWeight: FontWeight.w800, fontSize: 16),
               ),
             ),
@@ -331,7 +334,7 @@ class _AlertsScreenState extends State<AlertsScreen> {
               ),
             ),
             const SizedBox(height: 12),
-            Text(alert.message, style: const TextStyle(fontSize: 14, height: 1.4, color: AppColors.textPrimary)),
+            Text(context.translateText(alert.message), style: const TextStyle(fontSize: 14, height: 1.4, color: AppColors.textPrimary)),
             const SizedBox(height: 12),
             Text(
               alert.category.displayName,
@@ -339,7 +342,7 @@ class _AlertsScreenState extends State<AlertsScreen> {
             ),
             const SizedBox(height: 2),
             Text(
-              _formatDate(alert.date),
+              _formatDate(context, alert.date),
               style: const TextStyle(color: AppColors.textTertiary, fontSize: 12),
             ),
           ],
@@ -347,18 +350,29 @@ class _AlertsScreenState extends State<AlertsScreen> {
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(ctx),
-            child: const Text('Close', style: TextStyle(color: AppColors.primary, fontWeight: FontWeight.w700)),
+            child: Text(context.tr('close'), style: const TextStyle(color: AppColors.primary, fontWeight: FontWeight.w700)),
           ),
         ],
       ),
     );
   }
 
-  String _formatDate(DateTime dt) {
+  String _formatDate(BuildContext context, DateTime dt) {
     final diff = DateTime.now().difference(dt);
-    if (diff.inMinutes < 1) return 'Just now';
-    if (diff.inHours < 1) return '${diff.inMinutes}m ago';
-    if (diff.inDays < 1) return '${diff.inHours}h ago';
+    final lang = LocalizationService.instance.currentLanguage;
+    if (diff.inMinutes < 1) return context.tr('just_now');
+    if (diff.inHours < 1) {
+      final mins = diff.inMinutes;
+      if (lang == AppLanguage.hindi) return '$mins मिनट पहले';
+      if (lang == AppLanguage.marathi) return '$mins मिनिटांपूर्वी';
+      return '$mins min ${context.tr('ago')}';
+    }
+    if (diff.inDays < 1) {
+      final hours = diff.inHours;
+      if (lang == AppLanguage.hindi) return '$hours घंटे पहले';
+      if (lang == AppLanguage.marathi) return '$hours तासांपूर्वी';
+      return '$hours hrs ${context.tr('ago')}';
+    }
     return '${dt.day}/${dt.month}/${dt.year}';
   }
 }

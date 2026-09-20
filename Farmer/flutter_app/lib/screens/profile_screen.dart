@@ -19,10 +19,12 @@ class _ProfileScreenState extends State<ProfileScreen> {
   void initState() {
     super.initState();
     widget.dataService.addListener(_onDataChanged);
+    LocalizationService.instance.addListener(_onDataChanged);
   }
 
   @override
   void dispose() {
+    LocalizationService.instance.removeListener(_onDataChanged);
     widget.dataService.removeListener(_onDataChanged);
     super.dispose();
   }
@@ -57,9 +59,9 @@ class _ProfileScreenState extends State<ProfileScreen> {
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
-                  const Text(
-                    'Edit Farmer Details',
-                    style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                  Text(
+                    context.tr('edit_farmer_details'),
+                    style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
                   ),
                   IconButton(
                     icon: const Icon(Icons.close_rounded),
@@ -70,9 +72,9 @@ class _ProfileScreenState extends State<ProfileScreen> {
               const SizedBox(height: 16),
               TextField(
                 controller: nameCtrl,
-                decoration: const InputDecoration(
-                  labelText: 'Full Name',
-                  prefixIcon: Icon(Icons.person_rounded),
+                decoration: InputDecoration(
+                  labelText: context.tr('full_name'),
+                  prefixIcon: const Icon(Icons.person_rounded),
                 ),
               ),
               const SizedBox(height: 12),
@@ -80,9 +82,9 @@ class _ProfileScreenState extends State<ProfileScreen> {
                 controller: mobileCtrl,
                 keyboardType: TextInputType.phone,
                 maxLength: 10,
-                decoration: const InputDecoration(
-                  labelText: 'Mobile Number',
-                  prefixIcon: Icon(Icons.phone_rounded),
+                decoration: InputDecoration(
+                  labelText: context.tr('mobile_number'),
+                  prefixIcon: const Icon(Icons.phone_rounded),
                   counterText: '',
                 ),
               ),
@@ -90,9 +92,9 @@ class _ProfileScreenState extends State<ProfileScreen> {
               TextField(
                 controller: emailCtrl,
                 keyboardType: TextInputType.emailAddress,
-                decoration: const InputDecoration(
-                  labelText: 'Email (optional)',
-                  prefixIcon: Icon(Icons.email_outlined),
+                decoration: InputDecoration(
+                  labelText: context.tr('email_optional'),
+                  prefixIcon: const Icon(Icons.email_outlined),
                 ),
               ),
               const SizedBox(height: 12),
@@ -132,7 +134,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                     LocalizationService.instance.setLanguageByName(selectedLang);
                     Navigator.pop(ctx);
                   },
-                  child: const Text('SAVE CHANGES', style: TextStyle(fontWeight: FontWeight.bold)),
+                  child: Text(context.tr('save_changes'), style: const TextStyle(fontWeight: FontWeight.bold)),
                 ),
               ),
             ],
@@ -175,9 +177,9 @@ class _ProfileScreenState extends State<ProfileScreen> {
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
-                    const Text(
-                      'Edit Farm Details',
-                      style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                    Text(
+                      context.tr('edit_farm_details'),
+                      style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
                     ),
                     IconButton(
                       icon: const Icon(Icons.close_rounded),
@@ -188,9 +190,9 @@ class _ProfileScreenState extends State<ProfileScreen> {
                 const SizedBox(height: 14),
                 TextField(
                   controller: farmNameCtrl,
-                  decoration: const InputDecoration(
-                    labelText: 'Farm Name',
-                    prefixIcon: Icon(Icons.agriculture_rounded),
+                  decoration: InputDecoration(
+                    labelText: context.tr('farm_name_optional'),
+                    prefixIcon: const Icon(Icons.agriculture_rounded),
                   ),
                 ),
                 const SizedBox(height: 12),
@@ -201,7 +203,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                       child: TextField(
                         controller: farmSizeCtrl,
                         keyboardType: TextInputType.number,
-                        decoration: const InputDecoration(labelText: 'Farm Size'),
+                        decoration: InputDecoration(labelText: context.tr('farm_size')),
                       ),
                     ),
                     const SizedBox(width: 10),
@@ -209,9 +211,9 @@ class _ProfileScreenState extends State<ProfileScreen> {
                       flex: 2,
                       child: DropdownButtonFormField<String>(
                         initialValue: sizeUnit,
-                        decoration: const InputDecoration(labelText: 'Unit'),
+                        decoration: InputDecoration(labelText: context.tr('unit')),
                         items: ['Acres', 'Hectares', 'Cent']
-                            .map((u) => DropdownMenuItem(value: u, child: Text(u)))
+                            .map((u) => DropdownMenuItem(value: u, child: Text(context.translateText(u))))
                             .toList(),
                         onChanged: (v) => setModalState(() => sizeUnit = v!),
                       ),
@@ -221,27 +223,27 @@ class _ProfileScreenState extends State<ProfileScreen> {
                 const SizedBox(height: 12),
                 TextField(
                   controller: stateCtrl,
-                  decoration: const InputDecoration(labelText: 'State', prefixIcon: Icon(Icons.map_rounded)),
+                  decoration: InputDecoration(labelText: context.tr('state'), prefixIcon: const Icon(Icons.map_rounded)),
                 ),
                 const SizedBox(height: 12),
                 TextField(
                   controller: districtCtrl,
-                  decoration: const InputDecoration(labelText: 'District', prefixIcon: Icon(Icons.location_city_rounded)),
+                  decoration: InputDecoration(labelText: context.tr('district'), prefixIcon: const Icon(Icons.location_city_rounded)),
                 ),
                 const SizedBox(height: 12),
                 TextField(
                   controller: blockCtrl,
-                  decoration: const InputDecoration(labelText: 'Block / Taluk', prefixIcon: Icon(Icons.apartment_rounded)),
+                  decoration: InputDecoration(labelText: context.tr('block_taluk'), prefixIcon: const Icon(Icons.apartment_rounded)),
                 ),
                 const SizedBox(height: 12),
                 TextField(
                   controller: villageCtrl,
-                  decoration: const InputDecoration(labelText: 'Village', prefixIcon: Icon(Icons.villa_rounded)),
+                  decoration: InputDecoration(labelText: context.tr('village'), prefixIcon: const Icon(Icons.villa_rounded)),
                 ),
                 const SizedBox(height: 12),
                 TextField(
                   controller: livestockCtrl,
-                  decoration: const InputDecoration(labelText: 'Livestock Type(s)', prefixIcon: Icon(Icons.pets_rounded)),
+                  decoration: InputDecoration(labelText: context.tr('livestock_type'), prefixIcon: const Icon(Icons.pets_rounded)),
                 ),
                 const SizedBox(height: 20),
                 SizedBox(
@@ -267,7 +269,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                       widget.dataService.updateProfile(updated);
                       Navigator.pop(ctx);
                     },
-                    child: const Text('SAVE FARM DETAILS', style: TextStyle(fontWeight: FontWeight.bold)),
+                    child: Text(context.tr('save_farm_details'), style: const TextStyle(fontWeight: FontWeight.bold)),
                   ),
                 ),
               ],
@@ -282,12 +284,12 @@ class _ProfileScreenState extends State<ProfileScreen> {
     showDialog(
       context: context,
       builder: (ctx) => AlertDialog(
-        title: const Text('Logout'),
-        content: const Text('Are you sure you want to log out?'),
+        title: Text(context.tr('logout')),
+        content: Text(context.tr('logout_confirm')),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(ctx),
-            child: const Text('Cancel'),
+            child: Text(context.tr('cancel')),
           ),
           TextButton(
             onPressed: () {
@@ -297,7 +299,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                 (route) => false,
               );
             },
-            child: const Text('Logout', style: TextStyle(color: Colors.red)),
+            child: Text(context.tr('logout'), style: const TextStyle(color: Colors.red)),
           ),
         ],
       ),
@@ -308,6 +310,9 @@ class _ProfileScreenState extends State<ProfileScreen> {
   Widget build(BuildContext context) {
     final profile = widget.dataService.profile;
     final visits = widget.dataService.getFarmerVisits();
+    final localizedFullName = context.translateText(profile.fullName);
+    final localizedFarmName = profile.farmName != null ? context.translateText(profile.farmName!) : null;
+    final initialLetter = localizedFullName.isNotEmpty ? localizedFullName.characters.first : 'F';
 
     return Scaffold(
       backgroundColor: AppColors.background,
@@ -316,9 +321,9 @@ class _ProfileScreenState extends State<ProfileScreen> {
         foregroundColor: Colors.white,
         surfaceTintColor: Colors.transparent,
         elevation: 0,
-        title: const Text(
-          'Farmer Profile',
-          style: TextStyle(
+        title: Text(
+          context.tr('farmer_profile'),
+          style: const TextStyle(
             fontWeight: FontWeight.w800,
             fontSize: 18,
             letterSpacing: -0.2,
@@ -348,7 +353,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                     radius: 32,
                     backgroundColor: Colors.white,
                     child: Text(
-                      profile.fullName.isNotEmpty ? profile.fullName[0].toUpperCase() : 'F',
+                      initialLetter,
                       style: const TextStyle(fontSize: 28, fontWeight: FontWeight.w800, color: AppColors.primaryDark),
                     ),
                   ),
@@ -358,7 +363,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Text(
-                          profile.fullName,
+                          localizedFullName,
                           style: const TextStyle(color: Colors.white, fontSize: 18, fontWeight: FontWeight.w800),
                         ),
                         const SizedBox(height: 3),
@@ -366,10 +371,10 @@ class _ProfileScreenState extends State<ProfileScreen> {
                           '📱 ${profile.mobileNumber}',
                           style: TextStyle(color: Colors.white.withValues(alpha: 0.85), fontSize: 13),
                         ),
-                        if (profile.farmName != null) ...[
+                        if (localizedFarmName != null) ...[
                           const SizedBox(height: 2),
                           Text(
-                            '🏡 ${profile.farmName}',
+                            '🏡 $localizedFarmName',
                             style: TextStyle(color: Colors.white.withValues(alpha: 0.85), fontSize: 13),
                           ),
                         ],
@@ -399,28 +404,28 @@ class _ProfileScreenState extends State<ProfileScreen> {
                     Row(
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
-                        const Row(
+                        Row(
                           children: [
-                            Icon(Icons.person_rounded, color: AppColors.primary, size: 20),
-                            SizedBox(width: 8),
+                            const Icon(Icons.person_rounded, color: AppColors.primary, size: 20),
+                            const SizedBox(width: 8),
                             Text(
-                              'SECTION 1 — FARMER DETAILS',
-                              style: TextStyle(fontWeight: FontWeight.w800, fontSize: 12, letterSpacing: 0.5, color: AppColors.textPrimary),
+                              context.tr('section_farmer_details'),
+                              style: const TextStyle(fontWeight: FontWeight.w800, fontSize: 12, letterSpacing: 0.5, color: AppColors.textPrimary),
                             ),
                           ],
                         ),
                         TextButton.icon(
                           icon: const Icon(Icons.edit_rounded, size: 15, color: AppColors.primary),
-                          label: const Text('Edit', style: TextStyle(color: AppColors.primary, fontWeight: FontWeight.w700)),
+                          label: Text(context.tr('edit'), style: const TextStyle(color: AppColors.primary, fontWeight: FontWeight.w700)),
                           onPressed: _editFarmerDetails,
                         ),
                       ],
                     ),
                     const Divider(height: 16, color: AppColors.borderLight),
-                    _buildRow('Name', profile.fullName),
-                    _buildRow('Mobile', profile.mobileNumber),
-                    _buildRow('Email', profile.email ?? '—'),
-                    _buildRow('Preferred Language', profile.preferredLanguage),
+                    _buildRow(context.tr('full_name'), localizedFullName),
+                    _buildRow(context.tr('mobile_number'), profile.mobileNumber),
+                    _buildRow(context.tr('email_optional'), profile.email ?? '—'),
+                    _buildRow(context.tr('preferred_language'), LocalizationService.instance.currentLanguage.label),
                   ],
                 ),
               ),
@@ -445,32 +450,32 @@ class _ProfileScreenState extends State<ProfileScreen> {
                     Row(
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
-                        const Row(
+                        Row(
                           children: [
-                            Icon(Icons.agriculture_rounded, color: AppColors.primary, size: 20),
-                            SizedBox(width: 8),
+                            const Icon(Icons.agriculture_rounded, color: AppColors.primary, size: 20),
+                            const SizedBox(width: 8),
                             Text(
-                              'SECTION 2 — FARM DETAILS',
-                              style: TextStyle(fontWeight: FontWeight.w800, fontSize: 12, letterSpacing: 0.5, color: AppColors.textPrimary),
+                              context.tr('section_farm_details'),
+                              style: const TextStyle(fontWeight: FontWeight.w800, fontSize: 12, letterSpacing: 0.5, color: AppColors.textPrimary),
                             ),
                           ],
                         ),
                         TextButton.icon(
                           icon: const Icon(Icons.edit_rounded, size: 15, color: AppColors.primary),
-                          label: const Text('Edit', style: TextStyle(color: AppColors.primary, fontWeight: FontWeight.w700)),
+                          label: Text(context.tr('edit'), style: const TextStyle(color: AppColors.primary, fontWeight: FontWeight.w700)),
                           onPressed: _editFarmDetails,
                         ),
                       ],
                     ),
                     const Divider(height: 16, color: AppColors.borderLight),
-                    _buildRow('Farm Name', profile.farmName ?? '—'),
-                    _buildRow('Farm Size', '${profile.farmSize ?? "—"} ${profile.farmSizeUnit ?? "Acres"}'),
-                    _buildRow('Location Mode', profile.farmLocationMode ?? '📍 Current Location'),
-                    _buildRow('State', profile.state),
-                    _buildRow('District', profile.district),
-                    _buildRow('Block / Taluk', profile.block),
-                    _buildRow('Village', profile.village),
-                    _buildRow('Livestock Type', profile.livestockType),
+                    _buildRow(context.tr('farm_name_optional'), localizedFarmName ?? '—'),
+                    _buildRow(context.tr('farm_size'), '${profile.farmSize ?? "—"} ${context.translateText(profile.farmSizeUnit ?? context.tr('acres'))}'),
+                    _buildRow(context.tr('location_mode'), context.translateText(profile.farmLocationMode ?? '📍 Current Location')),
+                    _buildRow(context.tr('state'), context.translateText(profile.state)),
+                    _buildRow(context.tr('district'), context.translateText(profile.district)),
+                    _buildRow(context.tr('taluk'), context.translateText(profile.block)),
+                    _buildRow(context.tr('village'), context.translateText(profile.village)),
+                    _buildRow(context.tr('livestock_type'), context.translateText(profile.livestockType)),
                   ],
                 ),
               ),
@@ -495,13 +500,13 @@ class _ProfileScreenState extends State<ProfileScreen> {
                     Row(
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
-                        const Row(
+                        Row(
                           children: [
-                            Icon(Icons.calendar_month_rounded, color: AppColors.primary, size: 20),
-                            SizedBox(width: 8),
+                            const Icon(Icons.calendar_month_rounded, color: AppColors.primary, size: 20),
+                            const SizedBox(width: 8),
                             Text(
-                              'SECTION 3 — SCHEDULED VET VISITS',
-                              style: TextStyle(fontWeight: FontWeight.w800, fontSize: 12, letterSpacing: 0.5, color: AppColors.textPrimary),
+                              context.tr('section_vet_visits'),
+                              style: const TextStyle(fontWeight: FontWeight.w800, fontSize: 12, letterSpacing: 0.5, color: AppColors.textPrimary),
                             ),
                           ],
                         ),
@@ -513,7 +518,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                             border: Border.all(color: visits.isNotEmpty ? AppColors.primary.withValues(alpha: 0.3) : AppColors.border),
                           ),
                           child: Text(
-                            '${visits.length} Visit${visits.length == 1 ? "" : "s"}',
+                            '${visits.length} ${context.tr(visits.length == 1 ? "vet_visit" : "vet_visits")}',
                             style: TextStyle(
                               fontSize: 11,
                               fontWeight: FontWeight.w700,
@@ -528,19 +533,19 @@ class _ProfileScreenState extends State<ProfileScreen> {
                       Container(
                         padding: const EdgeInsets.symmetric(vertical: 20, horizontal: 12),
                         alignment: Alignment.center,
-                        child: const Column(
+                        child: Column(
                           children: [
-                            Icon(Icons.event_available_outlined, size: 36, color: AppColors.textTertiary),
-                            SizedBox(height: 8),
+                            const Icon(Icons.event_available_outlined, size: 36, color: AppColors.textTertiary),
+                            const SizedBox(height: 8),
                             Text(
-                              'No vet visits scheduled yet',
-                              style: TextStyle(color: AppColors.textPrimary, fontWeight: FontWeight.w700, fontSize: 14),
+                              context.tr('no_vet_visits'),
+                              style: const TextStyle(color: AppColors.textPrimary, fontWeight: FontWeight.w700, fontSize: 14),
                             ),
-                            SizedBox(height: 4),
+                            const SizedBox(height: 4),
                             Text(
-                              'When a veterinarian accepts your case and schedules a visit, details and dates will appear here.',
+                              context.tr('no_vet_visits_desc'),
                               textAlign: TextAlign.center,
-                              style: TextStyle(color: AppColors.textSecondary, fontSize: 12),
+                              style: const TextStyle(color: AppColors.textSecondary, fontSize: 12),
                             ),
                           ],
                         ),
@@ -568,13 +573,13 @@ class _ProfileScreenState extends State<ProfileScreen> {
                       backgroundColor: AppColors.primaryLight,
                       child: Icon(Icons.science_rounded, color: AppColors.primary),
                     ),
-                    title: const Text('Load Demo Records', style: TextStyle(fontWeight: FontWeight.w700, fontSize: 14)),
-                    subtitle: const Text('Populate animals and alerts for testing', style: TextStyle(fontSize: 12, color: AppColors.textSecondary)),
+                    title: Text(context.tr('load_demo_records'), style: const TextStyle(fontWeight: FontWeight.w700, fontSize: 14)),
+                    subtitle: Text(context.tr('load_demo_records_desc'), style: const TextStyle(fontSize: 12, color: AppColors.textSecondary)),
                     trailing: const Icon(Icons.chevron_right_rounded, color: AppColors.textTertiary),
                     onTap: () {
                       widget.dataService.seedDemoData(force: true);
                       ScaffoldMessenger.of(context).showSnackBar(
-                        const SnackBar(content: Text('✓ Demo data loaded.'), backgroundColor: AppColors.success),
+                        SnackBar(content: Text(context.tr('demo_data_loaded')), backgroundColor: AppColors.success),
                       );
                     },
                   ),
@@ -584,7 +589,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                       backgroundColor: AppColors.errorLight,
                       child: Icon(Icons.logout_rounded, color: AppColors.error),
                     ),
-                    title: const Text('Logout', style: TextStyle(color: AppColors.error, fontWeight: FontWeight.w700, fontSize: 14)),
+                    title: Text(context.tr('logout'), style: const TextStyle(color: AppColors.error, fontWeight: FontWeight.w700, fontSize: 14)),
                     trailing: const Icon(Icons.chevron_right_rounded, color: AppColors.textTertiary),
                     onTap: _logout,
                   ),
@@ -644,7 +649,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                   ),
                   const SizedBox(width: 6),
                   Text(
-                    '📅 $dateStr at $timeStr',
+                    '📅 $dateStr ${context.tr('at')} $timeStr',
                     style: TextStyle(
                       fontWeight: FontWeight.bold,
                       fontSize: 14,
@@ -660,7 +665,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                   borderRadius: BorderRadius.circular(8),
                 ),
                 child: Text(
-                  isUpcoming ? 'CONFIRMED' : 'COMPLETED',
+                  isUpcoming ? context.tr('status_confirmed') : context.tr('status_completed'),
                   style: const TextStyle(color: Colors.white, fontSize: 11, fontWeight: FontWeight.bold),
                 ),
               ),
@@ -672,7 +677,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
               const Icon(Icons.person_pin_rounded, size: 16, color: Colors.grey),
               const SizedBox(width: 6),
               Text(
-                'Doctor: ${v.vetName}',
+                '${context.tr('doctor')}: ${context.translateText(v.vetName)}',
                 style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 13),
               ),
             ],
@@ -684,7 +689,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
               const SizedBox(width: 6),
               Expanded(
                 child: Text(
-                  'Location: ${v.farmLocation}',
+                  '${context.tr('location')}: ${context.translateText(v.farmLocation)}',
                   style: const TextStyle(color: Colors.grey, fontSize: 12),
                   overflow: TextOverflow.ellipsis,
                 ),
@@ -707,7 +712,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                   const SizedBox(width: 6),
                   Expanded(
                     child: Text(
-                      'Notes: ${v.observations}',
+                      '${context.tr('notes')}: ${context.translateText(v.observations!)}',
                       style: const TextStyle(fontSize: 12, color: Colors.black87),
                     ),
                   ),
@@ -731,7 +736,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                   const SizedBox(width: 6),
                   Expanded(
                     child: Text(
-                      'Prescribed: ${v.treatmentGiven}',
+                      '${context.tr('prescribed')}: ${context.translateText(v.treatmentGiven!)}',
                       style: TextStyle(fontSize: 12, color: Colors.green.shade900, fontWeight: FontWeight.w500),
                     ),
                   ),

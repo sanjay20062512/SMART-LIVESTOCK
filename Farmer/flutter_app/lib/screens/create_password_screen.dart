@@ -2,6 +2,7 @@
 
 import 'package:flutter/material.dart';
 import '../services/farmer_data_service.dart';
+import '../services/localization_service.dart';
 import '../models/farmer_profile.dart';
 import '../widgets/farmer_shell.dart';
 
@@ -41,8 +42,8 @@ class _CreatePasswordScreenState extends State<CreatePasswordScreen> {
     widget.dataService.updateProfile(widget.profile);
 
     ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(
-        content: Text('Account created successfully! Welcome.'),
+      SnackBar(
+        content: Text(context.tr('account_created_success')),
         backgroundColor: Colors.green,
       ),
     );
@@ -60,9 +61,9 @@ class _CreatePasswordScreenState extends State<CreatePasswordScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text(
-          'Create Password',
-          style: TextStyle(fontWeight: FontWeight.bold),
+        title: Text(
+          context.tr('create_password'),
+          style: const TextStyle(fontWeight: FontWeight.bold),
         ),
       ),
       body: Form(
@@ -74,14 +75,13 @@ class _CreatePasswordScreenState extends State<CreatePasswordScreen> {
             children: [
               const Icon(Icons.lock, size: 56, color: Colors.green),
               const SizedBox(height: 20),
-              const Text(
-                'Create a Password',
-                style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
+              Text(
+                context.tr('create_a_password'),
+                style: const TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
               ),
               const SizedBox(height: 8),
               Text(
-                'Welcome, ${widget.profile.fullName}! '
-                'Set a secure password for your account.',
+                '${context.tr('welcome')}, ${widget.profile.fullName}! ${context.tr('set_password_desc')}',
                 style: const TextStyle(color: Colors.grey),
               ),
               const SizedBox(height: 28),
@@ -89,7 +89,7 @@ class _CreatePasswordScreenState extends State<CreatePasswordScreen> {
                 controller: _passwordCtrl,
                 obscureText: _obscurePassword,
                 decoration: InputDecoration(
-                  labelText: 'Password *',
+                  labelText: '${context.tr('password')} *',
                   prefixIcon: const Icon(Icons.lock),
                   suffixIcon: IconButton(
                     icon: Icon(_obscurePassword
@@ -103,10 +103,10 @@ class _CreatePasswordScreenState extends State<CreatePasswordScreen> {
                 ),
                 validator: (v) {
                   if (v == null || v.isEmpty) {
-                    return 'Please enter a password.';
+                    return context.tr('please_enter_password');
                   }
                   if (v.length < 6) {
-                    return 'Password must be at least 6 characters.';
+                    return context.tr('password_min_length');
                   }
                   return null;
                 },
@@ -116,7 +116,7 @@ class _CreatePasswordScreenState extends State<CreatePasswordScreen> {
                 controller: _confirmCtrl,
                 obscureText: _obscureConfirm,
                 decoration: InputDecoration(
-                  labelText: 'Confirm Password *',
+                  labelText: '${context.tr('confirm_password')} *',
                   prefixIcon: const Icon(Icons.lock_outline),
                   suffixIcon: IconButton(
                     icon: Icon(_obscureConfirm
@@ -130,7 +130,7 @@ class _CreatePasswordScreenState extends State<CreatePasswordScreen> {
                 ),
                 validator: (v) {
                   if (v != _passwordCtrl.text) {
-                    return 'Passwords do not match.';
+                    return context.tr('passwords_do_not_match');
                   }
                   return null;
                 },
@@ -142,9 +142,9 @@ class _CreatePasswordScreenState extends State<CreatePasswordScreen> {
                 child: ElevatedButton.icon(
                   onPressed: _create,
                   icon: const Icon(Icons.check_circle),
-                  label: const Text(
-                    'Create Account',
-                    style: TextStyle(
+                  label: Text(
+                    context.tr('create_account'),
+                    style: const TextStyle(
                         fontSize: 16, fontWeight: FontWeight.bold),
                   ),
                 ),

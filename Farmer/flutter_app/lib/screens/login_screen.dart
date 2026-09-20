@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import '../services/farmer_data_service.dart';
+import '../services/localization_service.dart';
 import '../widgets/farmer_shell.dart';
 import 'registration_screen.dart';
 
@@ -25,17 +26,19 @@ class _LoginScreenState extends State<LoginScreen>
   bool _obscurePassword = true;
   bool _loading = false;
   bool _rememberMe = true;
-  String _selectedLanguage = 'English';
+  late String _selectedLanguage;
 
   late AnimationController _animController;
   late Animation<double> _fadeAnimation;
   late Animation<Offset> _slideAnimation;
 
-  final List<String> _languages = ['English', 'हिन्दी', 'தமிழ்', 'తెలుగు'];
+  List<String> get _languages => AppLanguage.values.map((l) => l.label).toList();
 
   @override
   void initState() {
     super.initState();
+    _selectedLanguage = LocalizationService.instance.currentLanguage.label;
+    LocalizationService.instance.addListener(_onLocaleChanged);
     _animController = AnimationController(
       vsync: this,
       duration: const Duration(milliseconds: 700),
@@ -55,8 +58,17 @@ class _LoginScreenState extends State<LoginScreen>
     _animController.forward();
   }
 
+  void _onLocaleChanged() {
+    if (mounted) {
+      setState(() {
+        _selectedLanguage = LocalizationService.instance.currentLanguage.label;
+      });
+    }
+  }
+
   @override
   void dispose() {
+    LocalizationService.instance.removeListener(_onLocaleChanged);
     _animController.dispose();
     _mobileCtrl.dispose();
     _passwordCtrl.dispose();
@@ -142,7 +154,7 @@ class _LoginScreenState extends State<LoginScreen>
             ),
             const SizedBox(width: 12),
             Text(
-              'Reset Password',
+              context.tr('reset_password'),
               style: TextStyle(
                 fontSize: 18,
                 fontWeight: FontWeight.bold,
@@ -156,7 +168,7 @@ class _LoginScreenState extends State<LoginScreen>
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Text(
-              'Enter your registered 10-digit mobile number to receive a verification code.',
+              context.tr('reset_password_desc'),
               style: TextStyle(
                 fontSize: 13,
                 color: isDark ? const Color(0xFFB0C4B6) : Colors.black87,
@@ -184,7 +196,7 @@ class _LoginScreenState extends State<LoginScreen>
           TextButton(
             onPressed: () => Navigator.pop(ctx),
             child: Text(
-              'Cancel',
+              context.tr('cancel'),
               style: TextStyle(
                 color: isDark ? const Color(0xFFA5D6A7) : const Color(0xFF2E7D32),
               ),
@@ -213,7 +225,7 @@ class _LoginScreenState extends State<LoginScreen>
                 ),
               );
             },
-            child: const Text('Send OTP'),
+            child: Text(context.tr('send_otp')),
           ),
         ],
       ),
@@ -429,6 +441,11 @@ class _LoginScreenState extends State<LoginScreen>
                                 onChanged: (v) {
                                   if (v != null) {
                                     setState(() => _selectedLanguage = v);
+                                    final match = AppLanguage.values.firstWhere(
+                                      (l) => l.label == v,
+                                      orElse: () => AppLanguage.english,
+                                    );
+                                    LocalizationService.instance.setLanguage(match);
                                   }
                                 },
                               ),
@@ -586,7 +603,7 @@ class _LoginScreenState extends State<LoginScreen>
                 ),
                 const SizedBox(width: 8),
                 Text(
-                  'Farmer Login',
+                  context.tr('login_title'),
                   style: TextStyle(
                     fontSize: 20,
                     fontWeight: FontWeight.bold,
@@ -628,14 +645,14 @@ class _LoginScreenState extends State<LoginScreen>
             ),
             const SizedBox(height: 6),
             Text(
-              'Sign in with your registered mobile number and password',
+              context.tr('login_subtitle'),
               style: TextStyle(fontSize: 13, color: subtitleColor),
             ),
             const SizedBox(height: 22),
 
             // Mobile Number Input
             Text(
-              'Mobile Number',
+              context.tr('mobile_number'),
               style: TextStyle(
                 fontSize: 13,
                 fontWeight: FontWeight.w600,
@@ -732,7 +749,7 @@ class _LoginScreenState extends State<LoginScreen>
 
             // Password Input
             Text(
-              'Password',
+              context.tr('password'),
               style: TextStyle(
                 fontSize: 13,
                 fontWeight: FontWeight.w600,
@@ -748,7 +765,7 @@ class _LoginScreenState extends State<LoginScreen>
                 fontWeight: FontWeight.w500,
               ),
               decoration: InputDecoration(
-                hintText: 'Enter your password',
+                hintText: context.tr('enter_password_hint'),
                 prefixIcon: Icon(
                   Icons.lock_outline,
                   color: isDark
@@ -830,7 +847,7 @@ class _LoginScreenState extends State<LoginScreen>
                     ),
                     const SizedBox(width: 8),
                     Text(
-                      'Remember me',
+                      context.tr('remember_me'),
                       style: TextStyle(
                         fontSize: 13,
                         color: isDark
@@ -848,7 +865,7 @@ class _LoginScreenState extends State<LoginScreen>
                     tapTargetSize: MaterialTapTargetSize.shrinkWrap,
                   ),
                   child: Text(
-                    'Forgot Password?',
+                    context.tr('forgot_password'),
                     style: TextStyle(
                       fontSize: 13,
                       fontWeight: FontWeight.w600,
@@ -910,15 +927,15 @@ class _LoginScreenState extends State<LoginScreen>
                               AlwaysStoppedAnimation<Color>(Colors.white),
                         ),
                       )
-                    : const Row(
+                    : Row(
                         mainAxisAlignment: MainAxisAlignment.center,
                         children: [
-                          Icon(Icons.login_rounded,
+                          const Icon(Icons.login_rounded,
                               color: Colors.white, size: 20),
-                          SizedBox(width: 10),
+                          const SizedBox(width: 10),
                           Text(
-                            'LOGIN TO DASHBOARD',
-                            style: TextStyle(
+                            context.tr('login_button'),
+                            style: const TextStyle(
                               fontSize: 15,
                               fontWeight: FontWeight.bold,
                               color: Colors.white,
@@ -988,7 +1005,7 @@ class _LoginScreenState extends State<LoginScreen>
                       : const Color(0xFF2E7D32),
                 ),
                 label: Text(
-                  'New Farmer? Register Account',
+                  context.tr('new_farmer_register'),
                   style: TextStyle(
                     fontSize: 14,
                     fontWeight: FontWeight.w700,

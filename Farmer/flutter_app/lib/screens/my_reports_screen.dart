@@ -63,9 +63,9 @@ class _MyReportsScreenState extends State<MyReportsScreen>
           labelStyle: const TextStyle(fontWeight: FontWeight.w700, fontSize: 13),
           unselectedLabelStyle: const TextStyle(fontWeight: FontWeight.w500, fontSize: 13),
           tabs: [
-            Tab(text: 'Health (${healthReports.length})'),
-            Tab(text: 'Mortality (${mortalityReports.length})'),
-            Tab(text: 'Vet Visits (${vetRequests.length})'),
+            Tab(text: '${context.tr('tab_health')} (${healthReports.length})'),
+            Tab(text: '${context.tr('tab_mortality')} (${mortalityReports.length})'),
+            Tab(text: '${context.tr('tab_vet_visits')} (${vetRequests.length})'),
           ],
         ),
       ),
@@ -83,7 +83,7 @@ class _MyReportsScreenState extends State<MyReportsScreen>
         elevation: 3,
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(AppRadius.button)),
         icon: const Icon(Icons.add_rounded),
-        label: const Text('Report New Problem', style: TextStyle(fontWeight: FontWeight.w700)),
+        label: Text(context.tr('report_new_problem'), style: const TextStyle(fontWeight: FontWeight.w700)),
         onPressed: () {
           Navigator.push(
             context,
@@ -134,7 +134,7 @@ class _MyReportsScreenState extends State<MyReportsScreen>
   }
 
   Widget _buildHealthCasesList(List<HealthReport> reports) {
-    if (reports.isEmpty) return _buildEmptyState('No health cases reported yet.');
+    if (reports.isEmpty) return _buildEmptyState(context.tr('no_health_cases_reported'));
     final sorted = [...reports]..sort((a, b) => b.createdAt.compareTo(a.createdAt));
 
     return ListView.builder(
@@ -142,13 +142,15 @@ class _MyReportsScreenState extends State<MyReportsScreen>
       itemCount: sorted.length,
       itemBuilder: (ctx, i) {
         final r = sorted[i];
+        final speciesText = context.translateSpecies(r.species);
+        final symptomsText = r.symptoms.take(3).map((s) => context.translateText(s)).join(', ');
         return _buildCaseCard(
-          caseId: 'Case #${r.id}',
-          title: '${r.species ?? "Animal"} — ${r.animalTag}',
-          subtitle: r.symptoms.take(3).join(', '),
+          caseId: '${context.tr('case')} #${context.translateTag(r.id)}',
+          title: '$speciesText — ${context.translateTag(r.animalTag)}',
+          subtitle: symptomsText,
           date: r.createdAt,
           riskLevel: r.riskLevel,
-          status: r.caseStatus.displayName,
+          status: context.translateStatus(r.caseStatus.displayName),
           onTap: () => _openHealthCaseModal(ctx, r),
         );
       },
@@ -156,7 +158,7 @@ class _MyReportsScreenState extends State<MyReportsScreen>
   }
 
   Widget _buildMortalityCasesList(List<MortalityReport> reports) {
-    if (reports.isEmpty) return _buildEmptyState('No mortality cases reported.');
+    if (reports.isEmpty) return _buildEmptyState(context.tr('no_mortality_cases_reported'));
     final sorted = [...reports]..sort((a, b) => b.createdAt.compareTo(a.createdAt));
 
     return ListView.builder(
@@ -165,12 +167,12 @@ class _MyReportsScreenState extends State<MyReportsScreen>
       itemBuilder: (ctx, i) {
         final r = sorted[i];
         return _buildCaseCard(
-          caseId: 'Death #${r.id}',
-          title: 'Animal: ${r.animalTag}',
-          subtitle: '${r.numberAffected} animal(s) affected',
+          caseId: '${context.tr('mortality')} #${context.translateTag(r.id)}',
+          title: '${context.tr('animal')}: ${context.translateTag(r.animalTag)}',
+          subtitle: context.tr('animals_affected_count', params: {'count': '${r.numberAffected}'}),
           date: r.createdAt,
           riskLevel: RiskLevel.critical,
-          status: 'Submitted',
+          status: context.tr('status_submitted'),
           onTap: () => _openMortalityCaseModal(ctx, r),
         );
       },
@@ -178,7 +180,7 @@ class _MyReportsScreenState extends State<MyReportsScreen>
   }
 
   Widget _buildVetRequestsList(List<VetRequest> requests) {
-    if (requests.isEmpty) return _buildEmptyState('No veterinarian visits requested.');
+    if (requests.isEmpty) return _buildEmptyState(context.tr('no_vet_requests'));
     final sorted = [...requests]..sort((a, b) => b.createdAt.compareTo(a.createdAt));
 
     return ListView.builder(
@@ -187,16 +189,17 @@ class _MyReportsScreenState extends State<MyReportsScreen>
       itemBuilder: (ctx, i) {
         final r = sorted[i];
         return _buildCaseCard(
-          caseId: 'Vet Request #${r.id}',
-          title: 'Animal: ${r.animalTag}',
-          subtitle: r.reason,
+          caseId: '${context.tr('vet_request')} #${context.translateTag(r.id)}',
+          title: '${context.tr('animal')}: ${context.translateTag(r.animalTag)}',
+          subtitle: context.translateText(r.reason),
           date: r.createdAt,
-          status: r.caseStatus.displayName,
+          status: context.translateStatus(r.caseStatus.displayName),
           onTap: () => _openVetRequestModal(ctx, r),
         );
       },
     );
   }
+
 
   Widget _buildCaseCard({
     required String caseId,
@@ -280,7 +283,7 @@ class _MyReportsScreenState extends State<MyReportsScreen>
                         border: Border.all(color: badgeColor.withValues(alpha: 0.3)),
                       ),
                       child: Text(
-                        'Risk: ${riskLevel.displayName}',
+                        '${context.tr('risk')}: ${context.translateText(riskLevel.displayName)}',
                         style: TextStyle(color: badgeColor, fontWeight: FontWeight.w700, fontSize: 11),
                       ),
                     ),
@@ -331,7 +334,7 @@ class _MyReportsScreenState extends State<MyReportsScreen>
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
                   Text(
-                    'Case #${report.id}',
+                    '${context.tr('case')} #${context.translateTag(report.id)}',
                     style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
                   ),
                   IconButton(
@@ -341,7 +344,7 @@ class _MyReportsScreenState extends State<MyReportsScreen>
                 ],
               ),
               const SizedBox(height: 4),
-              Text('Animal: ${report.animalTag} · ${report.breed ?? "Standard"}',
+              Text('${context.tr('animal')}: ${context.translateTag(report.animalTag)} · ${context.translateBreed(report.breed ?? "Standard")}',
                   style: const TextStyle(color: Colors.grey, fontSize: 14)),
               const SizedBox(height: 16),
 
@@ -365,13 +368,13 @@ class _MyReportsScreenState extends State<MyReportsScreen>
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
-                            const Text(
-                              'ESCALATED TO GOVERNMENT SURVEILLANCE',
-                              style: TextStyle(color: Colors.deepOrange, fontWeight: FontWeight.w800, fontSize: 12.5),
+                            Text(
+                              context.tr('escalated_to_govt_title'),
+                              style: const TextStyle(color: Colors.deepOrange, fontWeight: FontWeight.w800, fontSize: 12.5),
                             ),
                             const SizedBox(height: 3),
                             Text(
-                              'Case escalated to regional animal health authorities for emergency epidemic response.',
+                              context.tr('escalated_to_govt_desc'),
                               style: TextStyle(color: Colors.deepOrange.shade900, fontSize: 12, height: 1.3),
                             ),
                           ],
@@ -430,7 +433,7 @@ class _MyReportsScreenState extends State<MyReportsScreen>
                                     Row(
                                       children: [
                                         Text(
-                                          linkedCase!.assignedVetName!,
+                                          context.translateText(linkedCase!.assignedVetName!),
                                           style: const TextStyle(fontWeight: FontWeight.w700, fontSize: 14, color: AppColors.textPrimary),
                                         ),
                                         const SizedBox(width: 6),
@@ -440,7 +443,7 @@ class _MyReportsScreenState extends State<MyReportsScreen>
                                             color: AppColors.primaryDark,
                                             borderRadius: BorderRadius.circular(4),
                                           ),
-                                          child: const Text('ATTENDING VET', style: TextStyle(color: Colors.white, fontSize: 9, fontWeight: FontWeight.w800, letterSpacing: 0.5)),
+                                          child: Text(context.tr('attending_vet'), style: const TextStyle(color: Colors.white, fontSize: 9, fontWeight: FontWeight.w800, letterSpacing: 0.5)),
                                         ),
                                       ],
                                     ),
@@ -451,7 +454,7 @@ class _MyReportsScreenState extends State<MyReportsScreen>
                                           const Icon(Icons.event_available_rounded, size: 14, color: AppColors.textSecondary),
                                           const SizedBox(width: 4),
                                           Text(
-                                            'Visit: ${linkedCase.visitScheduledDate!.day}/${linkedCase.visitScheduledDate!.month}/${linkedCase.visitScheduledDate!.year}',
+                                            '${context.tr('visit')}: ${linkedCase.visitScheduledDate!.day}/${linkedCase.visitScheduledDate!.month}/${linkedCase.visitScheduledDate!.year}',
                                             style: const TextStyle(fontSize: 12, color: AppColors.textSecondary, fontWeight: FontWeight.w500),
                                           ),
                                         ],
@@ -471,13 +474,13 @@ class _MyReportsScreenState extends State<MyReportsScreen>
                           child: Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
-                              const Row(
+                              Row(
                                 children: [
-                                  Icon(Icons.assignment_turned_in_rounded, color: AppColors.primary, size: 17),
-                                  SizedBox(width: 7),
+                                  const Icon(Icons.assignment_turned_in_rounded, color: AppColors.primary, size: 17),
+                                  const SizedBox(width: 7),
                                   Text(
-                                    'Veterinarian Findings & Diagnosis',
-                                    style: TextStyle(
+                                    context.tr('vet_findings_diagnosis'),
+                                    style: const TextStyle(
                                       fontWeight: FontWeight.w700,
                                       fontSize: 13,
                                       color: AppColors.primaryDark,
@@ -496,7 +499,7 @@ class _MyReportsScreenState extends State<MyReportsScreen>
                                   border: Border.all(color: const Color(0xFFE2E8F0)),
                                 ),
                                 child: Text(
-                                  linkedCase.clinicalObservation!,
+                                  context.translateText(linkedCase.clinicalObservation!),
                                   style: const TextStyle(
                                     fontSize: 13.5,
                                     height: 1.45,
@@ -514,7 +517,7 @@ class _MyReportsScreenState extends State<MyReportsScreen>
                                     const SizedBox(width: 6),
                                     Expanded(
                                       child: Text(
-                                        'Treatment: ${linkedCase.treatmentSummary!}',
+                                        '${context.tr('treatment')}: ${context.translateText(linkedCase.treatmentSummary!)}',
                                         style: const TextStyle(fontSize: 12.5, fontWeight: FontWeight.w600, color: Colors.black87),
                                       ),
                                     ),
@@ -543,7 +546,7 @@ class _MyReportsScreenState extends State<MyReportsScreen>
                     const Icon(Icons.warning_rounded, color: Colors.red, size: 28),
                     const SizedBox(width: 12),
                     Text(
-                      '${report.riskLevel.displayName} HEALTH RISK',
+                      '${context.translateText(report.riskLevel.displayName)} ${context.tr('health_risk')}',
                       style: const TextStyle(color: Colors.red, fontWeight: FontWeight.bold, fontSize: 16),
                     ),
                   ],
@@ -551,28 +554,28 @@ class _MyReportsScreenState extends State<MyReportsScreen>
               ),
               const SizedBox(height: 16),
 
-              const Text('Reported Problems:', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 15)),
+              Text('${context.tr('reported_problems')}:', style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 15)),
               const SizedBox(height: 8),
               Wrap(
                 spacing: 8,
                 runSpacing: 8,
                 children: report.symptoms
                     .map((s) => Chip(
-                          label: Text(s),
+                          label: Text(context.translateText(s)),
                           backgroundColor: Colors.grey.shade100,
                         ))
                     .toList(),
               ),
               const SizedBox(height: 16),
 
-              const Text('Advice Given:', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 15)),
+              Text('${context.tr('advice_given')}:', style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 15)),
               const SizedBox(height: 4),
-              Text(report.advice, style: const TextStyle(fontSize: 15)),
+              Text(context.translateText(report.advice), style: const TextStyle(fontSize: 15)),
               const SizedBox(height: 12),
 
-              const Text('Recommended Action:', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 15)),
+              Text('${context.tr('recommended_action')}:', style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 15)),
               const SizedBox(height: 4),
-              Text(report.recommendedAction, style: const TextStyle(color: Colors.black87)),
+              Text(context.translateText(report.recommendedAction), style: const TextStyle(color: Colors.black87)),
               const SizedBox(height: 16),
 
               if (report.hasVoiceNote) ...[
@@ -582,20 +585,20 @@ class _MyReportsScreenState extends State<MyReportsScreen>
                     color: Colors.orange.shade50,
                     borderRadius: BorderRadius.circular(12),
                   ),
-                  child: const Row(
+                  child: Row(
                     children: [
-                      Icon(Icons.mic_rounded, color: Colors.orange),
-                      SizedBox(width: 10),
-                      Text('Voice note recorded with this case', style: TextStyle(fontWeight: FontWeight.w600)),
+                      const Icon(Icons.mic_rounded, color: Colors.orange),
+                      const SizedBox(width: 10),
+                      Text(context.tr('voice_note_recorded'), style: const TextStyle(fontWeight: FontWeight.w600)),
                     ],
                   ),
                 ),
                 const SizedBox(height: 16),
               ],
 
-              const Text('Status Timeline:', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 15)),
+              Text('${context.tr('status_timeline')}:', style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 15)),
               const SizedBox(height: 8),
-              _buildTimeline(report.caseStatus),
+              _buildTimeline(context, report.caseStatus),
             ],
           ),
         ),
@@ -619,22 +622,22 @@ class _MyReportsScreenState extends State<MyReportsScreen>
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Text('Mortality Report #${report.id}',
+              Text('${context.tr('mortality_report')} #${context.translateTag(report.id)}',
                   style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold)),
               const SizedBox(height: 4),
-              Text('Animal: ${report.animalTag}', style: const TextStyle(color: Colors.grey)),
+              Text('${context.tr('animal')}: ${context.translateTag(report.animalTag)}', style: const TextStyle(color: Colors.grey)),
               const SizedBox(height: 16),
-              _buildDetailRow('Date', '${report.date.day}/${report.date.month}/${report.date.year}'),
-              _buildDetailRow('Time', report.time),
-              _buildDetailRow('Animals Died', '${report.numberAffected}'),
-              _buildDetailRow('Location', report.location ?? 'Farm Location'),
+              _buildDetailRow(context.tr('date'), '${report.date.day}/${report.date.month}/${report.date.year}'),
+              _buildDetailRow(context.tr('time'), report.time),
+              _buildDetailRow(context.tr('animals_died'), '${report.numberAffected}'),
+              _buildDetailRow(context.tr('location'), context.translateText(report.location ?? context.tr('farm_location'))),
               if (report.symptomsBeforeDeath.isNotEmpty) ...[
                 const SizedBox(height: 12),
-                const Text('Symptoms before death:', style: TextStyle(fontWeight: FontWeight.bold)),
+                Text('${context.tr('symptoms_before_death')}:', style: const TextStyle(fontWeight: FontWeight.bold)),
                 const SizedBox(height: 6),
                 Wrap(
                   spacing: 8,
-                  children: report.symptomsBeforeDeath.map((s) => Chip(label: Text(s))).toList(),
+                  children: report.symptomsBeforeDeath.map((s) => Chip(label: Text(context.translateText(s)))).toList(),
                 ),
               ],
             ],
@@ -660,22 +663,22 @@ class _MyReportsScreenState extends State<MyReportsScreen>
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Text('Vet Request #${request.id}',
+              Text('${context.tr('vet_request')} #${context.translateTag(request.id)}',
                   style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold)),
               const SizedBox(height: 4),
-              Text('Animal: ${request.animalTag}', style: const TextStyle(color: Colors.grey)),
+              Text('${context.tr('animal')}: ${context.translateTag(request.animalTag)}', style: const TextStyle(color: Colors.grey)),
               const SizedBox(height: 16),
-              _buildDetailRow('Reason', request.reason),
-              _buildDetailRow('Status', request.caseStatus.displayName),
+              _buildDetailRow(context.tr('reason_for_vet'), context.translateText(request.reason)),
+              _buildDetailRow(context.tr('status'), context.translateStatus(request.caseStatus.displayName)),
               if (request.preferredDate != null)
-                _buildDetailRow('Preferred Date',
+                _buildDetailRow(context.tr('preferred_date'),
                     '${request.preferredDate!.day}/${request.preferredDate!.month}/${request.preferredDate!.year}'),
               if (request.preferredTime != null)
-                _buildDetailRow('Preferred Time', request.preferredTime!),
+                _buildDetailRow(context.tr('preferred_time'), request.preferredTime!),
               const SizedBox(height: 16),
-              const Text('Timeline:', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
+              Text('${context.tr('timeline')}:', style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
               const SizedBox(height: 10),
-              _buildTimeline(request.caseStatus),
+              _buildTimeline(context, request.caseStatus),
             ],
           ),
         ),
@@ -695,17 +698,17 @@ class _MyReportsScreenState extends State<MyReportsScreen>
     );
   }
 
-  Widget _buildTimeline(CaseStatus status) {
+  Widget _buildTimeline(BuildContext context, CaseStatus status) {
     final stages = [
-      'SUBMITTED',
-      'UNDER REVIEW',
-      'VET ASSIGNED',
-      'VISIT SCHEDULED',
-      'SAMPLE COLLECTED',
-      'LAB REFERRED',
-      'TREATMENT STARTED',
-      if (status == CaseStatus.escalated) 'ESCALATED TO GOVT',
-      'CASE CLOSED',
+      context.tr('timeline_submitted'),
+      context.tr('timeline_under_review'),
+      context.tr('timeline_vet_assigned'),
+      context.tr('timeline_visit_scheduled'),
+      context.tr('sample_collected'),
+      context.tr('lab_referred'),
+      context.tr('timeline_treatment_started'),
+      if (status == CaseStatus.escalated) context.tr('escalated_to_govt'),
+      context.tr('timeline_case_closed'),
     ];
 
     int targetIndex = 0;
@@ -748,7 +751,7 @@ class _MyReportsScreenState extends State<MyReportsScreen>
         final name = e.value;
         final isPassed = idx <= targetIndex;
         final isLast = idx == stages.length - 1;
-        final isEscalatedNode = name == 'ESCALATED TO GOVT';
+        final isEscalatedNode = (status == CaseStatus.escalated && idx == 7);
 
         final activeColor = isEscalatedNode ? Colors.deepOrange.shade800 : const Color(0xFF2E7D32);
 

@@ -253,6 +253,52 @@ class _SymptomReportScreenState extends State<SymptomReportScreen> {
     }
   }
 
+  String _localizeDuration(BuildContext context, String opt) {
+    switch (opt) {
+      case 'Today': return context.tr('today');
+      case 'Yesterday': return context.tr('yesterday');
+      case '2–3 days': return context.tr('2_3_days');
+      case '4–7 days': return context.tr('4_7_days');
+      case 'More than a week': return context.tr('more_than_week');
+      case 'Not sure': return context.tr('not_sure');
+      default: return opt;
+    }
+  }
+
+  String _localizeEating(BuildContext context, String opt) {
+    switch (opt) {
+      case 'Yes': return context.tr('yes');
+      case 'Less than usual': return context.tr('less_than_usual');
+      case 'No': return context.tr('no');
+      case 'Not sure': return context.tr('not_sure');
+      default: return opt;
+    }
+  }
+
+  String _localizeAge(BuildContext context, String age) {
+    switch (age) {
+      case 'Below 1 year': return context.tr('age_below_1_year');
+      case '1–2 years': return context.tr('age_1_2_years');
+      case '2–5 years': return context.tr('age_2_5_years');
+      case '5–10 years': return context.tr('age_5_10_years');
+      case 'Above 10 years': return context.tr('age_above_10_years');
+      default: return age;
+    }
+  }
+
+  String _localizeAffected(BuildContext context, String count) {
+    if (count == '1') {
+      return '1 ${context.tr("animal")}';
+    }
+    if (count == 'More than 10') {
+      return context.tr('more_than_10');
+    }
+    if (count == 'Not sure') {
+      return context.tr('not_sure');
+    }
+    return '$count ${context.tr("animals")}';
+  }
+
   Future<void> _startRealVoiceRecording() async {
     final lang = LocalizationService.instance.currentLanguage;
     if (_isPlayingVoice) {
@@ -549,7 +595,9 @@ class _SymptomReportScreenState extends State<SymptomReportScreen> {
                 onPressed: () => Navigator.pop(context),
               ),
         title: Text(
-          _step < 10 ? 'Report Issue (Step ${_step + 1})' : context.tr('assessment_result'),
+          _step < 10
+              ? '${context.tr("report_an_issue")} (${context.tr("step")} ${_step + 1})'
+              : context.tr('assessment_result'),
           style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
         ),
         actions: const [
@@ -706,7 +754,7 @@ class _SymptomReportScreenState extends State<SymptomReportScreen> {
                 Expanded(
                   child: RichText(
                     text: TextSpan(
-                      text: 'Selected: ',
+                      text: '${context.tr("selected")}: ',
                       style: const TextStyle(
                         color: Color(0xFF15803D),
                         fontSize: 14.5,
@@ -917,7 +965,7 @@ class _SymptomReportScreenState extends State<SymptomReportScreen> {
                 children: [
                   Flexible(
                     child: Text(
-                      'Continue with ${_selectedSpecies.displayName}',
+                      '${context.tr("continue_with")} ${_selectedSpecies.displayName}',
                       overflow: TextOverflow.ellipsis,
                       style: const TextStyle(
                         fontSize: 16.5,
@@ -927,9 +975,9 @@ class _SymptomReportScreenState extends State<SymptomReportScreen> {
                     ),
                   ),
                   const SizedBox(width: 8),
-                  const Text(
-                    'Next',
-                    style: TextStyle(
+                  Text(
+                    context.tr('next'),
+                    style: const TextStyle(
                       fontSize: 16.5,
                       fontWeight: FontWeight.w800,
                       letterSpacing: 0.2,
@@ -962,7 +1010,7 @@ class _SymptomReportScreenState extends State<SymptomReportScreen> {
           ),
           const SizedBox(height: 6),
           Text(
-            '${_selectedSpecies.emoji} ${_selectedSpecies.displayName} Details',
+            '${_selectedSpecies.emoji} ${_selectedSpecies.displayName} ${context.tr("details")}',
             style: TextStyle(color: Theme.of(context).colorScheme.primary, fontWeight: FontWeight.w600),
           ),
           const SizedBox(height: 20),
@@ -973,7 +1021,7 @@ class _SymptomReportScreenState extends State<SymptomReportScreen> {
             decoration: InputDecoration(
               labelText: context.tr('animal_id_tag'),
               prefixIcon: const Icon(Icons.tag_rounded),
-              hintText: 'e.g. C001, Ear Tag 42',
+              hintText: context.tr('animal_id_hint'),
             ),
           ),
           const SizedBox(height: 20),
@@ -1027,7 +1075,7 @@ class _SymptomReportScreenState extends State<SymptomReportScreen> {
             children: _ageOptions.map((age) {
               final isSelected = _selectedAge == age;
               return ChoiceChip(
-                label: Text(age),
+                label: Text(_localizeAge(context, age)),
                 selected: isSelected,
                 selectedColor: Theme.of(context).colorScheme.primaryContainer,
                 onSelected: (val) {
@@ -1056,7 +1104,7 @@ class _SymptomReportScreenState extends State<SymptomReportScreen> {
             style: const TextStyle(fontSize: 22, fontWeight: FontWeight.bold),
           ),
           const SizedBox(height: 6),
-          const Text('Select all problems you observe in the animal.', style: TextStyle(color: Colors.grey, fontSize: 14)),
+          Text(context.tr('select_all_problems'), style: const TextStyle(color: Colors.grey, fontSize: 14)),
           const SizedBox(height: 16),
 
           GridView.count(
@@ -1167,7 +1215,7 @@ class _SymptomReportScreenState extends State<SymptomReportScreen> {
             style: const TextStyle(fontSize: 22, fontWeight: FontWeight.bold),
           ),
           const SizedBox(height: 6),
-          const Text('How long has the animal shown these signs?', style: TextStyle(color: Colors.grey, fontSize: 14)),
+          Text(context.tr('duration_subtitle'), style: const TextStyle(color: Colors.grey, fontSize: 14)),
           const SizedBox(height: 24),
 
           ..._durationOptions.map((opt) {
@@ -1190,7 +1238,7 @@ class _SymptomReportScreenState extends State<SymptomReportScreen> {
                   color: isSelected ? primary : Colors.grey.shade400,
                 ),
                 title: Text(
-                  opt,
+                  _localizeDuration(context, opt),
                   style: TextStyle(
                     fontSize: 16,
                     fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
@@ -1228,7 +1276,7 @@ class _SymptomReportScreenState extends State<SymptomReportScreen> {
             children: _eatingOptions.map((opt) {
               final isSelected = _eatingStatus == opt;
               return ChoiceChip(
-                label: Text(opt, style: TextStyle(fontWeight: isSelected ? FontWeight.bold : FontWeight.normal)),
+                label: Text(_localizeEating(context, opt), style: TextStyle(fontWeight: isSelected ? FontWeight.bold : FontWeight.normal)),
                 selected: isSelected,
                 selectedColor: Theme.of(context).colorScheme.primaryContainer,
                 onSelected: (val) {
@@ -1250,7 +1298,7 @@ class _SymptomReportScreenState extends State<SymptomReportScreen> {
             children: _eatingOptions.map((opt) {
               final isSelected = _drinkingStatus == opt;
               return ChoiceChip(
-                label: Text(opt, style: TextStyle(fontWeight: isSelected ? FontWeight.bold : FontWeight.normal)),
+                label: Text(_localizeEating(context, opt), style: TextStyle(fontWeight: isSelected ? FontWeight.bold : FontWeight.normal)),
                 selected: isSelected,
                 selectedColor: Theme.of(context).colorScheme.primaryContainer,
                 onSelected: (val) {
@@ -1279,7 +1327,7 @@ class _SymptomReportScreenState extends State<SymptomReportScreen> {
             style: const TextStyle(fontSize: 22, fontWeight: FontWeight.bold),
           ),
           const SizedBox(height: 6),
-          const Text('If multiple animals are sick, isolation is critical.', style: TextStyle(color: Colors.grey, fontSize: 14)),
+          Text(context.tr('affected_count_subtitle'), style: const TextStyle(color: Colors.grey, fontSize: 14)),
           const SizedBox(height: 24),
 
           ..._affectedOptions.map((opt) {
@@ -1302,7 +1350,7 @@ class _SymptomReportScreenState extends State<SymptomReportScreen> {
                   color: isSelected ? primary : Colors.grey.shade400,
                 ),
                 title: Text(
-                  opt == '1' ? '1 animal' : '$opt animals',
+                  _localizeAffected(context, opt),
                   style: TextStyle(
                     fontSize: 16,
                     fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
@@ -1340,7 +1388,7 @@ class _SymptomReportScreenState extends State<SymptomReportScreen> {
               return Padding(
                 padding: const EdgeInsets.only(right: 10),
                 child: ChoiceChip(
-                  label: Text(opt),
+                  label: Text(_localizeEating(context, opt)),
                   selected: isSelected,
                   onSelected: (v) {
                     if (v) setState(() => _pregnantStatus = opt);
@@ -1362,7 +1410,7 @@ class _SymptomReportScreenState extends State<SymptomReportScreen> {
               return Padding(
                 padding: const EdgeInsets.only(right: 10),
                 child: ChoiceChip(
-                  label: Text(opt),
+                  label: Text(_localizeEating(context, opt)),
                   selected: isSelected,
                   onSelected: (v) {
                     if (v) setState(() => _lactatingStatus = opt);
@@ -1845,29 +1893,29 @@ class _SymptomReportScreenState extends State<SymptomReportScreen> {
               padding: const EdgeInsets.all(18),
               child: Column(
                 children: [
-                  _buildSummaryRow('Animal', '${_selectedSpecies.emoji} ${_selectedSpecies.displayName}'),
+                  _buildSummaryRow(context.tr('animal'), '${_selectedSpecies.emoji} ${_selectedSpecies.displayName}'),
                   const Divider(height: 20),
-                  _buildSummaryRow('Breed', _selectedBreed),
+                  _buildSummaryRow(context.tr('breed'), _selectedBreed),
                   const Divider(height: 20),
-                  _buildSummaryRow('Age', _selectedAge),
+                  _buildSummaryRow(context.tr('age'), _localizeAge(context, _selectedAge)),
                   const Divider(height: 20),
-                  _buildSummaryRow('Problem(s)', _selectedSymptoms.join(', ')),
+                  _buildSummaryRow(context.tr('problems'), _selectedSymptoms.join(', ')),
                   const Divider(height: 20),
-                  _buildSummaryRow('Since', _duration),
+                  _buildSummaryRow(context.tr('since_when'), _localizeDuration(context, _duration)),
                   const Divider(height: 20),
-                  _buildSummaryRow('Animals affected', _affectedCount),
+                  _buildSummaryRow(context.tr('animals_affected'), _localizeAffected(context, _affectedCount)),
                   const Divider(height: 20),
-                  _buildSummaryRow('Voice note', _hasVoiceRecorded ? (_voiceTranscript != null && _voiceTranscript!.isNotEmpty ? '✓ Recorded ("$_voiceTranscript")' : '✓ Added') : 'None'),
+                  _buildSummaryRow(context.tr('voice_note'), _hasVoiceRecorded ? (_voiceTranscript != null && _voiceTranscript!.isNotEmpty ? '✓ ${context.tr("recorded")} ("$_voiceTranscript")' : '✓ ${context.tr("added")}') : context.tr('none')),
                   const Divider(height: 20),
-                  _buildSummaryRow('Photo', _hasPhotoAdded ? 'Added' : 'None'),
+                  _buildSummaryRow(context.tr('photo'), _hasPhotoAdded ? context.tr('added') : context.tr('none')),
                   const Divider(height: 20),
-                  _buildSummaryRow('Video', _hasVideoAdded ? 'Added' : 'None'),
+                  _buildSummaryRow(context.tr('video'), _hasVideoAdded ? context.tr('added') : context.tr('none')),
                   const Divider(height: 20),
                   _buildSummaryRow(
-                    'Location',
-                    _locationMode == 'Use Farm Location'
-                        ? (widget.dataService.profile.farmName ?? "Farm")
-                        : (_manualLocationCtrl.text.isNotEmpty ? _manualLocationCtrl.text : 'Manual location'),
+                    context.tr('location'),
+                    _locationMode == '📍 Use Farm Location'
+                        ? (widget.dataService.profile.farmName ?? context.tr('farm_details'))
+                        : (_manualLocationCtrl.text.isNotEmpty ? _manualLocationCtrl.text : context.tr('manual_location')),
                   ),
                   const Divider(height: 20),
                   _buildSummaryRow(

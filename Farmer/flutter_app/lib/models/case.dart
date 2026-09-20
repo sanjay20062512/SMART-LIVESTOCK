@@ -1,5 +1,5 @@
 // LivestockCase — shared case model used by Farmer, Veterinary, and Government modules.
-// Architecture note: In production this would be fetched from a backend API.
+import '../services/localization_service.dart';
 
 enum FullCaseStatus {
   submitted,
@@ -19,33 +19,95 @@ enum FullCaseStatus {
 
 extension FullCaseStatusExt on FullCaseStatus {
   String get displayName {
-    switch (this) {
-      case FullCaseStatus.submitted:
-        return 'Submitted';
-      case FullCaseStatus.underReview:
-        return 'Under Review';
-      case FullCaseStatus.vetAssigned:
-        return 'Vet Assigned';
-      case FullCaseStatus.visitScheduled:
-        return 'Visit Scheduled';
-      case FullCaseStatus.investigation:
-        return 'Investigation';
-      case FullCaseStatus.sampleCollected:
-        return 'Sample Collected';
-      case FullCaseStatus.labReferred:
-        return 'Lab Referred';
-      case FullCaseStatus.treatmentStarted:
-        return 'Treatment Started';
-      case FullCaseStatus.followUpDue:
-        return 'Follow-up Due';
-      case FullCaseStatus.escalated:
-        return 'Escalated';
-      case FullCaseStatus.monitoring:
-        return 'Monitoring';
-      case FullCaseStatus.contained:
-        return 'Contained';
-      case FullCaseStatus.caseClosed:
-        return 'Case Closed';
+    final lang = LocalizationService.instance.currentLanguage;
+    switch (lang) {
+      case AppLanguage.hindi:
+        switch (this) {
+          case FullCaseStatus.submitted:
+            return 'दर्ज किया गया';
+          case FullCaseStatus.underReview:
+            return 'समीक्षाधीन';
+          case FullCaseStatus.vetAssigned:
+            return 'पशु चिकित्सक नियुक्त';
+          case FullCaseStatus.visitScheduled:
+            return 'दौरा निर्धारित';
+          case FullCaseStatus.investigation:
+            return 'जांच जारी';
+          case FullCaseStatus.sampleCollected:
+            return 'नमूना एकत्रित';
+          case FullCaseStatus.labReferred:
+            return 'प्रयोगशाला भेजा गया';
+          case FullCaseStatus.treatmentStarted:
+            return 'उपचार शुरू';
+          case FullCaseStatus.followUpDue:
+            return 'फॉलो-अप देय';
+          case FullCaseStatus.escalated:
+            return 'शासन को भेजा गया';
+          case FullCaseStatus.monitoring:
+            return 'निगरानी जारी';
+          case FullCaseStatus.contained:
+            return 'नियंत्रित';
+          case FullCaseStatus.caseClosed:
+            return 'केस बंद';
+        }
+      case AppLanguage.marathi:
+        switch (this) {
+          case FullCaseStatus.submitted:
+            return 'नोंदवले गेले';
+          case FullCaseStatus.underReview:
+            return 'पुनरावलोकनाधीन';
+          case FullCaseStatus.vetAssigned:
+            return 'पशुवैद्यक नियुक्त';
+          case FullCaseStatus.visitScheduled:
+            return 'भेट नियोजित';
+          case FullCaseStatus.investigation:
+            return 'तपास सुरू';
+          case FullCaseStatus.sampleCollected:
+            return 'नमुना गोळा केला';
+          case FullCaseStatus.labReferred:
+            return 'प्रयोगशाळेत पाठवले';
+          case FullCaseStatus.treatmentStarted:
+            return 'उपचार सुरू';
+          case FullCaseStatus.followUpDue:
+            return 'फॉलो-अप बाकी';
+          case FullCaseStatus.escalated:
+            return 'शासकीय स्तरावर पाठवले';
+          case FullCaseStatus.monitoring:
+            return 'निरीक्षण सुरू';
+          case FullCaseStatus.contained:
+            return 'नियंत्रित';
+          case FullCaseStatus.caseClosed:
+            return 'प्रकरण बंद';
+        }
+      case AppLanguage.english:
+        switch (this) {
+          case FullCaseStatus.submitted:
+            return 'Submitted';
+          case FullCaseStatus.underReview:
+            return 'Under Review';
+          case FullCaseStatus.vetAssigned:
+            return 'Vet Assigned';
+          case FullCaseStatus.visitScheduled:
+            return 'Visit Scheduled';
+          case FullCaseStatus.investigation:
+            return 'Investigation';
+          case FullCaseStatus.sampleCollected:
+            return 'Sample Collected';
+          case FullCaseStatus.labReferred:
+            return 'Lab Referred';
+          case FullCaseStatus.treatmentStarted:
+            return 'Treatment Started';
+          case FullCaseStatus.followUpDue:
+            return 'Follow-up Due';
+          case FullCaseStatus.escalated:
+            return 'Escalated';
+          case FullCaseStatus.monitoring:
+            return 'Monitoring';
+          case FullCaseStatus.contained:
+            return 'Contained';
+          case FullCaseStatus.caseClosed:
+            return 'Case Closed';
+        }
     }
   }
 

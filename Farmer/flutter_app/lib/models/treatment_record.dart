@@ -1,17 +1,26 @@
-// Treatment Record data model
+import '../services/localization_service.dart';
 
 enum TreatmentStatus { notStarted, ongoing, followUpDue, completed }
 
 extension TreatmentStatusExt on TreatmentStatus {
   String get displayName {
+    final lang = LocalizationService.instance.currentLanguage;
     switch (this) {
       case TreatmentStatus.notStarted:
+        if (lang == AppLanguage.hindi) return 'शुरू नहीं हुआ';
+        if (lang == AppLanguage.marathi) return 'सुरू झाले नाही';
         return 'Not Started';
       case TreatmentStatus.ongoing:
+        if (lang == AppLanguage.hindi) return 'प्रगति पर';
+        if (lang == AppLanguage.marathi) return 'प्रगतीपथावर';
         return 'Ongoing';
       case TreatmentStatus.followUpDue:
+        if (lang == AppLanguage.hindi) return 'फॉलो-अप बाकी';
+        if (lang == AppLanguage.marathi) return 'फॉलो-अप बाकी';
         return 'Follow-up Due';
       case TreatmentStatus.completed:
+        if (lang == AppLanguage.hindi) return 'पूर्ण हुआ';
+        if (lang == AppLanguage.marathi) return 'पूर्ण झाले';
         return 'Completed';
     }
   }

@@ -1,17 +1,26 @@
-// Vaccination Record data model
+import '../services/localization_service.dart';
 
 enum VaccinationStatus { due, upcoming, completed, overdue }
 
 extension VaccinationStatusExt on VaccinationStatus {
   String get displayName {
+    final lang = LocalizationService.instance.currentLanguage;
     switch (this) {
       case VaccinationStatus.due:
+        if (lang == AppLanguage.hindi) return 'देय';
+        if (lang == AppLanguage.marathi) return 'देय';
         return 'Due';
       case VaccinationStatus.upcoming:
+        if (lang == AppLanguage.hindi) return 'आगामी';
+        if (lang == AppLanguage.marathi) return 'आगामी';
         return 'Upcoming';
       case VaccinationStatus.completed:
+        if (lang == AppLanguage.hindi) return 'पूर्ण';
+        if (lang == AppLanguage.marathi) return 'पूर्ण झाले';
         return 'Completed';
       case VaccinationStatus.overdue:
+        if (lang == AppLanguage.hindi) return 'विलंबित';
+        if (lang == AppLanguage.marathi) return 'थकबाकी / विलंबित';
         return 'Overdue';
     }
   }

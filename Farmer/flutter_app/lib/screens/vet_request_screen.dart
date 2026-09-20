@@ -121,6 +121,38 @@ class _VetRequestScreenState extends State<VetRequestScreen> {
     });
   }
 
+  String _localizeReason(String reason) {
+    switch (reason) {
+      case 'Animal is very sick':
+        return context.tr('reason_very_sick');
+      case 'Animal not improving':
+        return context.tr('reason_not_improving');
+      case 'Animal death':
+        return context.tr('reason_death');
+      case 'Vaccination':
+        return context.tr('vaccination');
+      case 'Treatment follow-up':
+        return context.tr('treatment_followup');
+      case 'Other':
+        return context.tr('other');
+      default:
+        return reason;
+    }
+  }
+
+  String _localizeDay(String day) {
+    switch (day) {
+      case 'Today':
+        return context.tr('today');
+      case 'Tomorrow':
+        return context.tr('tomorrow');
+      case 'Choose date':
+        return context.tr('choose_date');
+      default:
+        return day;
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     if (_submitted) return _buildConfirmationView();
@@ -152,7 +184,7 @@ class _VetRequestScreenState extends State<VetRequestScreen> {
                       color: Colors.amber.shade50,
                       borderRadius: BorderRadius.circular(12),
                     ),
-                    child: const Text('Requesting general visit for farm (No registered animals selected)'),
+                    child: Text(context.tr('request_general_visit_no_animal')),
                   )
                 : DropdownButtonFormField<Animal>(
                     initialValue: _selectedAnimal,
@@ -160,7 +192,7 @@ class _VetRequestScreenState extends State<VetRequestScreen> {
                     items: animals
                         .map((a) => DropdownMenuItem(
                               value: a,
-                              child: Text('${a.species.emoji} ${a.species.displayName} (${a.earTag})'),
+                              child: Text('${a.species.emoji} ${context.translateSpecies(a.species.displayName)} (${context.translateTag(a.earTag)})'),
                             ))
                         .toList(),
                     onChanged: (a) => setState(() => _selectedAnimal = a),
@@ -176,7 +208,7 @@ class _VetRequestScreenState extends State<VetRequestScreen> {
               children: _reasonOptions.map((r) {
                 final isSelected = _selectedReason == r;
                 return ChoiceChip(
-                  label: Text(r, style: TextStyle(fontWeight: isSelected ? FontWeight.bold : FontWeight.normal)),
+                  label: Text(_localizeReason(r), style: TextStyle(fontWeight: isSelected ? FontWeight.bold : FontWeight.normal)),
                   selected: isSelected,
                   selectedColor: Theme.of(context).colorScheme.primaryContainer,
                   onSelected: (val) {
@@ -188,7 +220,7 @@ class _VetRequestScreenState extends State<VetRequestScreen> {
             const SizedBox(height: 20),
 
             // Voice Note / Description
-            Text('Describe symptoms / condition', style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 15)),
+            Text(context.tr('describe_symptoms_notes'), style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 15)),
             const SizedBox(height: 8),
             Row(
               children: [
@@ -206,15 +238,15 @@ class _VetRequestScreenState extends State<VetRequestScreen> {
                         )
                       : const Icon(Icons.mic_rounded, size: 20),
                   label: Text(_isRecordingVoice
-                      ? 'Listening...'
-                      : (_hasVoiceNote ? 'Voice Added' : 'Speak Notes')),
+                      ? context.tr('listening')
+                      : (_hasVoiceNote ? context.tr('voice_added') : context.tr('speak_notes'))),
                   onPressed: _isRecordingVoice ? null : _simulateVoiceRecording,
                 ),
                 if (_hasVoiceNote) ...[
                   const SizedBox(width: 8),
                   TextButton(
                     onPressed: () => setState(() => _hasVoiceNote = false),
-                    child: const Text('Remove', style: TextStyle(color: Colors.red)),
+                    child: Text(context.tr('remove'), style: const TextStyle(color: Colors.red)),
                   ),
                 ],
               ],
@@ -223,8 +255,8 @@ class _VetRequestScreenState extends State<VetRequestScreen> {
             TextField(
               controller: _descCtrl,
               maxLines: 2,
-              decoration: const InputDecoration(
-                hintText: 'Or write brief notes here...',
+              decoration: InputDecoration(
+                hintText: context.tr('write_brief_notes_hint'),
               ),
             ),
             const SizedBox(height: 20),
@@ -232,26 +264,25 @@ class _VetRequestScreenState extends State<VetRequestScreen> {
             // Preferred Visit Date
             Text(context.tr('preferred_visit'), style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 15)),
             const SizedBox(height: 8),
-            Row(
+            Wrap(
+              spacing: 8,
+              runSpacing: 8,
               children: _dayOptions.map((day) {
                 final isSelected = _preferredDay == day || (_customDate != null && day == 'Choose date');
-                return Padding(
-                  padding: const EdgeInsets.only(right: 8),
-                  child: ChoiceChip(
-                    label: Text(day == 'Choose date' && _customDate != null ? '${_customDate!.day}/${_customDate!.month}' : day),
-                    selected: isSelected,
-                    selectedColor: Theme.of(context).colorScheme.primaryContainer,
-                    onSelected: (v) {
-                      if (day == 'Choose date') {
-                        _pickCustomDate();
-                      } else {
-                        setState(() {
-                          _preferredDay = day;
-                          _customDate = null;
-                        });
-                      }
-                    },
-                  ),
+                return ChoiceChip(
+                  label: Text(day == 'Choose date' && _customDate != null ? '${_customDate!.day}/${_customDate!.month}' : _localizeDay(day)),
+                  selected: isSelected,
+                  selectedColor: Theme.of(context).colorScheme.primaryContainer,
+                  onSelected: (v) {
+                    if (day == 'Choose date') {
+                      _pickCustomDate();
+                    } else {
+                      setState(() {
+                        _preferredDay = day;
+                        _customDate = null;
+                      });
+                    }
+                  },
                 );
               }).toList(),
             ),
@@ -260,19 +291,18 @@ class _VetRequestScreenState extends State<VetRequestScreen> {
             // Preferred Time Slot
             Text(context.tr('preferred_time'), style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 15)),
             const SizedBox(height: 8),
-            Row(
+            Wrap(
+              spacing: 8,
+              runSpacing: 8,
               children: _timeSlots.map((time) {
                 final isSelected = _preferredTimeSlot == time;
-                return Padding(
-                  padding: const EdgeInsets.only(right: 8),
-                  child: ChoiceChip(
-                    label: Text(context.tr(time.toLowerCase())),
-                    selected: isSelected,
-                    selectedColor: Theme.of(context).colorScheme.primaryContainer,
-                    onSelected: (v) {
-                      if (v) setState(() => _preferredTimeSlot = time);
-                    },
-                  ),
+                return ChoiceChip(
+                  label: Text(context.tr(time.toLowerCase())),
+                  selected: isSelected,
+                  selectedColor: Theme.of(context).colorScheme.primaryContainer,
+                  onSelected: (v) {
+                    if (v) setState(() => _preferredTimeSlot = time);
+                  },
                 );
               }).toList(),
             ),
@@ -289,9 +319,9 @@ class _VetRequestScreenState extends State<VetRequestScreen> {
                   shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
                 ),
                 icon: const Icon(Icons.send_rounded, size: 22),
-                label: const Text(
-                  'SUBMIT VET REQUEST',
-                  style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, letterSpacing: 1),
+                label: Text(
+                  context.tr('submit_vet_request'),
+                  style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold, letterSpacing: 1),
                 ),
                 onPressed: _submit,
               ),
@@ -308,7 +338,7 @@ class _VetRequestScreenState extends State<VetRequestScreen> {
       appBar: AppBar(
         backgroundColor: Colors.white,
         elevation: 0,
-        title: const Text('Request Submitted', style: TextStyle(fontWeight: FontWeight.bold)),
+        title: Text(context.tr('request_submitted'), style: const TextStyle(fontWeight: FontWeight.bold)),
         automaticallyImplyLeading: false,
       ),
       body: SingleChildScrollView(
@@ -321,13 +351,13 @@ class _VetRequestScreenState extends State<VetRequestScreen> {
               child: Icon(Icons.check_circle_rounded, color: Color(0xFF1976D2), size: 54),
             ),
             const SizedBox(height: 16),
-            const Text(
-              'Veterinarian Request Submitted',
-              style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold),
+            Text(
+              context.tr('vet_request_submitted'),
+              style: const TextStyle(fontSize: 22, fontWeight: FontWeight.bold),
               textAlign: TextAlign.center,
             ),
             const SizedBox(height: 6),
-            Text('Request ID: #$_requestId', style: const TextStyle(color: Colors.grey, fontWeight: FontWeight.bold)),
+            Text('${context.tr('request_id')}: #$_requestId', style: const TextStyle(color: Colors.grey, fontWeight: FontWeight.bold)),
             const SizedBox(height: 24),
 
             // Timeline
@@ -341,14 +371,14 @@ class _VetRequestScreenState extends State<VetRequestScreen> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  const Text('Case Progression Timeline:', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 15)),
+                  Text(context.tr('case_progression_timeline'), style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 15)),
                   const SizedBox(height: 16),
-                  _buildTimelineTile('SUBMITTED', 'Your request has been received.', isActive: true, isLast: false),
-                  _buildTimelineTile('UNDER REVIEW', 'Coordinator will review the case.', isActive: false, isLast: false),
-                  _buildTimelineTile('VET ASSIGNED', 'Veterinarian will be assigned.', isActive: false, isLast: false),
-                  _buildTimelineTile('VISIT SCHEDULED', 'Visit date & time confirmed.', isActive: false, isLast: false),
-                  _buildTimelineTile('TREATMENT STARTED', 'Vet visit & treatment administered.', isActive: false, isLast: false),
-                  _buildTimelineTile('CASE CLOSED', 'Case resolved.', isActive: false, isLast: true),
+                  _buildTimelineTile(context.tr('timeline_submitted'), context.tr('timeline_submitted_desc'), isActive: true, isLast: false),
+                  _buildTimelineTile(context.tr('timeline_under_review'), context.tr('timeline_under_review_desc'), isActive: false, isLast: false),
+                  _buildTimelineTile(context.tr('timeline_vet_assigned'), context.tr('timeline_vet_assigned_desc'), isActive: false, isLast: false),
+                  _buildTimelineTile(context.tr('timeline_visit_scheduled'), context.tr('timeline_visit_scheduled_desc'), isActive: false, isLast: false),
+                  _buildTimelineTile(context.tr('timeline_treatment_started'), context.tr('timeline_treatment_started_desc'), isActive: false, isLast: false),
+                  _buildTimelineTile(context.tr('timeline_case_closed'), context.tr('timeline_case_closed_desc'), isActive: false, isLast: true),
                 ],
               ),
             ),

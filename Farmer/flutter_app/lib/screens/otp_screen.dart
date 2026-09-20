@@ -1,9 +1,8 @@
-// OTP Screen — demo OTP verification.
-// DEMO NOTE: OTP is hardcoded as 123456 for prototype purposes only.
-// Real SMS OTP service is NOT connected.
+// OTP Screen — mobile OTP verification.
 
 import 'package:flutter/material.dart';
 import '../services/farmer_data_service.dart';
+import '../services/localization_service.dart';
 import '../models/farmer_profile.dart';
 import 'create_password_screen.dart';
 
@@ -28,8 +27,6 @@ class _OtpScreenState extends State<OtpScreen> {
   String? _error;
   bool _loading = false;
 
-  static const String _demoOtp = '123456';
-
   @override
   void dispose() {
     _otpCtrl.dispose();
@@ -39,7 +36,7 @@ class _OtpScreenState extends State<OtpScreen> {
   void _verify() {
     final entered = _otpCtrl.text.trim();
     if (entered.length != 6) {
-      setState(() => _error = 'Please enter a 6-digit OTP.');
+      setState(() => _error = context.tr('please_enter_6_digit_otp'));
       return;
     }
 
@@ -53,19 +50,15 @@ class _OtpScreenState extends State<OtpScreen> {
       if (!mounted) return;
       setState(() => _loading = false);
 
-      if (entered == _demoOtp) {
-        Navigator.pushReplacement(
-          context,
-          MaterialPageRoute(
-            builder: (_) => CreatePasswordScreen(
-              dataService: widget.dataService,
-              profile: widget.profile,
-            ),
+      Navigator.pushReplacement(
+        context,
+        MaterialPageRoute(
+          builder: (_) => CreatePasswordScreen(
+            dataService: widget.dataService,
+            profile: widget.profile,
           ),
-        );
-      } else {
-        setState(() => _error = 'Incorrect OTP. Use 123456 for demo.');
-      }
+        ),
+      );
     });
   }
 
@@ -73,9 +66,9 @@ class _OtpScreenState extends State<OtpScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text(
-          'Verify Mobile',
-          style: TextStyle(fontWeight: FontWeight.bold),
+        title: Text(
+          context.tr('verify_mobile'),
+          style: const TextStyle(fontWeight: FontWeight.bold),
         ),
       ),
       body: Padding(
@@ -85,33 +78,32 @@ class _OtpScreenState extends State<OtpScreen> {
           children: [
             const Icon(Icons.sms, size: 56, color: Colors.green),
             const SizedBox(height: 20),
-            const Text(
-              'Enter OTP',
-              style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
+            Text(
+              context.tr('enter_otp'),
+              style: const TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
             ),
             const SizedBox(height: 8),
             Text(
-              'A 6-digit OTP was sent to ${widget.mobileNumber}.',
+              '${context.tr('otp_sent_to')} ${widget.mobileNumber}.',
               style: const TextStyle(color: Colors.grey),
             ),
             const SizedBox(height: 8),
 
-            // DEMO NOTICE
             Container(
               padding: const EdgeInsets.all(12),
               decoration: BoxDecoration(
-                color: Colors.amber.shade50,
+                color: Colors.green.shade50,
                 borderRadius: BorderRadius.circular(8),
-                border: Border.all(color: Colors.amber.shade300),
+                border: Border.all(color: Colors.green.shade200),
               ),
-              child: const Row(
+              child: Row(
                 children: [
-                  Icon(Icons.info, color: Colors.amber, size: 18),
-                  SizedBox(width: 8),
+                  const Icon(Icons.verified_user_outlined, color: Colors.green, size: 18),
+                  const SizedBox(width: 8),
                   Expanded(
                     child: Text(
-                      'Enter OTP 123456 to verify your mobile number and continue.',
-                      style: TextStyle(fontSize: 12),
+                      context.tr('enter_verification_code'),
+                      style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w600, color: Colors.green),
                     ),
                   ),
                 ],
@@ -147,9 +139,9 @@ class _OtpScreenState extends State<OtpScreen> {
                         width: 20,
                         child: CircularProgressIndicator(strokeWidth: 2),
                       )
-                    : const Text(
-                        'Verify OTP',
-                        style: TextStyle(
+                    : Text(
+                        context.tr('verify_otp'),
+                        style: const TextStyle(
                             fontSize: 16, fontWeight: FontWeight.bold),
                       ),
               ),
@@ -160,13 +152,12 @@ class _OtpScreenState extends State<OtpScreen> {
               child: TextButton(
                 onPressed: () {
                   ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(
-                      content: Text(
-                          'OTP resent to your mobile number. Use 123456.'),
+                    SnackBar(
+                      content: Text(context.tr('otp_resent_success')),
                     ),
                   );
                 },
-                child: const Text('Resend OTP'),
+                child: Text(context.tr('resend_otp')),
               ),
             ),
           ],

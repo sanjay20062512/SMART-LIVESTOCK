@@ -2,6 +2,7 @@
 
 import 'package:flutter/material.dart';
 import '../services/farmer_data_service.dart';
+import '../services/localization_service.dart';
 import '../models/animal.dart';
 
 class AddAnimalScreen extends StatefulWidget {
@@ -64,8 +65,8 @@ class _AddAnimalScreenState extends State<AddAnimalScreen> {
     // Check for duplicate ear tag (skip own tag in edit mode)
     if (!_isEdit && widget.dataService.animalIdExists(earTag)) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Animal ID / Ear Tag already exists.'),
+        SnackBar(
+          content: Text(context.tr('ear_tag_exists')),
           backgroundColor: Colors.red,
         ),
       );
@@ -86,7 +87,7 @@ class _AddAnimalScreenState extends State<AddAnimalScreen> {
       );
       widget.dataService.updateAnimal(updated);
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Animal updated successfully.')),
+        SnackBar(content: Text(context.tr('animal_updated'))),
       );
     } else {
       final animal = Animal(
@@ -105,7 +106,7 @@ class _AddAnimalScreenState extends State<AddAnimalScreen> {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text(
-            '${animal.species.displayName} ${animal.earTag} added successfully.',
+            '${animal.species.displayName} ${animal.earTag} ${context.tr("added_successfully")}.',
           ),
           backgroundColor: Colors.green,
         ),
@@ -120,7 +121,7 @@ class _AddAnimalScreenState extends State<AddAnimalScreen> {
     return Scaffold(
       appBar: AppBar(
         title: Text(
-          _isEdit ? 'Edit Animal' : 'Add New Animal',
+          _isEdit ? context.tr('edit_animal') : context.tr('add_new_animal'),
           style: const TextStyle(fontWeight: FontWeight.bold),
         ),
       ),
@@ -148,7 +149,7 @@ class _AddAnimalScreenState extends State<AddAnimalScreen> {
                           size: 32, color: Colors.grey),
                       const SizedBox(height: 4),
                       Text(
-                        'Add Photo',
+                        context.tr('add_photo'),
                         style: TextStyle(color: Colors.grey.shade600, fontSize: 12),
                       ),
                     ],
@@ -156,32 +157,32 @@ class _AddAnimalScreenState extends State<AddAnimalScreen> {
                 ),
               ),
               const SizedBox(height: 8),
-              const Center(
+              Center(
                 child: Text(
-                  '(Photo upload available in full version)',
-                  style: TextStyle(color: Colors.grey, fontSize: 11),
+                  context.tr('photo_upload_placeholder'),
+                  style: const TextStyle(color: Colors.grey, fontSize: 11),
                 ),
               ),
               const SizedBox(height: 20),
 
-              _sectionLabel('Animal Identification'),
+              _sectionLabel(context.tr('animal_identification')),
               const SizedBox(height: 12),
               TextFormField(
                 controller: _earTagCtrl,
                 decoration: _inputDeco(
-                  'Animal ID / Ear Tag *',
+                  '${context.tr("animal_id_tag")} *',
                   icon: Icons.tag,
                 ),
                 textCapitalization: TextCapitalization.characters,
                 validator: (v) {
                   if (v == null || v.trim().isEmpty) {
-                    return 'Please enter the Animal ID or Ear Tag.';
+                    return context.tr('please_enter_animal_id');
                   }
                   return null;
                 },
               ),
               const SizedBox(height: 16),
-              _sectionLabel('Species'),
+              _sectionLabel(context.tr('species')),
               const SizedBox(height: 8),
               Wrap(
                 spacing: 8,
@@ -198,13 +199,13 @@ class _AddAnimalScreenState extends State<AddAnimalScreen> {
               const SizedBox(height: 16),
               TextFormField(
                 controller: _breedCtrl,
-                decoration: _inputDeco('Breed *', icon: Icons.category),
+                decoration: _inputDeco('${context.tr("breed")} *', icon: Icons.category),
                 validator: (v) => v == null || v.trim().isEmpty
-                    ? 'Please enter the breed.'
+                    ? context.tr('please_enter_breed')
                     : null,
               ),
               const SizedBox(height: 16),
-              _sectionLabel('Gender'),
+              _sectionLabel(context.tr('gender')),
               const SizedBox(height: 8),
               Wrap(
                 spacing: 8,
@@ -220,15 +221,15 @@ class _AddAnimalScreenState extends State<AddAnimalScreen> {
               TextFormField(
                 controller: _ageCtrl,
                 decoration: _inputDeco(
-                  'Age (e.g. 4 years, 6 months) *',
+                  '${context.tr("age")} *',
                   icon: Icons.calendar_today,
                 ),
                 validator: (v) => v == null || v.trim().isEmpty
-                    ? 'Please enter the age.'
+                    ? context.tr('please_enter_age')
                     : null,
               ),
               const SizedBox(height: 16),
-              _sectionLabel('Health Status'),
+              _sectionLabel(context.tr('health_status')),
               const SizedBox(height: 8),
               Wrap(
                 spacing: 8,
@@ -244,7 +245,7 @@ class _AddAnimalScreenState extends State<AddAnimalScreen> {
               TextFormField(
                 controller: _locationCtrl,
                 decoration:
-                    _inputDeco('Location (optional)', icon: Icons.location_on),
+                    _inputDeco('${context.tr("location")} (${context.tr("optional")})', icon: Icons.location_on),
               ),
               const SizedBox(height: 32),
               SizedBox(
@@ -254,7 +255,7 @@ class _AddAnimalScreenState extends State<AddAnimalScreen> {
                   onPressed: _save,
                   icon: Icon(_isEdit ? Icons.save : Icons.add),
                   label: Text(
-                    _isEdit ? 'Save Changes' : 'Add Animal',
+                    _isEdit ? context.tr('save_changes') : context.tr('add_animal'),
                     style: const TextStyle(
                       fontSize: 16,
                       fontWeight: FontWeight.bold,

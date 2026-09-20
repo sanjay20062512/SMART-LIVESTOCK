@@ -2,6 +2,7 @@
 // Contains predefined breed catalogues and simple age bracket options.
 
 import 'package:flutter/material.dart';
+import '../services/localization_service.dart';
 
 enum AnimalSpecies { cow, buffalo, goat, sheep, poultry, pig, other }
 
@@ -11,21 +12,59 @@ enum HealthStatus { healthy, underMonitoring, activeCase, critical }
 
 extension AnimalSpeciesExt on AnimalSpecies {
   String get displayName {
-    switch (this) {
-      case AnimalSpecies.cow:
-        return 'Cow';
-      case AnimalSpecies.buffalo:
-        return 'Buffalo';
-      case AnimalSpecies.goat:
-        return 'Goat';
-      case AnimalSpecies.sheep:
-        return 'Sheep';
-      case AnimalSpecies.poultry:
-        return 'Poultry';
-      case AnimalSpecies.pig:
-        return 'Pig';
-      case AnimalSpecies.other:
-        return 'Other';
+    final lang = LocalizationService.instance.currentLanguage;
+    switch (lang) {
+      case AppLanguage.hindi:
+        switch (this) {
+          case AnimalSpecies.cow:
+            return 'गाय';
+          case AnimalSpecies.buffalo:
+            return 'भैंस';
+          case AnimalSpecies.goat:
+            return 'बकरी';
+          case AnimalSpecies.sheep:
+            return 'भेड़';
+          case AnimalSpecies.poultry:
+            return 'पोल्ट्री / मुर्गी';
+          case AnimalSpecies.pig:
+            return 'सूअर';
+          case AnimalSpecies.other:
+            return 'अन्य';
+        }
+      case AppLanguage.marathi:
+        switch (this) {
+          case AnimalSpecies.cow:
+            return 'गाय';
+          case AnimalSpecies.buffalo:
+            return 'म्हैस';
+          case AnimalSpecies.goat:
+            return 'शेळी';
+          case AnimalSpecies.sheep:
+            return 'मेंढी';
+          case AnimalSpecies.poultry:
+            return 'पोल्ट्री / कोंबडी';
+          case AnimalSpecies.pig:
+            return 'डुक्कर';
+          case AnimalSpecies.other:
+            return 'इतर';
+        }
+      case AppLanguage.english:
+        switch (this) {
+          case AnimalSpecies.cow:
+            return 'Cow';
+          case AnimalSpecies.buffalo:
+            return 'Buffalo';
+          case AnimalSpecies.goat:
+            return 'Goat';
+          case AnimalSpecies.sheep:
+            return 'Sheep';
+          case AnimalSpecies.poultry:
+            return 'Poultry';
+          case AnimalSpecies.pig:
+            return 'Pig';
+          case AnimalSpecies.other:
+            return 'Other';
+        }
     }
   }
 
@@ -124,28 +163,76 @@ extension AnimalSpeciesExt on AnimalSpecies {
 
 extension AnimalGenderExt on AnimalGender {
   String get displayName {
-    switch (this) {
-      case AnimalGender.male:
-        return 'Male';
-      case AnimalGender.female:
-        return 'Female';
-      case AnimalGender.unknown:
-        return 'Unknown';
+    final lang = LocalizationService.instance.currentLanguage;
+    switch (lang) {
+      case AppLanguage.hindi:
+        switch (this) {
+          case AnimalGender.male:
+            return 'नर';
+          case AnimalGender.female:
+            return 'मादा';
+          case AnimalGender.unknown:
+            return 'अज्ञात';
+        }
+      case AppLanguage.marathi:
+        switch (this) {
+          case AnimalGender.male:
+            return 'नर';
+          case AnimalGender.female:
+            return 'मादी';
+          case AnimalGender.unknown:
+            return 'अज्ञात';
+        }
+      case AppLanguage.english:
+        switch (this) {
+          case AnimalGender.male:
+            return 'Male';
+          case AnimalGender.female:
+            return 'Female';
+          case AnimalGender.unknown:
+            return 'Unknown';
+        }
     }
   }
 }
 
 extension HealthStatusExt on HealthStatus {
   String get displayName {
-    switch (this) {
-      case HealthStatus.healthy:
-        return 'Healthy';
-      case HealthStatus.underMonitoring:
-        return 'Under Monitoring';
-      case HealthStatus.activeCase:
-        return 'Active Case';
-      case HealthStatus.critical:
-        return 'Critical';
+    final lang = LocalizationService.instance.currentLanguage;
+    switch (lang) {
+      case AppLanguage.hindi:
+        switch (this) {
+          case HealthStatus.healthy:
+            return 'स्वस्थ';
+          case HealthStatus.underMonitoring:
+            return 'निगरानी में';
+          case HealthStatus.activeCase:
+            return 'सक्रिय केस';
+          case HealthStatus.critical:
+            return 'गंभीर';
+        }
+      case AppLanguage.marathi:
+        switch (this) {
+          case HealthStatus.healthy:
+            return 'निरोगी';
+          case HealthStatus.underMonitoring:
+            return 'निरीक्षणाखाली';
+          case HealthStatus.activeCase:
+            return 'सक्रिय केस';
+          case HealthStatus.critical:
+            return 'गंभीर';
+        }
+      case AppLanguage.english:
+        switch (this) {
+          case HealthStatus.healthy:
+            return 'Healthy';
+          case HealthStatus.underMonitoring:
+            return 'Under Monitoring';
+          case HealthStatus.activeCase:
+            return 'Active Case';
+          case HealthStatus.critical:
+            return 'Critical';
+        }
     }
   }
 }

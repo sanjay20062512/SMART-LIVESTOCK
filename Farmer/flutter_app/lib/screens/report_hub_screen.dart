@@ -2,6 +2,7 @@
 
 import 'package:flutter/material.dart';
 import '../services/farmer_data_service.dart';
+import '../services/localization_service.dart';
 
 import 'symptom_report_screen.dart';
 import 'mortality_report_screen.dart';
@@ -24,9 +25,9 @@ class ReportHubScreen extends StatelessWidget {
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text(
-          'Report an Issue',
-          style: TextStyle(fontWeight: FontWeight.bold),
+        title: Text(
+          context.tr('report_an_issue'),
+          style: const TextStyle(fontWeight: FontWeight.bold),
         ),
       ),
       body: SingleChildScrollView(
@@ -34,18 +35,17 @@ class ReportHubScreen extends StatelessWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            const Text(
-              'What would you like to report?',
-              style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+            Text(
+              context.tr('what_to_report'),
+              style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
             ),
             const SizedBox(height: 20),
 
             // Three large actions
             _BigActionCard(
               icon: Icons.health_and_safety,
-              label: 'Report Symptoms',
-              description:
-                  'Select an animal and report health symptoms for risk assessment.',
+              label: context.tr('report_symptoms'),
+              description: context.tr('report_symptoms_desc'),
               color: Colors.orange,
               onTap: () => Navigator.push(
                 context,
@@ -57,9 +57,8 @@ class ReportHubScreen extends StatelessWidget {
             const SizedBox(height: 12),
             _BigActionCard(
               icon: Icons.warning_amber_rounded,
-              label: 'Report Mortality',
-              description:
-                  'Report the death of an animal. A critical alert will be created.',
+              label: context.tr('report_mortality'),
+              description: context.tr('report_mortality_desc'),
               color: Colors.red,
               onTap: () => Navigator.push(
                 context,
@@ -72,9 +71,8 @@ class ReportHubScreen extends StatelessWidget {
             const SizedBox(height: 12),
             _BigActionCard(
               icon: Icons.local_hospital,
-              label: 'Request Veterinarian',
-              description:
-                  'Request a veterinarian visit for an animal in need.',
+              label: context.tr('request_vet'),
+              description: context.tr('request_vet_desc'),
               color: Colors.blue,
               onTap: () => Navigator.push(
                 context,
@@ -89,9 +87,9 @@ class ReportHubScreen extends StatelessWidget {
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                const Text(
-                  'My Recent Reports',
-                  style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+                Text(
+                  context.tr('my_recent_reports'),
+                  style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
                 ),
                 TextButton(
                   onPressed: () => Navigator.push(
@@ -101,7 +99,7 @@ class ReportHubScreen extends StatelessWidget {
                           MyReportsScreen(dataService: dataService),
                     ),
                   ),
-                  child: const Text('See All'),
+                  child: Text(context.tr('see_all_cases')),
                 ),
               ],
             ),
@@ -110,13 +108,13 @@ class ReportHubScreen extends StatelessWidget {
                 ? Card(
                     shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(12)),
-                    child: const Padding(
-                      padding: EdgeInsets.all(20),
+                    child: Padding(
+                      padding: const EdgeInsets.all(20),
                       child: Center(
                         child: Text(
-                          'No reports yet. Use the actions above to report an issue.',
+                          context.tr('no_reports_yet_desc'),
                           textAlign: TextAlign.center,
-                          style: TextStyle(color: Colors.grey),
+                          style: const TextStyle(color: Colors.grey),
                         ),
                       ),
                     ),
@@ -143,20 +141,28 @@ class ReportHubScreen extends StatelessWidget {
                                 ),
                               ),
                               title: Text(
-                                item['title'] as String,
+                                type == 'health_report'
+                                    ? context.tr('activity_health_reported')
+                                    : (type == 'mortality_report'
+                                        ? context.tr('activity_mortality_reported')
+                                        : (type == 'vet_request'
+                                            ? context.tr('activity_vet_requested')
+                                            : item['title'] as String)),
                                 style: const TextStyle(
                                   fontWeight: FontWeight.w600,
                                   fontSize: 14,
                                 ),
                               ),
                               subtitle: Text(
-                                (item['subtitle'] as String)
-                                    .replaceAll('Â·', '•')
-                                    .replaceAll('Â', '')
-                                    .replaceAll('â€”', '—'),
+                                context.translateText(
+                                  (item['subtitle'] as String)
+                                      .replaceAll('Â·', '•')
+                                      .replaceAll('Â', '')
+                                      .replaceAll('â€”', '—'),
+                                ),
                               ),
                               trailing: Text(
-                                _timeAgo(item['date'] as DateTime),
+                                _timeAgo(context, item['date'] as DateTime),
                                 style: const TextStyle(
                                     color: Colors.grey, fontSize: 12),
                               ),
@@ -201,12 +207,12 @@ class ReportHubScreen extends StatelessWidget {
     }
   }
 
-  String _timeAgo(DateTime dt) {
+  String _timeAgo(BuildContext context, DateTime dt) {
     final diff = DateTime.now().difference(dt);
-    if (diff.inMinutes < 1) return 'Just now';
-    if (diff.inHours < 1) return '${diff.inMinutes}m ago';
-    if (diff.inDays < 1) return '${diff.inHours}h ago';
-    return '${diff.inDays}d ago';
+    if (diff.inMinutes < 1) return context.tr('just_now');
+    if (diff.inHours < 1) return '${diff.inMinutes}m ${context.tr("ago")}';
+    if (diff.inDays < 1) return '${diff.inHours}h ${context.tr("ago")}';
+    return '${diff.inDays}d ${context.tr("ago")}';
   }
 }
 

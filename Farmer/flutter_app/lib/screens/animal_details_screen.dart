@@ -2,6 +2,7 @@
 
 import 'package:flutter/material.dart';
 import '../services/farmer_data_service.dart';
+import '../services/localization_service.dart';
 import '../models/animal.dart';
 import '../models/health_report.dart';
 import '../models/vaccination_record.dart';
@@ -62,8 +63,8 @@ class _AnimalDetailsScreenState extends State<AnimalDetailsScreen> {
 
     if (animal == null) {
       return Scaffold(
-        appBar: AppBar(title: const Text('Animal Details')),
-        body: const Center(child: Text('Animal not found.')),
+        appBar: AppBar(title: Text(context.tr('animal_details'))),
+        body: Center(child: Text(context.tr('animal_not_found'))),
       );
     }
 
@@ -76,13 +77,13 @@ class _AnimalDetailsScreenState extends State<AnimalDetailsScreen> {
     return Scaffold(
       appBar: AppBar(
         title: Text(
-          '${animal.species.displayName} — ${animal.earTag}',
+          '${context.translateSpecies(animal.species.displayName)} — ${context.translateTag(animal.earTag)}',
           style: const TextStyle(fontWeight: FontWeight.bold),
         ),
         actions: [
           IconButton(
             icon: const Icon(Icons.edit),
-            tooltip: 'Edit Animal',
+            tooltip: context.tr('edit_animal'),
             onPressed: () async {
               await Navigator.push(
                 context,
@@ -116,7 +117,7 @@ class _AnimalDetailsScreenState extends State<AnimalDetailsScreen> {
                   Icon(Icons.circle, color: statusColor, size: 14),
                   const SizedBox(width: 8),
                   Text(
-                    animal.healthStatus.displayName,
+                    context.translateText(animal.healthStatus.displayName),
                     style: TextStyle(
                       color: statusColor,
                       fontWeight: FontWeight.bold,
@@ -130,36 +131,36 @@ class _AnimalDetailsScreenState extends State<AnimalDetailsScreen> {
 
             // Animal Information
             _sectionCard(
-              title: 'Animal Information',
+              title: context.tr('animal_information'),
               icon: Icons.info_outline,
               children: [
-                _infoRow('ID / Ear Tag', animal.earTag),
-                _infoRow('Species', animal.species.displayName),
-                _infoRow('Breed', animal.breed),
-                _infoRow('Gender', animal.gender.displayName),
-                _infoRow('Age', animal.age),
-                _infoRow('Location', animal.location ?? '—'),
+                _infoRow(context.tr('animal_id_tag'), context.translateTag(animal.earTag)),
+                _infoRow(context.tr('species'), context.translateSpecies(animal.species.displayName)),
+                _infoRow(context.tr('breed'), context.translateBreed(animal.breed)),
+                _infoRow(context.tr('gender'), context.translateText(animal.gender.displayName)),
+                _infoRow(context.tr('age'), context.translateText(animal.age)),
+                _infoRow(context.tr('location'), context.translateText(animal.location ?? '—')),
               ],
             ),
             const SizedBox(height: 16),
 
             // Health Overview
             _sectionCard(
-              title: 'Health Overview',
+              title: context.tr('health_overview'),
               icon: Icons.health_and_safety_outlined,
               children: [
-                _infoRow('Current Status', animal.healthStatus.displayName),
+                _infoRow(context.tr('current_status'), context.translateText(animal.healthStatus.displayName)),
                 _infoRow(
-                  'Last Health Report',
+                  context.tr('last_health_report'),
                   animal.lastHealthReport != null
                       ? _formatDate(animal.lastHealthReport!)
-                      : 'None',
+                      : context.tr('none'),
                 ),
                 _infoRow(
-                  'Last Vet Visit',
+                  context.tr('last_vet_visit'),
                   animal.lastVetVisit != null
                       ? _formatDate(animal.lastVetVisit!)
-                      : 'None',
+                      : context.tr('none'),
                 ),
               ],
             ),
@@ -167,11 +168,11 @@ class _AnimalDetailsScreenState extends State<AnimalDetailsScreen> {
 
             // Health Records
             _expandableSection(
-              title: 'Health Records',
+              title: context.tr('health_records'),
               icon: Icons.description_outlined,
               count: healthReports.length,
               child: healthReports.isEmpty
-                  ? _emptyMessage('No health records available.')
+                  ? _emptyMessage(context.tr('no_health_records'))
                   : Column(
                       children: healthReports
                           .map((r) => _HealthReportTile(report: r))
@@ -182,11 +183,11 @@ class _AnimalDetailsScreenState extends State<AnimalDetailsScreen> {
 
             // Vaccination
             _expandableSection(
-              title: 'Vaccination',
+              title: context.tr('vaccination'),
               icon: Icons.vaccines_outlined,
               count: vaccinations.length,
               child: vaccinations.isEmpty
-                  ? _emptyMessage('No vaccination records available.')
+                  ? _emptyMessage(context.tr('no_vaccinations'))
                   : Column(
                       children: vaccinations
                           .map((v) => _VaccinationTile(record: v))
@@ -197,11 +198,11 @@ class _AnimalDetailsScreenState extends State<AnimalDetailsScreen> {
 
             // Treatment
             _expandableSection(
-              title: 'Treatment',
+              title: context.tr('treatment'),
               icon: Icons.medical_services_outlined,
               count: treatments.length,
               child: treatments.isEmpty
-                  ? _emptyMessage('No treatment records available.')
+                  ? _emptyMessage(context.tr('no_treatments'))
                   : Column(
                       children: treatments
                           .map((t) => _TreatmentTile(record: t))
@@ -212,11 +213,11 @@ class _AnimalDetailsScreenState extends State<AnimalDetailsScreen> {
 
             // Vet Requests
             _expandableSection(
-              title: 'Vet Requests',
+              title: context.tr('vet_requests'),
               icon: Icons.local_hospital_outlined,
               count: vetRequests.length,
               child: vetRequests.isEmpty
-                  ? _emptyMessage('No veterinarian requests.')
+                  ? _emptyMessage(context.tr('no_vet_requests'))
                   : Column(
                       children: vetRequests
                           .map((v) => _VetRequestTile(request: v))
@@ -242,7 +243,7 @@ class _AnimalDetailsScreenState extends State<AnimalDetailsScreen> {
                       );
                     },
                     icon: const Icon(Icons.health_and_safety),
-                    label: const Text('Report Symptoms'),
+                    label: Text(context.tr('report_symptoms')),
                   ),
                 ),
                 const SizedBox(width: 10),
@@ -260,7 +261,7 @@ class _AnimalDetailsScreenState extends State<AnimalDetailsScreen> {
                       );
                     },
                     icon: const Icon(Icons.local_hospital),
-                    label: const Text('Request Vet'),
+                    label: Text(context.tr('request_vet')),
                   ),
                 ),
               ],
@@ -425,7 +426,7 @@ class _HealthReportTile extends StatelessWidget {
                     borderRadius: BorderRadius.circular(6),
                   ),
                   child: Text(
-                    report.riskLevel.displayName,
+                    context.translateText(report.riskLevel.displayName),
                     style: const TextStyle(
                         color: Colors.white,
                         fontWeight: FontWeight.bold,
@@ -440,13 +441,13 @@ class _HealthReportTile extends StatelessWidget {
               ],
             ),
             const SizedBox(height: 6),
-            Text(report.title, style: const TextStyle(fontWeight: FontWeight.bold)),
+            Text(context.translateText(report.title), style: const TextStyle(fontWeight: FontWeight.bold)),
             const SizedBox(height: 4),
             Wrap(
               spacing: 4,
               children: report.symptoms
                   .map((s) => Chip(
-                        label: Text(s, style: const TextStyle(fontSize: 11)),
+                        label: Text(context.translateText(s), style: const TextStyle(fontSize: 11)),
                         padding: EdgeInsets.zero,
                         materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
                       ))
@@ -469,12 +470,12 @@ class _VaccinationTile extends StatelessWidget {
     return ListTile(
       contentPadding: EdgeInsets.zero,
       leading: const Icon(Icons.vaccines, color: Colors.purple),
-      title: Text(record.vaccineName,
+      title: Text(context.translateText(record.vaccineName),
           style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 14)),
       subtitle: Text(
         record.date != null
-            ? 'Given: ${record.date!.day}/${record.date!.month}/${record.date!.year}'
-            : 'Not yet administered',
+            ? '${context.tr("given")}: ${record.date!.day}/${record.date!.month}/${record.date!.year}'
+            : context.tr('none'),
       ),
       trailing: Container(
         padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
@@ -485,7 +486,7 @@ class _VaccinationTile extends StatelessWidget {
           borderRadius: BorderRadius.circular(8),
         ),
         child: Text(
-          record.status.displayName,
+          context.translateText(record.status.displayName),
           style: TextStyle(
             color: record.status == VaccinationStatus.completed
                 ? Colors.green
@@ -514,12 +515,12 @@ class _TreatmentTile extends StatelessWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text(record.condition,
+            Text(context.translateText(record.condition),
                 style: const TextStyle(fontWeight: FontWeight.bold)),
             const SizedBox(height: 4),
-            Text('Treatment: ${record.treatment}'),
-            Text('Medicine: ${record.medicine}'),
-            if (record.veterinarian != null) Text('Vet: ${record.veterinarian}'),
+            Text('${context.tr("treatment")}: ${context.translateText(record.treatment)}'),
+            Text('${context.tr("medicine")}: ${context.translateText(record.medicine)}'),
+            if (record.veterinarian != null) Text('${context.tr("vet")}: ${context.translateText(record.veterinarian!)}'),
             const SizedBox(height: 6),
             Container(
               padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
@@ -528,7 +529,7 @@ class _TreatmentTile extends StatelessWidget {
                 borderRadius: BorderRadius.circular(6),
               ),
               child: Text(
-                record.status.displayName,
+                context.translateText(record.status.displayName),
                 style: const TextStyle(
                   color: Colors.blue,
                   fontSize: 12,
@@ -553,9 +554,9 @@ class _VetRequestTile extends StatelessWidget {
     return ListTile(
       contentPadding: EdgeInsets.zero,
       leading: const Icon(Icons.local_hospital, color: Colors.blue),
-      title: Text(request.reason,
+      title: Text(context.translateText(request.reason),
           style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 14)),
-      subtitle: Text(request.caseStatus.displayName),
+      subtitle: Text(context.translateStatus(request.caseStatus.displayName)),
       trailing: Text(
         '${request.createdAt.day}/${request.createdAt.month}/${request.createdAt.year}',
         style: const TextStyle(color: Colors.grey, fontSize: 12),

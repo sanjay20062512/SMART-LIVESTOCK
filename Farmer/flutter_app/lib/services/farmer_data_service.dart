@@ -59,7 +59,7 @@ class FarmerDataService extends ChangeNotifier {
   bool isOfflineMode = false;
 
   FarmerProfile _profile = const FarmerProfile(
-    fullName: 'Ramesh Pawar',
+    fullName: 'Sanjay Kumar',
     mobileNumber: '9876543210',
     email: 'farmer@example.com',
     preferredLanguage: 'English',
@@ -247,7 +247,18 @@ class FarmerDataService extends ChangeNotifier {
 
   // â”€â”€â”€ Profile â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
-  FarmerProfile get profile => _profile;
+  FarmerProfile get profile {
+    final loc = LocalizationService.instance;
+    return _profile.copyWith(
+      fullName: loc.translateText(_profile.fullName),
+      farmName: _profile.farmName != null ? loc.translateText(_profile.farmName!) : null,
+      village: loc.translateText(_profile.village),
+      district: loc.translateText(_profile.district),
+      block: loc.translateText(_profile.block),
+      state: loc.translateText(_profile.state),
+      farmSizeUnit: loc.translateText(_profile.farmSizeUnit),
+    );
+  }
 
   void updateProfile(FarmerProfile updated) {
     _profile = updated;
@@ -1547,44 +1558,58 @@ class FarmerDataService extends ChangeNotifier {
 
   List<Map<String, dynamic>> getRecentActivity({int limit = 10}) {
     final activities = <Map<String, dynamic>>[];
+    final loc = LocalizationService.instance;
 
     for (final a in _animals) {
+      final speciesLabel = a.species.displayName;
+      final breedLabel = loc.translateText(a.breed);
+      final localizedTag = loc.translateTag(a.earTag);
       activities.add({
         'type': 'animal_added',
-        'title': 'Animal Registered',
-        'subtitle': '${a.species.displayName} (${a.earTag}) • ${a.breed}',
+        'title': loc.tr('activity_animal_registered'),
+        'subtitle': '$speciesLabel ($localizedTag) • $breedLabel',
         'species': a.species,
+        'speciesName': a.species.displayName,
+        'animal': a,
         'date': a.createdAt,
         'icon': 'livestock',
       });
     }
 
     for (final r in _healthReports) {
+      final syms = r.symptoms.take(2).map((s) => loc.translateText(s)).join(', ');
+      final riskName = r.riskLevel.displayName;
+      final localizedTag = loc.translateTag(r.animalTag);
       activities.add({
         'type': 'health_report',
-        'title': 'Health Report: ${r.animalTag}',
-        'subtitle': '${r.riskLevel.displayName} Risk — ${r.symptoms.take(2).join(", ")}',
+        'title': '${loc.tr('activity_health_reported')}: $localizedTag',
+        'subtitle': '$riskName — $syms',
         'species': r.species,
+        'report': r,
         'date': r.createdAt,
         'icon': 'medical_services',
       });
     }
 
     for (final m in _mortalityReports) {
+      final localizedTag = loc.translateTag(m.animalTag);
       activities.add({
         'type': 'mortality_report',
-        'title': 'Mortality Report: ${m.animalTag}',
-        'subtitle': '${m.numberAffected} animal(s) affected',
+        'title': '${loc.tr('activity_mortality_reported')}: $localizedTag',
+        'subtitle': loc.tr('animals_affected_count', params: {'count': '${m.numberAffected}'}),
+        'mortality': m,
         'date': m.createdAt,
         'icon': 'warning',
       });
     }
 
     for (final v in _vetRequests) {
+      final localizedTag = loc.translateTag(v.animalTag);
       activities.add({
         'type': 'vet_request',
-        'title': 'Vet Requested: ${v.animalTag}',
-        'subtitle': v.reason,
+        'title': '${loc.tr('activity_vet_requested')}: $localizedTag',
+        'subtitle': loc.translateText(v.reason),
+        'request': v,
         'date': v.createdAt,
         'icon': 'local_hospital',
       });

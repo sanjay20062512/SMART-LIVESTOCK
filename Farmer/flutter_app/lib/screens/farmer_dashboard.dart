@@ -11,6 +11,9 @@ import '../widgets/brand_logo.dart';
 import '../widgets/language_selector_button.dart';
 import '../widgets/livestock_vector_icon.dart';
 import '../models/animal.dart';
+import '../models/health_report.dart';
+import '../models/mortality_report.dart';
+import '../models/vet_request.dart';
 import 'symptom_report_screen.dart';
 import 'vet_request_screen.dart';
 
@@ -134,7 +137,7 @@ class FarmerDashboard extends StatelessWidget {
 
             // Simple Health Summary (4 clear cards)
             Text(
-              'Farm Health Summary',
+              context.tr('farm_health_summary'),
               style: theme.textTheme.titleMedium?.copyWith(
                 fontWeight: FontWeight.bold,
                 color: const Color(0xFF2C3E50),
@@ -157,7 +160,7 @@ class FarmerDashboard extends StatelessWidget {
                 ),
                 TextButton(
                   onPressed: () => onNavigateToTab(1),
-                  child: const Text('See All Cases'),
+                  child: Text(context.tr('see_all_cases')),
                 ),
               ],
             ),
@@ -201,7 +204,7 @@ class FarmerDashboard extends StatelessWidget {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
-                  context.tr('hello_farmer', params: {'name': name}),
+                  context.tr('hello_farmer', params: {'name': context.translateText(name)}),
                   style: const TextStyle(
                     color: Colors.white,
                     fontSize: 19,
@@ -212,7 +215,7 @@ class FarmerDashboard extends StatelessWidget {
                 if (farmName != null && farmName.isNotEmpty) ...[
                   const SizedBox(height: 3),
                   Text(
-                    farmName,
+                    context.translateText(farmName),
                     style: TextStyle(
                       color: Colors.white.withValues(alpha: 0.75),
                       fontSize: 13,
@@ -228,11 +231,11 @@ class FarmerDashboard extends StatelessWidget {
               color: Colors.white.withValues(alpha: 0.18),
               borderRadius: AppRadius.smRadius,
             ),
-            child: const Column(
+            child: Column(
               children: [
-                Icon(Icons.wb_sunny_outlined, color: Colors.white, size: 16),
-                SizedBox(height: 2),
-                Text('Today', style: TextStyle(color: Colors.white70, fontSize: 10, fontWeight: FontWeight.w600)),
+                const Icon(Icons.wb_sunny_outlined, color: Colors.white, size: 16),
+                const SizedBox(height: 2),
+                Text(context.tr('today'), style: const TextStyle(color: Colors.white70, fontSize: 10, fontWeight: FontWeight.w600)),
               ],
             ),
           ),
@@ -523,25 +526,25 @@ class FarmerDashboard extends StatelessWidget {
           borderRadius: AppRadius.mdRadius,
           border: Border.all(color: AppColors.border),
         ),
-        child: const Padding(
-          padding: EdgeInsets.all(28),
+        child: Padding(
+          padding: const EdgeInsets.all(28),
           child: Center(
             child: Column(
               children: [
-                Icon(Icons.history_rounded, size: 40, color: AppColors.textDisabled),
-                SizedBox(height: 10),
+                const Icon(Icons.history_rounded, size: 40, color: AppColors.textDisabled),
+                const SizedBox(height: 10),
                 Text(
-                  'No recent reports or actions yet.',
-                  style: TextStyle(
+                  context.tr('no_recent_activity'),
+                  style: const TextStyle(
                     color: AppColors.textMuted,
                     fontSize: 14,
                     fontWeight: FontWeight.w500,
                   ),
                 ),
-                SizedBox(height: 4),
+                const SizedBox(height: 4),
                 Text(
-                  'Use the Report button above to get started.',
-                  style: TextStyle(color: AppColors.textDisabled, fontSize: 12),
+                  context.tr('use_report_button_to_start'),
+                  style: const TextStyle(color: AppColors.textDisabled, fontSize: 12),
                 ),
               ],
             ),
@@ -582,6 +585,47 @@ class FarmerDashboard extends StatelessWidget {
             iconData = Icons.local_hospital_rounded;
           }
 
+          String title = item['title'] as String;
+          String subtitle = '';
+
+          if (type == 'animal_added') {
+            title = context.tr('activity_animal_registered');
+            final a = item['animal'] as Animal?;
+            final speciesName = (species ?? a?.species)?.displayName ?? context.tr('animal');
+            final tag = a?.earTag ?? '';
+            final localizedTag = context.translateTag(tag);
+            final tagStr = localizedTag.isNotEmpty ? '($localizedTag)' : '';
+            final breedStr = a != null ? context.translateBreed(a.breed) : '';
+            subtitle = '$speciesName $tagStr • $breedStr'.trim();
+          } else if (type == 'health_report') {
+            final r = item['report'] as HealthReport?;
+            final tag = r?.animalTag ?? '';
+            final localizedTag = context.translateTag(tag);
+            title = '${context.tr('activity_health_reported')}${localizedTag.isNotEmpty ? ': $localizedTag' : ''}';
+            if (r != null) {
+              final riskStr = r.riskLevel.displayName;
+              final syms = r.symptoms.take(2).map((s) => context.translateText(s)).join(', ');
+              subtitle = '$riskStr — $syms';
+            } else {
+              subtitle = context.translateText(item['subtitle'] as String);
+            }
+          } else if (type == 'mortality_report') {
+            final m = item['mortality'] as MortalityReport?;
+            final tag = m?.animalTag ?? '';
+            final localizedTag = context.translateTag(tag);
+            title = '${context.tr('activity_mortality_reported')}${localizedTag.isNotEmpty ? ': $localizedTag' : ''}';
+            final count = m?.numberAffected ?? 1;
+            subtitle = context.tr('animals_affected_count', params: {'count': '$count'});
+          } else if (type == 'vet_request') {
+            final v = item['request'] as VetRequest?;
+            final tag = v?.animalTag ?? '';
+            final localizedTag = context.translateTag(tag);
+            title = '${context.tr('activity_vet_requested')}${localizedTag.isNotEmpty ? ': $localizedTag' : ''}';
+            subtitle = context.translateText(v?.reason ?? item['subtitle'] as String);
+          } else {
+            subtitle = context.translateText(item['subtitle'] as String);
+          }
+
           return Column(
             children: [
               ListTile(
@@ -605,7 +649,7 @@ class FarmerDashboard extends StatelessWidget {
                   ),
                 ),
                 title: Text(
-                  item['title'] as String,
+                  title,
                   style: const TextStyle(
                     fontWeight: FontWeight.w700,
                     fontSize: 14,
@@ -613,10 +657,7 @@ class FarmerDashboard extends StatelessWidget {
                   ),
                 ),
                 subtitle: Text(
-                  (item['subtitle'] as String)
-                      .replaceAll('Â·', '•')
-                      .replaceAll('Â', '')
-                      .replaceAll('â€”', '—'),
+                  subtitle,
                   style: const TextStyle(
                     fontSize: 12,
                     color: AppColors.textSecondary,

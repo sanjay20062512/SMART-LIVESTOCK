@@ -173,7 +173,7 @@ class _MortalityReportScreenState extends State<MortalityReportScreen> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const Text('Step 1 of 6', style: TextStyle(color: Colors.grey, fontWeight: FontWeight.bold)),
+          Text('${context.tr("step")} 1 / 6', style: const TextStyle(color: Colors.grey, fontWeight: FontWeight.bold)),
           const SizedBox(height: 6),
           Text(context.tr('what_animal_problem'), style: const TextStyle(fontSize: 22, fontWeight: FontWeight.bold)),
           const SizedBox(height: 20),
@@ -201,7 +201,7 @@ class _MortalityReportScreenState extends State<MortalityReportScreen> {
                     children: [
                       Text(s.emoji, style: const TextStyle(fontSize: 40)),
                       const SizedBox(height: 6),
-                      Text(s.displayName, style: TextStyle(fontWeight: FontWeight.bold, color: isSelected ? Colors.red : Colors.black87)),
+                      Text(context.translateSpecies(s.displayName), style: TextStyle(fontWeight: FontWeight.bold, color: isSelected ? Colors.red : Colors.black87)),
                     ],
                   ),
                 ),
@@ -222,7 +222,7 @@ class _MortalityReportScreenState extends State<MortalityReportScreen> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const Text('Step 2 of 6', style: TextStyle(color: Colors.grey, fontWeight: FontWeight.bold)),
+          Text('${context.tr("step")} 2 / 6', style: const TextStyle(color: Colors.grey, fontWeight: FontWeight.bold)),
           const SizedBox(height: 6),
           Text(context.tr('how_many_died'), style: const TextStyle(fontSize: 22, fontWeight: FontWeight.bold)),
           const SizedBox(height: 20),
@@ -236,7 +236,7 @@ class _MortalityReportScreenState extends State<MortalityReportScreen> {
               ),
               color: isSelected ? Colors.red.shade50 : Colors.white,
               child: ListTile(
-                title: Text(opt == '1' ? '1 animal' : '$opt animals', style: TextStyle(fontSize: 17, fontWeight: isSelected ? FontWeight.bold : FontWeight.normal)),
+                title: Text(opt == '1' ? '1 ${context.tr("animal")}' : '$opt ${context.tr("animals")}', style: TextStyle(fontSize: 17, fontWeight: isSelected ? FontWeight.bold : FontWeight.normal)),
                 trailing: isSelected ? const Icon(Icons.check_circle_rounded, color: Colors.red) : null,
                 onTap: () => setState(() => _diedCount = opt),
               ),
@@ -256,7 +256,7 @@ class _MortalityReportScreenState extends State<MortalityReportScreen> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const Text('Step 3 of 6', style: TextStyle(color: Colors.grey, fontWeight: FontWeight.bold)),
+          Text('${context.tr("step")} 3 / 6', style: const TextStyle(color: Colors.grey, fontWeight: FontWeight.bold)),
           const SizedBox(height: 6),
           Text(context.tr('when_happened'), style: const TextStyle(fontSize: 22, fontWeight: FontWeight.bold)),
           const SizedBox(height: 20),
@@ -270,7 +270,7 @@ class _MortalityReportScreenState extends State<MortalityReportScreen> {
               ),
               color: isSelected ? Colors.red.shade50 : Colors.white,
               child: ListTile(
-                title: Text(opt, style: TextStyle(fontSize: 17, fontWeight: isSelected ? FontWeight.bold : FontWeight.normal)),
+                title: Text(context.translateText(opt), style: TextStyle(fontSize: 17, fontWeight: isSelected ? FontWeight.bold : FontWeight.normal)),
                 trailing: isSelected ? const Icon(Icons.check_circle_rounded, color: Colors.red) : null,
                 onTap: () => setState(() => _when = opt),
               ),
@@ -290,7 +290,7 @@ class _MortalityReportScreenState extends State<MortalityReportScreen> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const Text('Step 4 of 6', style: TextStyle(color: Colors.grey, fontWeight: FontWeight.bold)),
+          Text('${context.tr("step")} 4 / 6', style: const TextStyle(color: Colors.grey, fontWeight: FontWeight.bold)),
           const SizedBox(height: 6),
           Text(context.tr('problems_before_death'), style: const TextStyle(fontSize: 22, fontWeight: FontWeight.bold)),
           const SizedBox(height: 16),
@@ -329,7 +329,7 @@ class _MortalityReportScreenState extends State<MortalityReportScreen> {
                       children: [
                         Icon(icon, color: isSelected ? Colors.red : Colors.grey),
                         const SizedBox(width: 8),
-                        Expanded(child: Text(name, style: TextStyle(fontSize: 12.5, fontWeight: isSelected ? FontWeight.bold : FontWeight.normal))),
+                        Expanded(child: Text(context.translateSymptom(name), style: TextStyle(fontSize: 12.5, fontWeight: isSelected ? FontWeight.bold : FontWeight.normal))),
                       ],
                     ),
                   ),
@@ -351,7 +351,7 @@ class _MortalityReportScreenState extends State<MortalityReportScreen> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const Text('Step 5 of 6', style: TextStyle(color: Colors.grey, fontWeight: FontWeight.bold)),
+          Text('${context.tr("step")} 5 / 6', style: const TextStyle(color: Colors.grey, fontWeight: FontWeight.bold)),
           const SizedBox(height: 6),
           Text(context.tr('show_us_problem'), style: const TextStyle(fontSize: 22, fontWeight: FontWeight.bold)),
           const SizedBox(height: 20),
@@ -360,7 +360,7 @@ class _MortalityReportScreenState extends State<MortalityReportScreen> {
               Expanded(
                 child: _buildEvidenceButton(
                   icon: Icons.camera_alt_rounded,
-                  label: _hasPhoto ? '✓ Photo Added' : '📷 Take Photo',
+                  label: _hasPhoto ? '✓ ${context.tr("photo_added")}' : '📷 ${context.tr("take_photo")}',
                   color: Colors.blue,
                   isSelected: _hasPhoto,
                   onTap: () => setState(() => _hasPhoto = !_hasPhoto),
@@ -370,7 +370,7 @@ class _MortalityReportScreenState extends State<MortalityReportScreen> {
               Expanded(
                 child: _buildEvidenceButton(
                   icon: Icons.mic_rounded,
-                  label: _hasVoice ? '✓ Voice Added' : '🎤 Record Voice',
+                  label: _hasVoice ? '✓ ${context.tr("voice_recorded")}' : '🎤 ${context.tr("record_voice")}',
                   color: Colors.orange,
                   isSelected: _hasVoice,
                   onTap: () => setState(() => _hasVoice = !_hasVoice),
@@ -403,7 +403,7 @@ class _MortalityReportScreenState extends State<MortalityReportScreen> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const Text('Step 6 of 6', style: TextStyle(color: Colors.grey, fontWeight: FontWeight.bold)),
+          Text('${context.tr("step")} 6 / 6', style: const TextStyle(color: Colors.grey, fontWeight: FontWeight.bold)),
           const SizedBox(height: 6),
           Text(context.tr('where_is_animal'), style: const TextStyle(fontSize: 22, fontWeight: FontWeight.bold)),
           const SizedBox(height: 16),
@@ -429,7 +429,7 @@ class _MortalityReportScreenState extends State<MortalityReportScreen> {
               ),
               icon: const Icon(Icons.warning_rounded, size: 24),
               label: Text(
-                'SUBMIT MORTALITY REPORT',
+                context.tr('submit_mortality_report'),
                 style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold, letterSpacing: 0.5),
               ),
               onPressed: _submit,
@@ -468,7 +468,7 @@ class _MortalityReportScreenState extends State<MortalityReportScreen> {
               ),
               const SizedBox(height: 6),
               Text(
-                'Case ID: #$_reportId',
+                '${context.tr("case_id")}: #$_reportId',
                 style: const TextStyle(color: Colors.grey, fontWeight: FontWeight.bold),
               ),
               const SizedBox(height: 20),
