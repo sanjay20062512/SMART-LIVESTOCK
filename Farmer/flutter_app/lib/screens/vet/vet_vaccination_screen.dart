@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import '../../services/farmer_data_service.dart';
 import '../../models/vaccination_record.dart';
 import '../../theme/app_theme.dart';
+import '../../services/localization_service.dart';
 
 class VetVaccinationScreen extends StatelessWidget {
   final FarmerDataService dataService;
@@ -10,7 +11,7 @@ class VetVaccinationScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return ListenableBuilder(
-      listenable: dataService,
+      listenable: Listenable.merge([dataService, LocalizationService.instance]),
       builder: (context, _) {
         final vaccinations = dataService.getVaccinations();
         final due = vaccinations.where((v) =>
@@ -22,9 +23,9 @@ class VetVaccinationScreen extends StatelessWidget {
         return Scaffold(
           backgroundColor: AppColors.background,
           appBar: AppBar(
-            title: const Text(
-              'Vaccination',
-              style: TextStyle(
+            title: Text(
+              context.tr('vaccination'),
+              style: const TextStyle(
                 fontWeight: FontWeight.w800,
                 fontSize: 18,
                 letterSpacing: -0.2,

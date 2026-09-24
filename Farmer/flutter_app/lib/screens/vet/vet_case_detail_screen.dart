@@ -2,13 +2,15 @@
 
 import 'package:flutter/material.dart';
 import '../../services/farmer_data_service.dart';
+import '../../services/media_service.dart';
 import '../../models/case.dart';
 import '../../models/sample.dart';
 import '../../models/vet_visit.dart';
 import 'vet_sample_screen.dart';
 import 'vet_visit_screen.dart';
+import '../../services/localization_service.dart';
 
-class VetCaseDetailScreen extends StatelessWidget {
+class VetCaseDetailScreen extends StatefulWidget {
   final FarmerDataService dataService;
   final LivestockCase lcase;
 
@@ -19,13 +21,161 @@ class VetCaseDetailScreen extends StatelessWidget {
   });
 
   @override
+  State<VetCaseDetailScreen> createState() => _VetCaseDetailScreenState();
+}
+
+class _VetCaseDetailScreenState extends State<VetCaseDetailScreen> {
+  bool _isPlayingVoice = false;
+
+  void _togglePlayVoice(String? path) async {
+    if (_isPlayingVoice) {
+      await MediaService.instance.stopAudio();
+      setState(() => _isPlayingVoice = false);
+    } else {
+      setState(() => _isPlayingVoice = true);
+      await MediaService.instance.playAudio(
+        path ?? 'audio_sample.wav',
+        onComplete: () {
+          if (mounted) setState(() => _isPlayingVoice = false);
+        },
+      );
+    }
+  }
+
+  void _showFullImageDialog(BuildContext context, String? photoPath, String? photoUrl) {
+    final cachedBytes = MediaService.instance.getCachedBytes(photoPath);
+    showDialog(
+      context: context,
+      builder: (ctx) => Dialog(
+        backgroundColor: Colors.black87,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            Padding(
+              padding: const EdgeInsets.all(12),
+              child: Row(
+                children: [
+                  const Icon(Icons.photo_camera_rounded, color: Colors.blueAccent),
+                  const SizedBox(width: 8),
+                  const Text('Field Clinical Photo', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
+                  const Spacer(),
+                  IconButton(
+                    icon: const Icon(Icons.close, color: Colors.white),
+                    onPressed: () => Navigator.pop(ctx),
+                  ),
+                ],
+              ),
+            ),
+            Container(
+              constraints: const BoxConstraints(maxHeight: 400),
+              color: Colors.black,
+              child: cachedBytes != null
+                  ? Image.memory(cachedBytes, fit: BoxFit.contain)
+                  : (photoUrl != null && photoUrl.startsWith('http')
+                      ? Image.network(photoUrl, fit: BoxFit.contain)
+                      : Container(
+                          height: 260,
+                          color: const Color(0xFF1E293B),
+                          child: const Center(
+                            child: Column(
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              children: [
+                                Icon(Icons.photo_rounded, size: 70, color: Colors.blueAccent),
+                                SizedBox(height: 10),
+                                Text('Clinical Symptom Photo Attached by Farmer', style: TextStyle(color: Colors.white70)),
+                              ],
+                            ),
+                          ),
+                        )),
+            ),
+            Padding(
+              padding: const EdgeInsets.all(12),
+              child: Text(
+                'Source: ${photoPath ?? photoUrl ?? "Farmer Mobile Upload"}',
+                style: const TextStyle(color: Colors.white54, fontSize: 11),
+                textAlign: TextAlign.center,
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  void _showVideoPlayerDialog(BuildContext context, String? videoPath, String? videoUrl) {
+    showDialog(
+      context: context,
+      builder: (ctx) => Dialog(
+        backgroundColor: const Color(0xFF0F172A),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+        child: Padding(
+          padding: const EdgeInsets.all(16),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Row(
+                children: [
+                  const Icon(Icons.videocam_rounded, color: Colors.tealAccent),
+                  const SizedBox(width: 8),
+                  const Text('Clinical Video Review', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 15)),
+                  const Spacer(),
+                  IconButton(
+                    icon: const Icon(Icons.close, color: Colors.white),
+                    onPressed: () => Navigator.pop(ctx),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 16),
+              Container(
+                height: 220,
+                decoration: BoxDecoration(
+                  color: Colors.black,
+                  borderRadius: BorderRadius.circular(12),
+                  border: Border.all(color: Colors.teal.shade700),
+                ),
+                child: const Center(
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      CircleAvatar(
+                        radius: 28,
+                        backgroundColor: Colors.teal,
+                        child: Icon(Icons.play_arrow_rounded, color: Colors.white, size: 36),
+                      ),
+                      SizedBox(height: 10),
+                      Text('Clinical Video Evidence (Playing)', style: TextStyle(color: Colors.white70, fontSize: 13)),
+                      SizedBox(height: 4),
+                      Text('Recorded at Farm Location · 1080p', style: TextStyle(color: Colors.white38, fontSize: 11)),
+                    ],
+                  ),
+                ),
+              ),
+              const SizedBox(height: 12),
+              Text(
+                'File: ${videoPath ?? videoUrl ?? "clinical_recording.mp4"}',
+                style: const TextStyle(color: Colors.white54, fontSize: 11),
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  @override
   Widget build(BuildContext context) {
     return ListenableBuilder(
-      listenable: dataService,
+      listenable: Listenable.merge([widget.dataService, LocalizationService.instance]),
       builder: (context, _) {
-        final c = dataService.getCaseById(lcase.caseId) ?? lcase;
-        final samples = dataService.getSamplesForCase(c.caseId);
-        final visits = dataService.getVisitsForCase(c.caseId);
+        final c = widget.dataService.getCaseById(widget.lcase.caseId) ?? widget.lcase;
+        final samples = widget.dataService.getSamplesForCase(c.caseId);
+        final visits = widget.dataService.getVisitsForCase(c.caseId);
 
         final riskColor = switch (c.riskLevel) {
           'CRITICAL' => const Color(0xFFB71C1C),
@@ -61,14 +211,14 @@ class VetCaseDetailScreen extends StatelessWidget {
                       Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          Text('${c.riskLevel} RISK',
+                          Text(context.tr('risk_header', params: {'level': context.tr(c.riskLevel.toLowerCase())}),
                               style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 16)),
-                          Text('Preliminary risk assessment',
+                          Text(context.translateText('Preliminary risk assessment'),
                               style: const TextStyle(color: Colors.white70, fontSize: 12)),
                         ],
                       ),
                       const Spacer(),
-                      _statusPill(c.status.displayName),
+                      _statusPill(context.translateStatus(c.status.displayName)),
                     ],
                   ),
                 ),
@@ -76,40 +226,48 @@ class VetCaseDetailScreen extends StatelessWidget {
                 const SizedBox(height: 16),
 
                 // Farmer & Farm info
-                _section('Farmer & Farm', [
-                  _row('Farmer', c.farmerName),
-                  _row('Farm', c.farmName),
-                  _row('Village', c.village),
-                  _row('Block', c.block),
-                  _row('District', c.district),
+                _section(context.translateText('Farmer & Farm'), [
+                  _row(context.translateText('Farmer'), c.farmerName),
+                  _row(context.translateText('Farm'), c.farmName),
+                  _row(context.translateText('Village'), c.village),
+                  _row(context.translateText('Block'), c.block),
+                  _row(context.translateText('District'), c.district),
                 ]),
 
                 // Animal details
-                _section('Animal Details', [
-                  _row('Species', c.species),
-                  if (c.breed != null) _row('Breed', c.breed!),
-                  if (c.age != null) _row('Age', c.age!),
-                  if (c.gender != null) _row('Gender', c.gender!),
-                  _row('Tag', c.animalTag),
+                _section(context.translateText('Animal Details'), [
+                  _row(context.translateText('Species'), context.translateSpecies(c.species)),
+                  if (c.breed != null) _row(context.translateText('Breed'), context.translateBreed(c.breed!)),
+                  if (c.age != null) _row(context.translateText('Age'), c.age!),
+                  if (c.gender != null) _row(context.translateText('Gender'), context.translateText(c.gender!)),
+                  _row(context.translateText('Tag'), c.animalTag),
                 ]),
 
                 // Clinical info
-                _section('Clinical Information', [
-                  _row('Symptoms', c.symptoms.join(', ')),
-                  if (c.duration != null) _row('Duration', c.duration!),
-                  if (c.affectedCount != null) _row('Animals Affected', c.affectedCount!),
+                _section(context.translateText('Clinical Information'), [
+                  _row(context.translateText('Symptoms'), c.symptoms.map((s) => context.translateSymptom(s)).join(', ')),
+                  if (c.duration != null) _row(context.translateText('Duration'), context.translateText(c.duration!)),
+                  if (c.affectedCount != null) _row(context.translateText('Animals Affected'), '${c.affectedCount}'),
                   if (c.otherAnimalsAffected != null)
-                    _row('Other Animals Affected', c.otherAnimalsAffected!),
+                    _row(context.translateText('Other Animals Affected'), context.translateText(c.otherAnimalsAffected!)),
                   if (c.nearbyFarmsAffected != null)
-                    _row('Nearby Farms Affected', c.nearbyFarmsAffected!),
+                    _row(context.translateText('Nearby Farms Affected'), context.translateText(c.nearbyFarmsAffected!)),
                 ]),
 
-                // Evidence
+                // Rich Evidence Section
                 if (c.hasVoiceNote || c.hasPhoto || c.hasVideo)
-                  _section('Evidence', [
-                    if (c.hasVoiceNote) _evidenceChip('Voice Note'),
-                    if (c.hasPhoto) _evidenceChip('Photo'),
-                    if (c.hasVideo) _evidenceChip('Video'),
+                  _section('Attached Media Evidence', [
+                    if (c.hasPhoto) ...[
+                      _buildVetPhotoEvidence(context, c),
+                      const SizedBox(height: 10),
+                    ],
+                    if (c.hasVideo) ...[
+                      _buildVetVideoEvidence(context, c),
+                      const SizedBox(height: 10),
+                    ],
+                    if (c.hasVoiceNote) ...[
+                      _buildVetVoiceEvidence(context, c),
+                    ],
                   ]),
 
                 // Clinical Observation (if added)
@@ -144,6 +302,209 @@ class VetCaseDetailScreen extends StatelessWidget {
           bottomNavigationBar: _buildActionBar(context, c),
         );
       },
+    );
+  }
+
+  Widget _buildVetPhotoEvidence(BuildContext context, LivestockCase c) {
+    final photoPath = c.localPhotoPath ?? (c.photoUrls?.isNotEmpty == true ? c.photoUrls!.first : null);
+    final cachedBytes = MediaService.instance.getCachedBytes(photoPath);
+
+    return Container(
+      padding: const EdgeInsets.all(12),
+      decoration: BoxDecoration(
+        color: Colors.blue.shade50,
+        borderRadius: BorderRadius.circular(14),
+        border: Border.all(color: Colors.blue.shade200),
+      ),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.center,
+        children: [
+          ClipRRect(
+            borderRadius: BorderRadius.circular(10),
+            child: Container(
+              width: 70,
+              height: 70,
+              color: Colors.blue.shade100,
+              child: cachedBytes != null
+                  ? Image.memory(cachedBytes, width: 70, height: 70, fit: BoxFit.cover)
+                  : const Center(
+                      child: Icon(Icons.photo_library_rounded, color: Colors.blue, size: 36),
+                    ),
+            ),
+          ),
+          const SizedBox(width: 12),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Row(
+                  children: [
+                    const Icon(Icons.photo_camera_rounded, size: 16, color: Colors.blue),
+                    const SizedBox(width: 4),
+                    const Text(
+                      'Symptom Photo',
+                      style: TextStyle(fontWeight: FontWeight.bold, fontSize: 13, color: Color(0xFF0D47A1)),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 2),
+                Text(
+                  'Attached by farmer during report',
+                  style: TextStyle(fontSize: 11, color: Colors.grey.shade700),
+                ),
+                const SizedBox(height: 6),
+                OutlinedButton.icon(
+                  style: OutlinedButton.styleFrom(
+                    padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 2),
+                    minimumSize: const Size(0, 28),
+                    side: BorderSide(color: Colors.blue.shade300),
+                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+                  ),
+                  icon: const Icon(Icons.fullscreen_rounded, size: 16),
+                  label: const Text('View Full Photo', style: TextStyle(fontSize: 11)),
+                  onPressed: () => _showFullImageDialog(context, photoPath, c.photoUrls?.first),
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildVetVideoEvidence(BuildContext context, LivestockCase c) {
+    final videoPath = c.localVideoPath ?? c.videoUrl;
+
+    return Container(
+      padding: const EdgeInsets.all(12),
+      decoration: BoxDecoration(
+        color: Colors.teal.shade50,
+        borderRadius: BorderRadius.circular(14),
+        border: Border.all(color: Colors.teal.shade200),
+      ),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.center,
+        children: [
+          InkWell(
+            onTap: () => _showVideoPlayerDialog(context, videoPath, c.videoUrl),
+            borderRadius: BorderRadius.circular(10),
+            child: Container(
+              width: 70,
+              height: 70,
+              decoration: BoxDecoration(
+                color: const Color(0xFF0F172A),
+                borderRadius: BorderRadius.circular(10),
+              ),
+              child: const Center(
+                child: CircleAvatar(
+                  radius: 16,
+                  backgroundColor: Colors.white24,
+                  child: Icon(Icons.play_arrow_rounded, color: Colors.white, size: 20),
+                ),
+              ),
+            ),
+          ),
+          const SizedBox(width: 12),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Row(
+                  children: [
+                    const Icon(Icons.videocam_rounded, size: 16, color: Colors.teal),
+                    const SizedBox(width: 4),
+                    const Text(
+                      'Clinical Video Clip',
+                      style: TextStyle(fontWeight: FontWeight.bold, fontSize: 13, color: Color(0xFF004D40)),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 2),
+                Text(
+                  'Motion / symptom video evidence',
+                  style: TextStyle(fontSize: 11, color: Colors.grey.shade700),
+                ),
+                const SizedBox(height: 6),
+                ElevatedButton.icon(
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: Colors.teal.shade700,
+                    foregroundColor: Colors.white,
+                    padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 2),
+                    minimumSize: const Size(0, 28),
+                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+                  ),
+                  icon: const Icon(Icons.play_arrow_rounded, size: 15),
+                  label: const Text('Play Video', style: TextStyle(fontSize: 11)),
+                  onPressed: () => _showVideoPlayerDialog(context, videoPath, c.videoUrl),
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildVetVoiceEvidence(BuildContext context, LivestockCase c) {
+    return Container(
+      padding: const EdgeInsets.all(12),
+      decoration: BoxDecoration(
+        color: Colors.orange.shade50,
+        borderRadius: BorderRadius.circular(14),
+        border: Border.all(color: Colors.orange.shade200),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              const Icon(Icons.mic_rounded, size: 18, color: Colors.orange),
+              const SizedBox(width: 6),
+              const Text(
+                'Farmer Voice Description',
+                style: TextStyle(fontWeight: FontWeight.bold, fontSize: 13, color: Color(0xFFE65100)),
+              ),
+              const Spacer(),
+              ElevatedButton.icon(
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: _isPlayingVoice ? Colors.red.shade700 : Colors.orange.shade800,
+                  foregroundColor: Colors.white,
+                  padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 2),
+                  minimumSize: const Size(0, 28),
+                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+                ),
+                icon: Icon(_isPlayingVoice ? Icons.stop_rounded : Icons.volume_up_rounded, size: 15),
+                label: Text(_isPlayingVoice ? 'Stop' : 'Listen', style: const TextStyle(fontSize: 11, fontWeight: FontWeight.bold)),
+                onPressed: () => _togglePlayVoice(c.localVoicePath ?? c.voiceNoteUrl),
+              ),
+            ],
+          ),
+          if (c.voiceTranscript != null && c.voiceTranscript!.isNotEmpty) ...[
+            const SizedBox(height: 8),
+            Container(
+              padding: const EdgeInsets.all(10),
+              decoration: BoxDecoration(
+                color: Colors.white,
+                borderRadius: BorderRadius.circular(10),
+                border: Border.all(color: Colors.orange.shade200),
+              ),
+              child: Row(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Icon(Icons.format_quote_rounded, size: 18, color: Colors.orange.shade800),
+                  const SizedBox(width: 6),
+                  Expanded(
+                    child: Text(
+                      '"${c.voiceTranscript}"',
+                      style: TextStyle(fontSize: 12.5, fontStyle: FontStyle.italic, color: Colors.grey.shade900),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ],
+        ],
+      ),
     );
   }
 
@@ -184,21 +545,6 @@ class VetCaseDetailScreen extends StatelessWidget {
                 style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 13)),
           ),
         ],
-      ),
-    );
-  }
-
-  Widget _evidenceChip(String label) {
-    return Padding(
-      padding: const EdgeInsets.only(bottom: 6),
-      child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-        decoration: BoxDecoration(
-          color: Colors.blue.shade50,
-          borderRadius: BorderRadius.circular(20),
-          border: Border.all(color: Colors.blue.shade100),
-        ),
-        child: Text(label, style: const TextStyle(fontSize: 13)),
       ),
     );
   }
@@ -414,11 +760,11 @@ class VetCaseDetailScreen extends StatelessWidget {
     showDialog(
       context: context,
       builder: (ctx) => AlertDialog(
-        title: Row(
+        title: const Row(
           children: [
-            const Icon(Icons.report_problem_rounded, color: Colors.deepOrange),
-            const SizedBox(width: 8),
-            const Expanded(child: Text('Escalate Case to Government')),
+            Icon(Icons.report_problem_rounded, color: Colors.deepOrange),
+            SizedBox(width: 8),
+            Expanded(child: Text('Escalate Case to Government')),
           ],
         ),
         content: Column(
@@ -453,7 +799,7 @@ class VetCaseDetailScreen extends StatelessWidget {
             ),
             onPressed: () {
               Navigator.pop(ctx);
-              dataService.escalateCase(
+              widget.dataService.escalateCase(
                 c.caseId,
                 reason: reasonCtrl.text.trim().isNotEmpty ? reasonCtrl.text.trim() : null,
               );
@@ -475,7 +821,7 @@ class VetCaseDetailScreen extends StatelessWidget {
     Navigator.push(
       context,
       MaterialPageRoute(
-        builder: (_) => VetVisitScreen(dataService: dataService, lcase: c),
+        builder: (_) => VetVisitScreen(dataService: widget.dataService, lcase: c),
       ),
     );
   }
@@ -484,7 +830,7 @@ class VetCaseDetailScreen extends StatelessWidget {
     Navigator.push(
       context,
       MaterialPageRoute(
-        builder: (_) => VetSampleScreen(dataService: dataService, lcase: c),
+        builder: (_) => VetSampleScreen(dataService: widget.dataService, lcase: c),
       ),
     );
   }
@@ -508,7 +854,7 @@ class VetCaseDetailScreen extends StatelessWidget {
           ElevatedButton(
             onPressed: () {
               c.clinicalObservation = ctrl.text.trim();
-              dataService.updateCaseStatus(c.caseId, FullCaseStatus.investigation,
+              widget.dataService.updateCaseStatus(c.caseId, FullCaseStatus.investigation,
                   actor: 'Veterinarian', description: 'Clinical observation added.');
               Navigator.pop(ctx);
             },
@@ -538,7 +884,7 @@ class VetCaseDetailScreen extends StatelessWidget {
                 groupValue: c.status,
                 onChanged: (v) {
                   if (v != null) {
-                    dataService.updateCaseStatus(c.caseId, v, actor: 'Veterinarian');
+                    widget.dataService.updateCaseStatus(c.caseId, v, actor: 'Veterinarian');
                     Navigator.pop(ctx);
                   }
                 },

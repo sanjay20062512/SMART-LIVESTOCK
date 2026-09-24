@@ -6,6 +6,8 @@ import '../../models/case.dart';
 import '../../theme/app_theme.dart';
 import 'vet_case_detail_screen.dart';
 
+import '../../services/localization_service.dart';
+
 class VetCaseQueueScreen extends StatefulWidget {
   final FarmerDataService dataService;
   const VetCaseQueueScreen({super.key, required this.dataService});
@@ -21,7 +23,7 @@ class _VetCaseQueueScreenState extends State<VetCaseQueueScreen> {
   @override
   Widget build(BuildContext context) {
     return ListenableBuilder(
-      listenable: widget.dataService,
+      listenable: Listenable.merge([widget.dataService, LocalizationService.instance]),
       builder: (context, _) {
         var cases = widget.dataService.getAllCases().toList();
 
@@ -41,9 +43,10 @@ class _VetCaseQueueScreenState extends State<VetCaseQueueScreen> {
         return Scaffold(
           backgroundColor: AppColors.background,
           appBar: AppBar(
-            title: const Text(
-              'Case Queue',
-              style: TextStyle(
+            automaticallyImplyLeading: false, // tab screen — no back arrow
+            title: Text(
+              context.tr('case_queue'),
+              style: const TextStyle(
                 fontWeight: FontWeight.w800,
                 fontSize: 18,
                 letterSpacing: -0.2,
@@ -64,11 +67,11 @@ class _VetCaseQueueScreenState extends State<VetCaseQueueScreen> {
                   padding: const EdgeInsets.fromLTRB(16, 0, 16, 14),
                   child: Row(
                     children: [
-                      _filterChip('All', _filterRisk, (v) => setState(() => _filterRisk = v)),
-                      _filterChip('CRITICAL', _filterRisk, (v) => setState(() => _filterRisk = v), color: AppColors.error),
-                      _filterChip('HIGH', _filterRisk, (v) => setState(() => _filterRisk = v), color: AppColors.riskHigh),
-                      _filterChip('MEDIUM', _filterRisk, (v) => setState(() => _filterRisk = v), color: AppColors.warning),
-                      _filterChip('LOW', _filterRisk, (v) => setState(() => _filterRisk = v), color: AppColors.success),
+                      _filterChip(context.tr('all'), 'All', _filterRisk, (v) => setState(() => _filterRisk = v)),
+                      _filterChip(context.tr('critical'), 'CRITICAL', _filterRisk, (v) => setState(() => _filterRisk = v), color: AppColors.error),
+                      _filterChip(context.tr('high_risk'), 'HIGH', _filterRisk, (v) => setState(() => _filterRisk = v), color: AppColors.riskHigh),
+                      _filterChip(context.tr('medium_risk'), 'MEDIUM', _filterRisk, (v) => setState(() => _filterRisk = v), color: AppColors.warning),
+                      _filterChip(context.tr('low_risk'), 'LOW', _filterRisk, (v) => setState(() => _filterRisk = v), color: AppColors.success),
                     ],
                   ),
                 ),
@@ -76,15 +79,15 @@ class _VetCaseQueueScreenState extends State<VetCaseQueueScreen> {
 
               Expanded(
                 child: cases.isEmpty
-                    ? const Center(
+                    ? Center(
                         child: Column(
                           mainAxisAlignment: MainAxisAlignment.center,
                           children: [
-                            Icon(Icons.inbox_rounded, size: 48, color: AppColors.textDisabled),
-                            SizedBox(height: 12),
+                            const Icon(Icons.inbox_rounded, size: 48, color: AppColors.textDisabled),
+                            const SizedBox(height: 12),
                             Text(
-                              'No cases match filter.',
-                              style: TextStyle(
+                              context.tr('no_cases_found'),
+                              style: const TextStyle(
                                 color: AppColors.textMuted,
                                 fontSize: 16,
                                 fontWeight: FontWeight.w500,
@@ -106,18 +109,18 @@ class _VetCaseQueueScreenState extends State<VetCaseQueueScreen> {
     );
   }
 
-  Widget _filterChip(String label, String current, ValueChanged<String> onTap, {Color? color}) {
-    final selected = current == label;
+  Widget _filterChip(String displayLabel, String valueKey, String current, ValueChanged<String> onTap, {Color? color}) {
+    final selected = current == valueKey;
     return Padding(
       padding: const EdgeInsets.only(right: 8),
       child: FilterChip(
-        label: Text(label, style: TextStyle(
+        label: Text(displayLabel, style: TextStyle(
           fontWeight: FontWeight.bold,
           color: selected ? Colors.white : (color ?? Colors.white70),
           fontSize: 12,
         )),
         selected: selected,
-        onSelected: (_) => onTap(label),
+        onSelected: (_) => onTap(valueKey),
         selectedColor: color ?? const Color(0xFF1565C0),
         backgroundColor: Colors.white.withValues(alpha: 0.15),
         checkmarkColor: Colors.white,
@@ -159,7 +162,7 @@ class _VetCaseQueueScreenState extends State<VetCaseQueueScreen> {
                     Icon(riskIcon, color: Colors.white, size: 16),
                     const SizedBox(width: 8),
                     Text(
-                      '${c.riskLevel} RISK',
+                      context.tr('risk_header', params: {'level': context.tr(c.riskLevel.toLowerCase())}),
                       style: const TextStyle(
                         color: Colors.white,
                         fontWeight: FontWeight.w700,
@@ -189,7 +192,7 @@ class _VetCaseQueueScreenState extends State<VetCaseQueueScreen> {
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          Text('${c.species} · ${c.animalTag}',
+                          Text('${context.translateSpecies(c.species)} · ${c.animalTag}',
                               style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 15)),
                           Text(c.farmerName,
                               style: const TextStyle(color: Colors.grey, fontSize: 12)),
@@ -204,7 +207,7 @@ class _VetCaseQueueScreenState extends State<VetCaseQueueScreen> {
                                 borderRadius: BorderRadius.circular(8),
                                 border: Border.all(color: AppColors.primaryLight),
                               ),
-                              child: Text(s, style: const TextStyle(fontSize: 11, color: AppColors.primaryDark)),
+                              child: Text(context.translateSymptom(s), style: const TextStyle(fontSize: 11, color: AppColors.primaryDark)),
                             )).toList(),
                           ),
                           const SizedBox(height: 6),
@@ -217,10 +220,70 @@ class _VetCaseQueueScreenState extends State<VetCaseQueueScreen> {
                               const SizedBox(width: 12),
                               const Icon(Icons.people, size: 13, color: AppColors.textMuted),
                               const SizedBox(width: 2),
-                              Text(c.affectedCount != null ? '${c.affectedCount} animals' : '—',
+                              Text(c.affectedCount != null ? context.tr('n_animals', params: {'count': '${c.affectedCount}'}) : '—',
                                   style: const TextStyle(fontSize: 12, color: AppColors.textMuted)),
                             ],
                           ),
+                          if (c.hasPhoto || c.hasVideo || c.hasVoiceNote) ...[
+                            const SizedBox(height: 6),
+                            Row(
+                              children: [
+                                if (c.hasPhoto)
+                                  Container(
+                                    margin: const EdgeInsets.only(right: 6),
+                                    padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                                    decoration: BoxDecoration(
+                                      color: Colors.blue.shade50,
+                                      borderRadius: BorderRadius.circular(6),
+                                      border: Border.all(color: Colors.blue.shade200),
+                                    ),
+                                    child: Row(
+                                      mainAxisSize: MainAxisSize.min,
+                                      children: [
+                                        const Icon(Icons.photo_camera_rounded, size: 11, color: Colors.blue),
+                                        const SizedBox(width: 3),
+                                        Text(context.tr('photo'), style: const TextStyle(fontSize: 10, fontWeight: FontWeight.bold, color: Colors.blue)),
+                                      ],
+                                    ),
+                                  ),
+                                if (c.hasVideo)
+                                  Container(
+                                    margin: const EdgeInsets.only(right: 6),
+                                    padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                                    decoration: BoxDecoration(
+                                      color: Colors.teal.shade50,
+                                      borderRadius: BorderRadius.circular(6),
+                                      border: Border.all(color: Colors.teal.shade200),
+                                    ),
+                                    child: Row(
+                                      mainAxisSize: MainAxisSize.min,
+                                      children: [
+                                        const Icon(Icons.videocam_rounded, size: 12, color: Colors.teal),
+                                        const SizedBox(width: 3),
+                                        Text(context.tr('video'), style: const TextStyle(fontSize: 10, fontWeight: FontWeight.bold, color: Colors.teal)),
+                                      ],
+                                    ),
+                                  ),
+                                if (c.hasVoiceNote)
+                                  Container(
+                                    padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                                    decoration: BoxDecoration(
+                                      color: Colors.orange.shade50,
+                                      borderRadius: BorderRadius.circular(6),
+                                      border: Border.all(color: Colors.orange.shade200),
+                                    ),
+                                    child: Row(
+                                      mainAxisSize: MainAxisSize.min,
+                                      children: [
+                                        const Icon(Icons.mic_rounded, size: 11, color: Colors.orange),
+                                        const SizedBox(width: 3),
+                                        Text(context.tr('voice'), style: const TextStyle(fontSize: 10, fontWeight: FontWeight.bold, color: Colors.orange)),
+                                      ],
+                                    ),
+                                  ),
+                              ],
+                            ),
+                          ],
                         ],
                       ),
                     ),
@@ -234,7 +297,7 @@ class _VetCaseQueueScreenState extends State<VetCaseQueueScreen> {
                             borderRadius: AppRadius.xsRadius,
                             border: Border.all(color: AppColors.border),
                           ),
-                          child: Text(c.status.displayName,
+                          child: Text(context.translateStatus(c.status.displayName),
                               style: const TextStyle(
                                 fontSize: 11,
                                 fontWeight: FontWeight.w600,
@@ -242,12 +305,12 @@ class _VetCaseQueueScreenState extends State<VetCaseQueueScreen> {
                               )),
                         ),
                         const SizedBox(height: 4),
-                        Text(_formatDate(c.createdAt),
+                        Text(_formatDate(context, c.createdAt),
                             style: const TextStyle(fontSize: 11, color: AppColors.textMuted)),
                         if (c.assignedVetName != null) ...[
                           const SizedBox(height: 4),
-                          const Text('Assigned',
-                              style: TextStyle(fontSize: 11, color: AppColors.success, fontWeight: FontWeight.w600)),
+                          Text(context.tr('assigned'),
+                              style: const TextStyle(fontSize: 11, color: AppColors.success, fontWeight: FontWeight.w600)),
                         ],
                       ],
                     ),
@@ -261,11 +324,11 @@ class _VetCaseQueueScreenState extends State<VetCaseQueueScreen> {
     );
   }
 
-  String _formatDate(DateTime d) {
+  String _formatDate(BuildContext context, DateTime d) {
     final now = DateTime.now();
     final diff = now.difference(d);
-    if (diff.inHours < 1) return '${diff.inMinutes}m ago';
-    if (diff.inHours < 24) return '${diff.inHours}h ago';
-    return '${diff.inDays}d ago';
+    if (diff.inHours < 1) return context.tr('m_ago', params: {'n': '${diff.inMinutes}'});
+    if (diff.inHours < 24) return context.tr('h_ago', params: {'n': '${diff.inHours}'});
+    return context.tr('d_ago', params: {'n': '${diff.inDays}'});
   }
 }

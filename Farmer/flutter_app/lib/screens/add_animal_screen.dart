@@ -209,7 +209,9 @@ class _AddAnimalScreenState extends State<AddAnimalScreen> {
               const SizedBox(height: 8),
               Wrap(
                 spacing: 8,
-                children: AnimalGender.values.map((g) {
+                children: AnimalGender.values
+                    .where((g) => g != AnimalGender.unknown)
+                    .map((g) {
                   return ChoiceChip(
                     label: Text(g.displayName),
                     selected: _gender == g,

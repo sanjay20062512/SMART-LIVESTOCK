@@ -80,14 +80,17 @@ class RoleSelectionScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: const Color(0xFFF8FAFC),
-      body: SafeArea(
-        child: SingleChildScrollView(
-          padding: const EdgeInsets.symmetric(horizontal: 22, vertical: 24),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: [
+    return ListenableBuilder(
+      listenable: LocalizationService.instance,
+      builder: (context, _) {
+        return Scaffold(
+          backgroundColor: const Color(0xFFF8FAFC),
+          body: SafeArea(
+            child: SingleChildScrollView(
+              padding: const EdgeInsets.symmetric(horizontal: 22, vertical: 24),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [
               // ── Top Bar with Language Selector ───────────────────────────
               Row(
                 mainAxisAlignment: MainAxisAlignment.end,
@@ -234,6 +237,8 @@ class RoleSelectionScreen extends StatelessWidget {
           ),
         ),
       ),
+    );
+      },
     );
   }
 
@@ -435,33 +440,38 @@ class __VetLoginScreenState extends State<_VetLoginScreen> {
 
   @override
   Widget build(BuildContext context) {
-    return _loginScaffold(
-      context,
-      accentColor: AppColors.vetAccent,
-      headerGradient: const LinearGradient(
-        colors: [Color(0xFF1E40AF), Color(0xFF1E3A8A)],
-        begin: Alignment.topLeft,
-        end: Alignment.bottomRight,
-      ),
-      icon: Icons.medical_services_rounded,
-      title: context.tr('vet_login_title'),
-      subtitle: context.tr('role_vet_title'),
-      fields: [
-        _field(context.tr('official_id'), _idCtrl, Icons.badge_outlined),
-        const SizedBox(height: 14),
-        _field(context.tr('password'), _passCtrl, Icons.lock_outline,
-            obscure: _obscure,
-            suffixIcon: IconButton(
-              icon: Icon(
-                _obscure ? Icons.visibility_outlined : Icons.visibility_off_outlined,
-                color: AppColors.textSecondary,
-              ),
-              onPressed: () => setState(() => _obscure = !_obscure),
-            )),
-        const SizedBox(height: 8),
-      ],
-      loading: _loading,
-      onLogin: _login,
+    return ListenableBuilder(
+      listenable: LocalizationService.instance,
+      builder: (context, _) {
+        return _loginScaffold(
+          context,
+          accentColor: AppColors.vetAccent,
+          headerGradient: const LinearGradient(
+            colors: [Color(0xFF1E40AF), Color(0xFF1E3A8A)],
+            begin: Alignment.topLeft,
+            end: Alignment.bottomRight,
+          ),
+          icon: Icons.medical_services_rounded,
+          title: context.tr('vet_login_title'),
+          subtitle: context.tr('role_vet_title'),
+          fields: [
+            _field(context.tr('official_id'), _idCtrl, Icons.badge_outlined),
+            const SizedBox(height: 14),
+            _field(context.tr('password'), _passCtrl, Icons.lock_outline,
+                obscure: _obscure,
+                suffixIcon: IconButton(
+                  icon: Icon(
+                    _obscure ? Icons.visibility_outlined : Icons.visibility_off_outlined,
+                    color: AppColors.textSecondary,
+                  ),
+                  onPressed: () => setState(() => _obscure = !_obscure),
+                )),
+            const SizedBox(height: 8),
+          ],
+          loading: _loading,
+          onLogin: _login,
+        );
+      },
     );
   }
 }
@@ -529,33 +539,38 @@ class __GovtLoginScreenState extends State<_GovtLoginScreen> {
 
   @override
   Widget build(BuildContext context) {
-    return _loginScaffold(
-      context,
-      accentColor: AppColors.govtNavy,
-      headerGradient: const LinearGradient(
-        colors: [Color(0xFF0B192C), Color(0xFF132743)],
-        begin: Alignment.topLeft,
-        end: Alignment.bottomRight,
-      ),
-      icon: Icons.account_balance_rounded,
-      title: context.tr('govt_login_title'),
-      subtitle: context.tr('role_govt_title'),
-      fields: [
-        _field(context.tr('officer_id'), _idCtrl, Icons.badge_outlined),
-        const SizedBox(height: 14),
-        _field(context.tr('password'), _passCtrl, Icons.lock_outline,
-            obscure: _obscure,
-            suffixIcon: IconButton(
-              icon: Icon(
-                _obscure ? Icons.visibility_outlined : Icons.visibility_off_outlined,
-                color: AppColors.textSecondary,
-              ),
-              onPressed: () => setState(() => _obscure = !_obscure),
-            )),
-        const SizedBox(height: 8),
-      ],
-      loading: _loading,
-      onLogin: _login,
+    return ListenableBuilder(
+      listenable: LocalizationService.instance,
+      builder: (context, _) {
+        return _loginScaffold(
+          context,
+          accentColor: AppColors.govtNavy,
+          headerGradient: const LinearGradient(
+            colors: [Color(0xFF0B192C), Color(0xFF132743)],
+            begin: Alignment.topLeft,
+            end: Alignment.bottomRight,
+          ),
+          icon: Icons.account_balance_rounded,
+          title: context.tr('govt_login_title'),
+          subtitle: context.tr('role_govt_title'),
+          fields: [
+            _field(context.tr('officer_id'), _idCtrl, Icons.badge_outlined),
+            const SizedBox(height: 14),
+            _field(context.tr('password'), _passCtrl, Icons.lock_outline,
+                obscure: _obscure,
+                suffixIcon: IconButton(
+                  icon: Icon(
+                    _obscure ? Icons.visibility_outlined : Icons.visibility_off_outlined,
+                    color: AppColors.textSecondary,
+                  ),
+                  onPressed: () => setState(() => _obscure = !_obscure),
+                )),
+            const SizedBox(height: 8),
+          ],
+          loading: _loading,
+          onLogin: _login,
+        );
+      },
     );
   }
 }
@@ -656,11 +671,11 @@ Widget _loginScaffold(
             const SizedBox(height: 28),
 
             // ── Credentials section label ─────────────────────────────────
-            const Padding(
-              padding: EdgeInsets.only(left: 4, bottom: 12),
+            Padding(
+              padding: const EdgeInsets.only(left: 4, bottom: 12),
               child: Text(
-                'CREDENTIALS',
-                style: TextStyle(
+                context.tr('credentials'),
+                style: const TextStyle(
                   color: AppColors.textMuted,
                   fontSize: 11,
                   fontWeight: FontWeight.w700,
@@ -805,9 +820,12 @@ class _LoginScreenState extends State<LoginScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final colorScheme = Theme.of(context).colorScheme;
+    return ListenableBuilder(
+      listenable: LocalizationService.instance,
+      builder: (context, _) {
+        final colorScheme = Theme.of(context).colorScheme;
 
-    return Scaffold(
+        return Scaffold(
       backgroundColor: Colors.white,
       appBar: AppBar(
         backgroundColor: Colors.white,
@@ -989,6 +1007,8 @@ class _LoginScreenState extends State<LoginScreen> {
           ),
         ),
       ),
+        );
+      },
     );
   }
 }

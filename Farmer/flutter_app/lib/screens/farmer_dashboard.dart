@@ -16,6 +16,7 @@ import '../models/mortality_report.dart';
 import '../models/vet_request.dart';
 import 'symptom_report_screen.dart';
 import 'vet_request_screen.dart';
+import 'weather_disease_advisory_screen.dart';
 
 class FarmerDashboard extends StatelessWidget {
   final FarmerDataService dataService;
@@ -225,18 +226,39 @@ class FarmerDashboard extends StatelessWidget {
               ],
             ),
           ),
-          Container(
-            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
-            decoration: BoxDecoration(
-              color: Colors.white.withValues(alpha: 0.18),
+          Material(
+            color: Colors.transparent,
+            borderRadius: AppRadius.smRadius,
+            child: InkWell(
               borderRadius: AppRadius.smRadius,
-            ),
-            child: Column(
-              children: [
-                const Icon(Icons.wb_sunny_outlined, color: Colors.white, size: 16),
-                const SizedBox(height: 2),
-                Text(context.tr('today'), style: const TextStyle(color: Colors.white70, fontSize: 10, fontWeight: FontWeight.w600)),
-              ],
+              onTap: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (_) => WeatherDiseaseAdvisoryScreen(
+                      initialDistrict: dataService.profile.district.isNotEmpty ? dataService.profile.district : 'Pune',
+                    ),
+                  ),
+                );
+              },
+              child: Container(
+                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                decoration: BoxDecoration(
+                  color: Colors.white.withValues(alpha: 0.18),
+                  borderRadius: AppRadius.smRadius,
+                  border: Border.all(color: Colors.white.withValues(alpha: 0.3)),
+                ),
+                child: Column(
+                  children: [
+                    const Icon(Icons.wb_sunny_outlined, color: Colors.amberAccent, size: 18),
+                    const SizedBox(height: 2),
+                    Text(
+                      context.tr('today'),
+                      style: const TextStyle(color: Colors.white, fontSize: 10, fontWeight: FontWeight.w700),
+                    ),
+                  ],
+                ),
+              ),
             ),
           ),
         ],
@@ -334,38 +356,154 @@ class FarmerDashboard extends StatelessWidget {
   }
 
   Widget _buildSecondaryActions(BuildContext context) {
-    return Row(
+    return Column(
       children: [
-        // My Cases / Animals
-        Expanded(
-          child: _buildActionTile(
-            context,
-            icon: Icons.pets_rounded,
-            title: context.tr('my_animals_cases'),
-            color: AppColors.success,
-            onTap: () => onNavigateToTab(1),
-          ),
-        ),
-        const SizedBox(width: 12),
-
-        // Request Veterinarian
-        Expanded(
-          child: _buildActionTile(
-            context,
-            icon: Icons.local_hospital_rounded,
-            title: context.tr('request_veterinarian'),
-            color: const Color(0xFF1976D2),
-            onTap: () {
-              Navigator.push(
+        // Top row: My Cases + Request Veterinarian
+        Row(
+          children: [
+            // My Cases / Animals
+            Expanded(
+              child: _buildActionTile(
                 context,
-                MaterialPageRoute(
-                  builder: (_) => VetRequestScreen(dataService: dataService),
+                icon: Icons.pets_rounded,
+                title: context.tr('my_animals_cases'),
+                color: AppColors.success,
+                onTap: () => onNavigateToTab(1),
+              ),
+            ),
+            const SizedBox(width: 12),
+
+            // Request Veterinarian
+            Expanded(
+              child: _buildActionTile(
+                context,
+                icon: Icons.local_hospital_rounded,
+                title: context.tr('request_veterinarian'),
+                color: const Color(0xFF1976D2),
+                onTap: () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (_) => VetRequestScreen(dataService: dataService),
+                    ),
+                  );
+                },
+              ),
+            ),
+          ],
+        ),
+        const SizedBox(height: 12),
+
+        // Bottom row: Weather & Livestock Health (full-width)
+        _buildWeatherHealthTile(context),
+      ],
+    );
+  }
+
+  Widget _buildWeatherHealthTile(BuildContext context) {
+    return Container(
+      decoration: BoxDecoration(
+        gradient: const LinearGradient(
+          colors: [Color(0xFF1B6CA8), Color(0xFF00897B)],
+          begin: Alignment.centerLeft,
+          end: Alignment.centerRight,
+        ),
+        borderRadius: AppRadius.mdRadius,
+        boxShadow: [
+          BoxShadow(
+            color: const Color(0xFF1B6CA8).withValues(alpha: 0.28),
+            blurRadius: 10,
+            offset: const Offset(0, 4),
+          ),
+        ],
+      ),
+      child: Material(
+        color: Colors.transparent,
+        borderRadius: AppRadius.mdRadius,
+        child: InkWell(
+          borderRadius: AppRadius.mdRadius,
+          onTap: () {
+            Navigator.push(
+              context,
+              MaterialPageRoute(
+                builder: (_) => WeatherDiseaseAdvisoryScreen(
+                  initialDistrict: dataService.profile.district.isNotEmpty
+                      ? dataService.profile.district
+                      : 'Pune',
                 ),
-              );
-            },
+              ),
+            );
+          },
+          child: Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
+            child: Row(
+              children: [
+                // Weather icon
+                Container(
+                  width: 48,
+                  height: 48,
+                  decoration: BoxDecoration(
+                    color: Colors.white.withValues(alpha: 0.18),
+                    borderRadius: AppRadius.smRadius,
+                  ),
+                  child: const Center(
+                    child: Icon(Icons.wb_sunny_rounded, color: Colors.amberAccent, size: 26),
+                  ),
+                ),
+                const SizedBox(width: 14),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        context.tr('weather_livestock_health'),
+                        style: const TextStyle(
+                          color: Colors.white,
+                          fontSize: 15,
+                          fontWeight: FontWeight.w800,
+                          letterSpacing: -0.2,
+                        ),
+                      ),
+                      const SizedBox(height: 3),
+                      Text(
+                        context.tr('weather_health_subtitle'),
+                        style: const TextStyle(
+                          color: Colors.white70,
+                          fontSize: 12,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+                // Livestock health icon
+                Container(
+                  width: 48,
+                  height: 48,
+                  decoration: BoxDecoration(
+                    color: Colors.white.withValues(alpha: 0.18),
+                    borderRadius: AppRadius.smRadius,
+                  ),
+                  child: const Center(
+                    child: Icon(Icons.monitor_heart_rounded, color: Colors.white, size: 26),
+                  ),
+                ),
+                const SizedBox(width: 8),
+                Container(
+                  width: 30,
+                  height: 30,
+                  decoration: BoxDecoration(
+                    color: Colors.white.withValues(alpha: 0.2),
+                    borderRadius: AppRadius.xsRadius,
+                  ),
+                  child: const Center(
+                    child: Icon(Icons.arrow_forward_ios_rounded, color: Colors.white, size: 14),
+                  ),
+                ),
+              ],
+            ),
           ),
         ),
-      ],
+      ),
     );
   }
 

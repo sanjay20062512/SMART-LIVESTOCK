@@ -6,7 +6,7 @@ import '../services/localization_service.dart';
 
 enum AnimalSpecies { cow, buffalo, goat, sheep, poultry, pig, other }
 
-enum AnimalGender { male, female, unknown }
+enum AnimalGender { male, female, both, unknown }
 
 enum HealthStatus { healthy, underMonitoring, activeCase, critical }
 
@@ -171,6 +171,8 @@ extension AnimalGenderExt on AnimalGender {
             return 'नर';
           case AnimalGender.female:
             return 'मादा';
+          case AnimalGender.both:
+            return 'दोनों (नर और मादा)';
           case AnimalGender.unknown:
             return 'अज्ञात';
         }
@@ -180,6 +182,8 @@ extension AnimalGenderExt on AnimalGender {
             return 'नर';
           case AnimalGender.female:
             return 'मादी';
+          case AnimalGender.both:
+            return 'दोन्ही (नर आणि मादी)';
           case AnimalGender.unknown:
             return 'अज्ञात';
         }
@@ -189,6 +193,8 @@ extension AnimalGenderExt on AnimalGender {
             return 'Male';
           case AnimalGender.female:
             return 'Female';
+          case AnimalGender.both:
+            return 'Both (Male & Female)';
           case AnimalGender.unknown:
             return 'Unknown';
         }

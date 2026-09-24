@@ -8,6 +8,8 @@ import 'vet_case_queue_screen.dart';
 import 'vet_cluster_screen.dart';
 import 'vet_vaccination_screen.dart';
 
+import '../../services/localization_service.dart';
+
 class VetShell extends StatefulWidget {
   final FarmerDataService dataService;
 
@@ -51,61 +53,80 @@ class _VetShellState extends State<VetShell> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      body: IndexedStack(
-        index: _selectedIndex,
-        children: _pages,
-      ),
-      floatingActionButton: _refreshing
-          ? FloatingActionButton(
-              onPressed: null,
-              backgroundColor: AppColors.primary,
-              child: const SizedBox(
-                width: 22,
-                height: 22,
-                child: CircularProgressIndicator(
-                  color: Colors.white,
-                  strokeWidth: 2.5,
-                ),
-              ),
-            )
-          : FloatingActionButton(
-              onPressed: _refresh,
-              backgroundColor: AppColors.primary,
-              tooltip: 'Refresh cases & alerts',
-              child: const Icon(Icons.refresh_rounded, color: Colors.white),
+    return ListenableBuilder(
+      listenable: LocalizationService.instance,
+      builder: (context, _) {
+        return PopScope(
+          // canPop=false means we handle back ourselves
+          canPop: false,
+          onPopInvokedWithResult: (didPop, _) {
+            if (didPop) return;
+            if (_selectedIndex != 0) {
+              // Not on Dashboard — go back to Dashboard tab
+              setState(() => _selectedIndex = 0);
+            } else {
+              // Already on Dashboard — allow exit to role selection
+              Navigator.of(context).pop();
+            }
+          },
+          child: Scaffold(
+            body: IndexedStack(
+              index: _selectedIndex,
+              children: _pages,
             ),
-      bottomNavigationBar: NavigationBar(
-        selectedIndex: _selectedIndex,
-        onDestinationSelected: (i) => setState(() => _selectedIndex = i),
-        backgroundColor: AppColors.surface,
-        indicatorColor: AppColors.primaryLight,
-        elevation: 3,
-        shadowColor: AppColors.border,
-        surfaceTintColor: Colors.transparent,
-        destinations: const [
-          NavigationDestination(
-            icon: Icon(Icons.dashboard_outlined),
-            selectedIcon: Icon(Icons.dashboard_rounded, color: AppColors.primary),
-            label: 'Dashboard',
+            floatingActionButton: _refreshing
+                ? FloatingActionButton(
+                    onPressed: null,
+                    backgroundColor: AppColors.primary,
+                    child: const SizedBox(
+                      width: 22,
+                      height: 22,
+                      child: CircularProgressIndicator(
+                        color: Colors.white,
+                        strokeWidth: 2.5,
+                      ),
+                    ),
+                  )
+                : FloatingActionButton(
+                    onPressed: _refresh,
+                    backgroundColor: AppColors.primary,
+                    tooltip: 'Refresh cases & alerts',
+                    child: const Icon(Icons.refresh_rounded, color: Colors.white),
+                  ),
+            bottomNavigationBar: NavigationBar(
+              selectedIndex: _selectedIndex,
+              onDestinationSelected: (i) => setState(() => _selectedIndex = i),
+              backgroundColor: AppColors.surface,
+              indicatorColor: AppColors.primaryLight,
+              elevation: 3,
+              shadowColor: AppColors.border,
+              surfaceTintColor: Colors.transparent,
+              destinations: [
+                NavigationDestination(
+                  icon: const Icon(Icons.dashboard_outlined),
+                  selectedIcon: const Icon(Icons.dashboard_rounded, color: AppColors.primary),
+                  label: context.tr('dashboard'),
+                ),
+                NavigationDestination(
+                  icon: const Icon(Icons.queue_outlined),
+                  selectedIcon: const Icon(Icons.queue_rounded, color: AppColors.primary),
+                  label: context.tr('cases'),
+                ),
+                NavigationDestination(
+                  icon: const Icon(Icons.warning_amber_outlined),
+                  selectedIcon: const Icon(Icons.warning_amber_rounded, color: AppColors.primary),
+                  label: context.tr('clusters'),
+                ),
+                NavigationDestination(
+                  icon: const Icon(Icons.vaccines_outlined),
+                  selectedIcon: const Icon(Icons.vaccines_rounded, color: AppColors.primary),
+                  label: context.tr('vaccination'),
+                ),
+              ],
+            ),
           ),
-          NavigationDestination(
-            icon: Icon(Icons.queue_outlined),
-            selectedIcon: Icon(Icons.queue_rounded, color: AppColors.primary),
-            label: 'Cases',
-          ),
-          NavigationDestination(
-            icon: Icon(Icons.warning_amber_outlined),
-            selectedIcon: Icon(Icons.warning_amber_rounded, color: AppColors.primary),
-            label: 'Clusters',
-          ),
-          NavigationDestination(
-            icon: Icon(Icons.vaccines_outlined),
-            selectedIcon: Icon(Icons.vaccines_rounded, color: AppColors.primary),
-            label: 'Vaccination',
-          ),
-        ],
-      ),
+        );
+      },
     );
   }
 }
