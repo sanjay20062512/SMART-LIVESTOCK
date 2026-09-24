@@ -27,43 +27,48 @@ class LanguageSelectorButton extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final currentLang = LocalizationService.instance.currentLanguage;
+    return ListenableBuilder(
+      listenable: LocalizationService.instance,
+      builder: (context, _) {
+        final currentLang = LocalizationService.instance.currentLanguage;
 
-    if (!isCompact) {
-      return OutlinedButton.icon(
-        style: OutlinedButton.styleFrom(
-          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-          side: const BorderSide(color: AppColors.primary, width: 1.5),
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-          backgroundColor: customBackground ?? Colors.white,
-        ),
-        icon: const Icon(Icons.language_rounded, color: AppColors.primary, size: 20),
-        label: Text(
-          currentLang.label,
-          style: TextStyle(
-            color: customTextColor ?? AppColors.primary,
-            fontWeight: FontWeight.bold,
-            fontSize: 15,
+        if (!isCompact) {
+          return OutlinedButton.icon(
+            style: OutlinedButton.styleFrom(
+              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+              side: const BorderSide(color: AppColors.primary, width: 1.5),
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+              backgroundColor: customBackground ?? Colors.white,
+            ),
+            icon: const Icon(Icons.language_rounded, color: AppColors.primary, size: 20),
+            label: Text(
+              currentLang.label,
+              style: TextStyle(
+                color: customTextColor ?? AppColors.primary,
+                fontWeight: FontWeight.bold,
+                fontSize: 15,
+              ),
+            ),
+            onPressed: () => showLanguagePicker(context),
+          );
+        }
+
+        return ActionChip(
+          avatar: const Icon(Icons.language_rounded, size: 16, color: AppColors.primary),
+          label: Text(
+            currentLang.label,
+            style: TextStyle(
+              fontWeight: FontWeight.w700,
+              fontSize: 12.5,
+              color: customTextColor ?? AppColors.primaryDark,
+            ),
           ),
-        ),
-        onPressed: () => showLanguagePicker(context),
-      );
-    }
-
-    return ActionChip(
-      avatar: const Icon(Icons.language_rounded, size: 16, color: AppColors.primary),
-      label: Text(
-        currentLang.label,
-        style: TextStyle(
-          fontWeight: FontWeight.w700,
-          fontSize: 12.5,
-          color: customTextColor ?? AppColors.primaryDark,
-        ),
-      ),
-      backgroundColor: customBackground ?? AppColors.primaryLight.withValues(alpha: 0.6),
-      side: BorderSide(color: AppColors.primary.withValues(alpha: 0.3)),
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
-      onPressed: () => showLanguagePicker(context),
+          backgroundColor: customBackground ?? AppColors.primaryLight.withValues(alpha: 0.6),
+          side: BorderSide(color: AppColors.primary.withValues(alpha: 0.3)),
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+          onPressed: () => showLanguagePicker(context),
+        );
+      },
     );
   }
 }

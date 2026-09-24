@@ -113,6 +113,23 @@ class _LoginScreenState extends State<LoginScreen>
       return;
     }
 
+    final mobile = _mobileCtrl.text.trim();
+    final password = _passwordCtrl.text;
+
+    // Validate against demo credentials
+    if (mobile != '9876543210' || password != 'viknesh') {
+      ScaffoldMessenger.of(context).hideCurrentSnackBar();
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: const Text('Invalid mobile number or password. Use Demo Credentials below!'),
+          backgroundColor: Colors.red.shade700,
+          behavior: SnackBarBehavior.floating,
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+        ),
+      );
+      return;
+    }
+
     setState(() => _loading = true);
 
     // Simulate authenticating against service
@@ -944,6 +961,23 @@ class _LoginScreenState extends State<LoginScreen>
                           ),
                         ],
                       ),
+              ),
+            ),
+            const SizedBox(height: 16),
+            
+            // Demo Credentials Auto-Fill Button
+            OutlinedButton.icon(
+              onPressed: () => _autofillDemo('9876543210', 'viknesh'),
+              icon: const Icon(Icons.auto_awesome_rounded, size: 16),
+              label: const Text('Use Demo Credentials (9876543210)'),
+              style: OutlinedButton.styleFrom(
+                foregroundColor: isDark ? const Color(0xFF81C784) : const Color(0xFF2E7D32),
+                side: BorderSide(
+                  color: isDark ? const Color(0xFF81C784).withValues(alpha: 0.5) : const Color(0xFF2E7D32).withValues(alpha: 0.5),
+                ),
+                minimumSize: const Size(double.infinity, 44),
+                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                textStyle: const TextStyle(fontSize: 13, fontWeight: FontWeight.bold),
               ),
             ),
             const SizedBox(height: 20),

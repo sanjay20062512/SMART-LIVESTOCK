@@ -3,6 +3,8 @@ import '../../services/farmer_data_service.dart';
 import '../../models/cluster.dart';
 import '../../theme/app_theme.dart';
 
+import '../../services/localization_service.dart';
+
 class VetClusterScreen extends StatefulWidget {
   final FarmerDataService dataService;
   const VetClusterScreen({super.key, required this.dataService});
@@ -46,7 +48,7 @@ class _VetClusterScreenState extends State<VetClusterScreen> {
   @override
   Widget build(BuildContext context) {
     return ListenableBuilder(
-      listenable: widget.dataService,
+      listenable: Listenable.merge([widget.dataService, LocalizationService.instance]),
       builder: (context, _) {
         final allClusters = widget.dataService.getAllClusters();
 
@@ -72,9 +74,9 @@ class _VetClusterScreenState extends State<VetClusterScreen> {
         return Scaffold(
           backgroundColor: AppColors.background,
           appBar: AppBar(
-            title: const Text(
-              'Possible Clusters',
-              style: TextStyle(
+            title: Text(
+              context.tr('possible_clusters'),
+              style: const TextStyle(
                 fontWeight: FontWeight.w800,
                 fontSize: 18,
                 letterSpacing: -0.2,
@@ -96,7 +98,7 @@ class _VetClusterScreenState extends State<VetClusterScreen> {
                     shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(AppRadius.button)),
                   ),
                   icon: const Icon(Icons.add_location_alt_rounded, size: 16),
-                  label: const Text('Create Cluster', style: TextStyle(fontWeight: FontWeight.w700, fontSize: 12)),
+                  label: Text(context.tr('create_cluster'), style: const TextStyle(fontWeight: FontWeight.w700, fontSize: 12)),
                   onPressed: () => _openCreateClusterModal(context),
                 ),
               ),

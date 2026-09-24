@@ -119,7 +119,9 @@ class FarmerDataService extends ChangeNotifier {
                 orElse: () => AnimalSpecies.cow,
               ),
               breed: item['breed'],
-              gender: item['gender'] == 'Female' ? AnimalGender.female : AnimalGender.male,
+              gender: item['gender'] == 'Female'
+                  ? AnimalGender.female
+                  : (item['gender'] == 'Both' ? AnimalGender.both : AnimalGender.male),
               age: item['age_years']?.toString() ?? '',
               healthStatus: HealthStatus.values.firstWhere(
                 (e) => e.displayName.toLowerCase() == item['health_status'].toString().toLowerCase(),

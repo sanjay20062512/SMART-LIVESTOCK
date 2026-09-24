@@ -1,6 +1,7 @@
 // Report Animal Problem — Step-by-Step Wizard for Livestock Farmers.
 // Prioritizes voice, icons, large buttons, simple words, dropdowns, and minimum typing.
 
+import 'dart:typed_data';
 import 'package:flutter/material.dart';
 import '../services/farmer_data_service.dart';
 import '../services/localization_service.dart';
@@ -37,6 +38,7 @@ class _SymptomReportScreenState extends State<SymptomReportScreen> {
 
   // Step 2: Animal Details
   final _earTagCtrl = TextEditingController();
+  final _customBreedCtrl = TextEditingController();
   String _selectedBreed = 'Jersey';
   AnimalGender _selectedGender = AnimalGender.female;
   String _selectedAge = '2–5 years';
@@ -66,8 +68,11 @@ class _SymptomReportScreenState extends State<SymptomReportScreen> {
   String? _voiceTranscript;
   bool _hasPhotoAdded = false;
   String? _photoPath;
+  String? _photoName;
+  Uint8List? _photoBytes;
   bool _hasVideoAdded = false;
   String? _videoPath;
+  String? _videoName;
   final _descCtrl = TextEditingController();
 
   // Step 9: Location & GPS
@@ -174,13 +179,14 @@ class _SymptomReportScreenState extends State<SymptomReportScreen> {
     MediaService.instance.stopListening();
     _pageController.dispose();
     _earTagCtrl.dispose();
+    _customBreedCtrl.dispose();
     _descCtrl.dispose();
     _manualLocationCtrl.dispose();
     super.dispose();
   }
 
   bool get _isFemaleRuminant {
-    return _selectedGender == AnimalGender.female &&
+    return (_selectedGender == AnimalGender.female || _selectedGender == AnimalGender.both) &&
         (_selectedSpecies == AnimalSpecies.cow ||
          _selectedSpecies == AnimalSpecies.buffalo ||
          _selectedSpecies == AnimalSpecies.goat ||
@@ -253,6 +259,88 @@ class _SymptomReportScreenState extends State<SymptomReportScreen> {
     }
   }
 
+  /// Returns a localized label for a breed string.
+  /// Returns Hindi/Marathi transliterations for all known breeds;
+  /// falls back to the original English string for unknown breeds.
+  String _localizeBreed(BuildContext context, String breed) {
+    final lang = LocalizationService.instance.currentLanguage;
+    if (lang == AppLanguage.english) return breed;
+    final bool isHindi = lang == AppLanguage.hindi;
+
+    switch (breed) {
+      // Special values
+      case 'Other':
+        return context.tr('other');
+      case 'General / Mixed Breed':
+        return context.tr('general_mixed_breed');
+
+      // ── Cow breeds ──────────────────────────────────
+      case 'Jersey':
+        return 'जर्सी';
+      case 'Holstein Friesian (HF)':
+        return isHindi ? 'होल्सटीन फ्रीजियन (HF)' : 'होल्सटीन फ्रिजियन (HF)';
+      case 'Sahiwal':
+        return isHindi ? 'साहीवाल' : 'साहिवाल';
+      case 'Gir':
+        return isHindi ? 'गिर' : 'गीर';
+      case 'Red Sindhi':
+        return isHindi ? 'लाल सिंधी' : 'लाल सिंधी';
+      case 'Kangayam':
+        return isHindi ? 'कांगयम' : 'कांगयम';
+
+      // ── Buffalo breeds ────────────────────────────────
+      case 'Murrah':
+        return isHindi ? 'मुर्रा' : 'मुऱ्हा';
+      case 'Jaffarabadi':
+        return isHindi ? 'जाफराबादी' : 'जाफराबादी';
+      case 'Surti':
+        return isHindi ? 'सूरती' : 'सुरती';
+      case 'Mehsana':
+        return isHindi ? 'मेहसाना' : 'मेहसाणा';
+
+      // ── Goat breeds ───────────────────────────────────
+      case 'Boer':
+        return isHindi ? 'बोअर' : 'बोअर';
+      case 'Saanen':
+        return isHindi ? 'सानेन' : 'सानेन';
+      case 'Jamunapari':
+        return isHindi ? 'जमुनापारी' : 'जमनापारी';
+      case 'Malabari':
+        return isHindi ? 'मालाबारी' : 'मालाबारी';
+      case 'Kanni Adu':
+        return isHindi ? 'कन्नी अडु' : 'कन्नी अडु';
+
+      // ── Sheep breeds ───────────────────────────────────
+      case 'Mecheri':
+        return isHindi ? 'मेचेरी' : 'मेचेरी';
+      case 'Vembur':
+        return isHindi ? 'वेम्बूर' : 'वेंबूर';
+      case 'Madras Red':
+        return isHindi ? 'मद्रास लाल' : 'मद्रास लाल';
+      case 'Ramanadhapuram White':
+        return isHindi ? 'रामनाथपुरम सफेद' : 'रामनाथपुरम पांढरी';
+
+      // ── Poultry ────────────────────────────────────────
+      case 'Broiler':
+        return isHindi ? 'ब्रॉयलर' : 'ब्रॉयलर';
+      case 'Layer':
+        return isHindi ? 'लेयर' : 'लेयर';
+      case 'Country Chicken':
+        return isHindi ? 'देसी मुर्गी' : 'देशी कोंबडी';
+
+      // ── Pig breeds ─────────────────────────────────────
+      case 'Large White Yorkshire':
+        return isHindi ? 'लार्ज व्हाइट यॉर्कशायर' : 'लार्ज व्हाइट यॉर्कशायर';
+      case 'Landrace':
+        return isHindi ? 'लैंड्रेस' : 'लँड्रेस';
+      case 'Duroc':
+        return isHindi ? 'डूरोक' : 'ड्युरोक';
+
+      default:
+        return breed;
+    }
+  }
+
   String _localizeDuration(BuildContext context, String opt) {
     switch (opt) {
       case 'Today': return context.tr('today');
@@ -277,26 +365,35 @@ class _SymptomReportScreenState extends State<SymptomReportScreen> {
 
   String _localizeAge(BuildContext context, String age) {
     switch (age) {
-      case 'Below 1 year': return context.tr('age_below_1_year');
-      case '1–2 years': return context.tr('age_1_2_years');
-      case '2–5 years': return context.tr('age_2_5_years');
-      case '5–10 years': return context.tr('age_5_10_years');
-      case 'Above 10 years': return context.tr('age_above_10_years');
-      default: return age;
+      case 'Below 1 year':
+        final t = context.tr('age_below_1');
+        return t != 'age_below_1' ? t : (context.tr('age_below_1_year') != 'age_below_1_year' ? context.tr('age_below_1_year') : age);
+      case '1–2 years':
+        final t = context.tr('age_1_2');
+        return t != 'age_1_2' ? t : (context.tr('age_1_2_years') != 'age_1_2_years' ? context.tr('age_1_2_years') : age);
+      case '2–5 years':
+        final t = context.tr('age_2_5');
+        return t != 'age_2_5' ? t : (context.tr('age_2_5_years') != 'age_2_5_years' ? context.tr('age_2_5_years') : age);
+      case '5–10 years':
+        final t = context.tr('age_5_10');
+        return t != 'age_5_10' ? t : (context.tr('age_5_10_years') != 'age_5_10_years' ? context.tr('age_5_10_years') : age);
+      case 'Above 10 years':
+        final t = context.tr('age_above_10');
+        return t != 'age_above_10' ? t : (context.tr('age_above_10_years') != 'age_above_10_years' ? context.tr('age_above_10_years') : age);
+      default:
+        return age;
     }
   }
 
   String _localizeAffected(BuildContext context, String count) {
-    if (count == '1') {
-      return '1 ${context.tr("animal")}';
+    switch (count) {
+      case '1':       return '1 ${context.tr("animal")}';
+      case '2–5':     return context.tr('affected_2_5');
+      case '6–10':    return context.tr('affected_6_10');
+      case 'More than 10': return context.tr('more_than_10');
+      case 'Not sure':    return context.tr('not_sure');
+      default:        return count;
     }
-    if (count == 'More than 10') {
-      return context.tr('more_than_10');
-    }
-    if (count == 'Not sure') {
-      return context.tr('not_sure');
-    }
-    return '$count ${context.tr("animals")}';
   }
 
   Future<void> _startRealVoiceRecording() async {
@@ -428,8 +525,14 @@ class _SymptomReportScreenState extends State<SymptomReportScreen> {
   Future<void> _captureRealPhoto() async {
     final photo = await MediaService.instance.capturePhoto();
     if (photo != null) {
+      Uint8List? bytes;
+      try {
+        bytes = await photo.readAsBytes();
+      } catch (_) {}
       setState(() {
         _photoPath = photo.path;
+        _photoName = photo.name;
+        _photoBytes = bytes ?? MediaService.instance.lastPhotoBytes;
         _hasPhotoAdded = true;
       });
       if (mounted) {
@@ -454,6 +557,7 @@ class _SymptomReportScreenState extends State<SymptomReportScreen> {
     if (video != null) {
       setState(() {
         _videoPath = video.path;
+        _videoName = video.name;
         _hasVideoAdded = true;
       });
       if (mounted) {
@@ -536,7 +640,9 @@ class _SymptomReportScreenState extends State<SymptomReportScreen> {
       animalId: animalId,
       animalTag: animalTag,
       species: _selectedSpecies.displayName,
-      breed: _selectedBreed,
+      breed: (_selectedBreed == 'Other' && _customBreedCtrl.text.trim().isNotEmpty)
+          ? _customBreedCtrl.text.trim()
+          : _selectedBreed,
       age: _selectedAge,
       symptoms: _selectedSymptoms.toList(),
       duration: _duration,
@@ -1026,20 +1132,47 @@ class _SymptomReportScreenState extends State<SymptomReportScreen> {
           ),
           const SizedBox(height: 20),
 
-          // PREDEFINED BREED DROPDOWN (Strictly NOT free-text!)
+          // PREDEFINED BREED DROPDOWN
           Text(
             '${context.tr('select_breed')} *',
             style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 14),
           ),
           const SizedBox(height: 6),
+          // ignore: deprecated_member_use
           DropdownButtonFormField<String>(
-            initialValue: breeds.contains(_selectedBreed) ? _selectedBreed : breeds.first,
+            // ignore: deprecated_member_use
+            value: breeds.contains(_selectedBreed) ? _selectedBreed : breeds.first,
             decoration: const InputDecoration(
               prefixIcon: Icon(Icons.category_rounded),
             ),
-            items: breeds.map((b) => DropdownMenuItem(value: b, child: Text(b))).toList(),
-            onChanged: (v) => setState(() => _selectedBreed = v!),
+            items: breeds
+                .map((b) => DropdownMenuItem(
+                      value: b,
+                      child: Text(_localizeBreed(context, b)),
+                    ))
+                .toList(),
+            onChanged: (v) {
+              setState(() {
+                _selectedBreed = v!;
+                if (_selectedBreed != 'Other') {
+                  _customBreedCtrl.clear();
+                }
+              });
+            },
           ),
+          // Show free-text field when "Other" is selected
+          if (_selectedBreed == 'Other') ...
+            [
+              const SizedBox(height: 10),
+              TextField(
+                controller: _customBreedCtrl,
+                decoration: InputDecoration(
+                  labelText: context.tr('enter_breed_name'),
+                  prefixIcon: const Icon(Icons.edit_rounded),
+                  hintText: context.tr('enter_breed_name'),
+                ),
+              ),
+            ],
           const SizedBox(height: 20),
 
           // Gender
@@ -1054,12 +1187,20 @@ class _SymptomReportScreenState extends State<SymptomReportScreen> {
                   onTap: () => setState(() => _selectedGender = AnimalGender.female),
                 ),
               ),
-              const SizedBox(width: 12),
+              const SizedBox(width: 8),
               Expanded(
                 child: _buildChoiceChip(
                   label: '👨 ${context.tr('male')}',
                   selected: _selectedGender == AnimalGender.male,
                   onTap: () => setState(() => _selectedGender = AnimalGender.male),
+                ),
+              ),
+              const SizedBox(width: 8),
+              Expanded(
+                child: _buildChoiceChip(
+                  label: '👫 ${context.tr('both_male_female')}',
+                  selected: _selectedGender == AnimalGender.both,
+                  onTap: () => setState(() => _selectedGender = AnimalGender.both),
                 ),
               ),
             ],
@@ -1441,7 +1582,10 @@ class _SymptomReportScreenState extends State<SymptomReportScreen> {
             style: const TextStyle(fontSize: 22, fontWeight: FontWeight.bold),
           ),
           const SizedBox(height: 6),
-          const Text('Voice and photo help the veterinarian diagnose faster.', style: TextStyle(color: Colors.grey, fontSize: 14)),
+          Text(
+            context.tr('voice_photo_help_diag'),
+            style: const TextStyle(color: Colors.grey, fontSize: 14),
+          ),
           const SizedBox(height: 20),
 
           // Voice Recorder UI Box
@@ -1612,7 +1756,7 @@ class _SymptomReportScreenState extends State<SymptomReportScreen> {
                               size: 24,
                             ),
                             label: Text(
-                              _isPlayingVoice ? 'Stop' : context.tr('listen'),
+                              _isPlayingVoice ? context.tr('stop') : context.tr('listen'),
                               style: const TextStyle(fontSize: 15, fontWeight: FontWeight.bold),
                             ),
                             onPressed: _playVoiceRecording,
@@ -1665,30 +1809,42 @@ class _SymptomReportScreenState extends State<SymptomReportScreen> {
           ),
           const SizedBox(height: 20),
 
-          // Photo & Video
-          Row(
-            children: [
-              Expanded(
-                child: _buildEvidenceCard(
-                  icon: Icons.camera_alt_rounded,
-                  label: _hasPhotoAdded ? context.tr('photo_added') : context.tr('take_photo'),
-                  color: Colors.blue,
-                  isSelected: _hasPhotoAdded,
-                  onTap: _captureRealPhoto,
-                ),
-              ),
-              const SizedBox(width: 12),
-              Expanded(
-                child: _buildEvidenceCard(
-                  icon: Icons.videocam_rounded,
-                  label: _hasVideoAdded ? context.tr('video_added') : context.tr('record_video'),
-                  color: Colors.teal,
-                  isSelected: _hasVideoAdded,
-                  onTap: _captureRealVideo,
-                ),
-              ),
-            ],
-          ),
+          // Photo & Video Evidence Cards
+          if (_hasPhotoAdded) ...[
+            _buildPhotoPreviewCard(),
+            const SizedBox(height: 14),
+          ],
+          if (_hasVideoAdded) ...[
+            _buildVideoPreviewCard(),
+            const SizedBox(height: 14),
+          ],
+
+          if (!_hasPhotoAdded || !_hasVideoAdded)
+            Row(
+              children: [
+                if (!_hasPhotoAdded)
+                  Expanded(
+                    child: _buildEvidenceCard(
+                      icon: Icons.camera_alt_rounded,
+                      label: context.tr('take_photo'),
+                      color: Colors.blue,
+                      isSelected: false,
+                      onTap: _captureRealPhoto,
+                    ),
+                  ),
+                if (!_hasPhotoAdded && !_hasVideoAdded) const SizedBox(width: 12),
+                if (!_hasVideoAdded)
+                  Expanded(
+                    child: _buildEvidenceCard(
+                      icon: Icons.videocam_rounded,
+                      label: context.tr('record_video'),
+                      color: Colors.teal,
+                      isSelected: false,
+                      onTap: _captureRealVideo,
+                    ),
+                  ),
+              ],
+            ),
           const SizedBox(height: 20),
 
           // Written Description
@@ -1697,7 +1853,7 @@ class _SymptomReportScreenState extends State<SymptomReportScreen> {
             maxLines: 3,
             decoration: InputDecoration(
               labelText: context.tr('write_description'),
-              hintText: 'Any extra notes for the vet...',
+              hintText: context.tr('extra_notes_vet_hint'),
             ),
           ),
           const SizedBox(height: 28),
@@ -1723,7 +1879,10 @@ class _SymptomReportScreenState extends State<SymptomReportScreen> {
             style: const TextStyle(fontSize: 22, fontWeight: FontWeight.bold),
           ),
           const SizedBox(height: 6),
-          const Text('Confirm the animal location for vet dispatch.', style: TextStyle(color: Colors.grey, fontSize: 14)),
+          Text(
+            context.tr('confirm_animal_location_diag'),
+            style: const TextStyle(color: Colors.grey, fontSize: 14),
+          ),
           const SizedBox(height: 24),
 
           // Saved Farm Location Card
@@ -1772,7 +1931,7 @@ class _SymptomReportScreenState extends State<SymptomReportScreen> {
                                 Icon(Icons.gps_not_fixed_rounded, size: 14, color: primary),
                                 const SizedBox(width: 4),
                                 Text(
-                                  'Acquiring device GPS...',
+                                  context.tr('acquiring_device_gps'),
                                   style: TextStyle(fontSize: 12, color: Colors.grey.shade600),
                                 ),
                               ],
@@ -2167,7 +2326,7 @@ class _SymptomReportScreenState extends State<SymptomReportScreen> {
       onTap: onTap,
       borderRadius: BorderRadius.circular(14),
       child: Container(
-        padding: const EdgeInsets.symmetric(vertical: 14),
+        padding: const EdgeInsets.symmetric(vertical: 14, horizontal: 4),
         decoration: BoxDecoration(
           color: selected ? primary.withValues(alpha: 0.1) : Colors.white,
           borderRadius: BorderRadius.circular(14),
@@ -2176,11 +2335,334 @@ class _SymptomReportScreenState extends State<SymptomReportScreen> {
         child: Center(
           child: Text(
             label,
+            textAlign: TextAlign.center,
             style: TextStyle(
-              fontSize: 15,
+              fontSize: 14,
               fontWeight: selected ? FontWeight.bold : FontWeight.normal,
               color: selected ? primary : Colors.black87,
             ),
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildPhotoPreviewCard() {
+    return Container(
+      padding: const EdgeInsets.all(14),
+      decoration: BoxDecoration(
+        color: Colors.blue.shade50,
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: Colors.blue.shade300, width: 1.5),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              const Icon(Icons.check_circle_rounded, color: Colors.blue, size: 20),
+              const SizedBox(width: 6),
+              Text(
+                context.tr('photo_added'),
+                style: TextStyle(fontWeight: FontWeight.bold, fontSize: 14, color: Colors.blue.shade900),
+              ),
+              const Spacer(),
+              IconButton(
+                tooltip: 'Remove photo',
+                icon: const Icon(Icons.delete_outline_rounded, color: Colors.red, size: 20),
+                onPressed: () => setState(() {
+                  _hasPhotoAdded = false;
+                  _photoPath = null;
+                  _photoBytes = null;
+                  _photoName = null;
+                }),
+              ),
+            ],
+          ),
+          const SizedBox(height: 10),
+          Row(
+            crossAxisAlignment: CrossAxisAlignment.center,
+            children: [
+              ClipRRect(
+                borderRadius: BorderRadius.circular(12),
+                child: Container(
+                  width: 80,
+                  height: 80,
+                  color: Colors.blue.shade100,
+                  child: _photoBytes != null
+                      ? Image.memory(
+                          _photoBytes!,
+                          width: 80,
+                          height: 80,
+                          fit: BoxFit.cover,
+                          errorBuilder: (context, error, stackTrace) => const Center(
+                            child: Icon(Icons.broken_image_rounded, color: Colors.blue, size: 36),
+                          ),
+                        )
+                      : (_photoPath != null && (_photoPath!.startsWith('http') || _photoPath!.startsWith('blob:'))
+                          ? Image.network(
+                              _photoPath!,
+                              width: 80,
+                              height: 80,
+                              fit: BoxFit.cover,
+                              errorBuilder: (context, error, stackTrace) => const Center(
+                                child: Icon(Icons.photo_library_rounded, color: Colors.blue, size: 36),
+                              ),
+                            )
+                          : const Center(
+                              child: Icon(Icons.photo_rounded, color: Colors.blue, size: 38),
+                            )),
+                ),
+              ),
+              const SizedBox(width: 12),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      _photoName ?? 'evidence_photo.jpg',
+                      style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 13),
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                    const SizedBox(height: 3),
+                    Text(
+                      'Symptom image ready for diagnosis',
+                      style: TextStyle(fontSize: 11.5, color: Colors.grey.shade700),
+                    ),
+                    const SizedBox(height: 8),
+                    Row(
+                      children: [
+                        OutlinedButton.icon(
+                          style: OutlinedButton.styleFrom(
+                            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                            minimumSize: const Size(0, 32),
+                            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+                          ),
+                          icon: const Icon(Icons.fullscreen_rounded, size: 16),
+                          label: const Text('View', style: TextStyle(fontSize: 12)),
+                          onPressed: _showFullImageDialog,
+                        ),
+                        const SizedBox(width: 8),
+                        TextButton.icon(
+                          style: TextButton.styleFrom(
+                            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                            minimumSize: const Size(0, 32),
+                          ),
+                          icon: const Icon(Icons.replay_rounded, size: 15),
+                          label: const Text('Retake', style: TextStyle(fontSize: 12)),
+                          onPressed: _captureRealPhoto,
+                        ),
+                      ],
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildVideoPreviewCard() {
+    return Container(
+      padding: const EdgeInsets.all(14),
+      decoration: BoxDecoration(
+        color: Colors.teal.shade50,
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: Colors.teal.shade300, width: 1.5),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              const Icon(Icons.check_circle_rounded, color: Colors.teal, size: 20),
+              const SizedBox(width: 6),
+              Text(
+                context.tr('video_added'),
+                style: TextStyle(fontWeight: FontWeight.bold, fontSize: 14, color: Colors.teal.shade900),
+              ),
+              const Spacer(),
+              IconButton(
+                tooltip: 'Remove video',
+                icon: const Icon(Icons.delete_outline_rounded, color: Colors.red, size: 20),
+                onPressed: () => setState(() {
+                  _hasVideoAdded = false;
+                  _videoPath = null;
+                  _videoName = null;
+                }),
+              ),
+            ],
+          ),
+          const SizedBox(height: 10),
+          Row(
+            crossAxisAlignment: CrossAxisAlignment.center,
+            children: [
+              InkWell(
+                onTap: _showVideoPlayerDialog,
+                borderRadius: BorderRadius.circular(12),
+                child: Container(
+                  width: 80,
+                  height: 80,
+                  decoration: BoxDecoration(
+                    color: Colors.black87,
+                    borderRadius: BorderRadius.circular(12),
+                    gradient: LinearGradient(
+                      colors: [Colors.teal.shade900, Colors.black87],
+                      begin: Alignment.topLeft,
+                      end: Alignment.bottomRight,
+                    ),
+                  ),
+                  child: const Center(
+                    child: CircleAvatar(
+                      radius: 18,
+                      backgroundColor: Colors.white24,
+                      child: Icon(Icons.play_arrow_rounded, color: Colors.white, size: 24),
+                    ),
+                  ),
+                ),
+              ),
+              const SizedBox(width: 12),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      _videoName ?? 'symptom_video.mp4',
+                      style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 13),
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                    const SizedBox(height: 3),
+                    Text(
+                      'Recorded video · Ready for Vet review',
+                      style: TextStyle(fontSize: 11.5, color: Colors.grey.shade700),
+                    ),
+                    const SizedBox(height: 8),
+                    Row(
+                      children: [
+                        ElevatedButton.icon(
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: Colors.teal.shade700,
+                            foregroundColor: Colors.white,
+                            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                            minimumSize: const Size(0, 32),
+                            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+                          ),
+                          icon: const Icon(Icons.play_arrow_rounded, size: 16),
+                          label: const Text('Play', style: TextStyle(fontSize: 12)),
+                          onPressed: _showVideoPlayerDialog,
+                        ),
+                        const SizedBox(width: 8),
+                        TextButton.icon(
+                          style: TextButton.styleFrom(
+                            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                            minimumSize: const Size(0, 32),
+                          ),
+                          icon: const Icon(Icons.replay_rounded, size: 15),
+                          label: const Text('Re-record', style: TextStyle(fontSize: 12)),
+                          onPressed: _captureRealVideo,
+                        ),
+                      ],
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          ),
+        ],
+      ),
+    );
+  }
+
+  void _showFullImageDialog() {
+    showDialog(
+      context: context,
+      builder: (ctx) => Dialog(
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            Padding(
+              padding: const EdgeInsets.all(16),
+              child: Row(
+                children: [
+                  const Icon(Icons.image_rounded, color: Colors.blue),
+                  const SizedBox(width: 8),
+                  const Text('Photo Evidence Preview', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
+                  const Spacer(),
+                  IconButton(icon: const Icon(Icons.close), onPressed: () => Navigator.pop(ctx)),
+                ],
+              ),
+            ),
+            ClipRRect(
+              borderRadius: const BorderRadius.vertical(bottom: Radius.circular(16)),
+              child: _photoBytes != null
+                  ? Image.memory(_photoBytes!, fit: BoxFit.contain)
+                  : Container(
+                      height: 250,
+                      color: Colors.blue.shade50,
+                      child: const Center(
+                        child: Icon(Icons.photo_rounded, size: 80, color: Colors.blue),
+                      ),
+                    ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  void _showVideoPlayerDialog() {
+    showDialog(
+      context: context,
+      builder: (ctx) => Dialog(
+        backgroundColor: const Color(0xFF1E293B),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+        child: Padding(
+          padding: const EdgeInsets.all(16),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Row(
+                children: [
+                  const Icon(Icons.videocam_rounded, color: Colors.tealAccent),
+                  const SizedBox(width: 8),
+                  const Text('Video Evidence Preview', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 15)),
+                  const Spacer(),
+                  IconButton(icon: const Icon(Icons.close, color: Colors.white), onPressed: () => Navigator.pop(ctx)),
+                ],
+              ),
+              const SizedBox(height: 16),
+              Container(
+                height: 200,
+                decoration: BoxDecoration(
+                  color: Colors.black,
+                  borderRadius: BorderRadius.circular(12),
+                  border: Border.all(color: Colors.teal.shade700),
+                ),
+                child: const Center(
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      CircleAvatar(
+                        radius: 28,
+                        backgroundColor: Colors.teal,
+                        child: Icon(Icons.play_arrow_rounded, color: Colors.white, size: 36),
+                      ),
+                      SizedBox(height: 10),
+                      Text('Recorded Clinical Video Evidence', style: TextStyle(color: Colors.white70, fontSize: 13)),
+                      SizedBox(height: 4),
+                      Text('Duration: 0:15 · 1080p', style: TextStyle(color: Colors.white38, fontSize: 11)),
+                    ],
+                  ),
+                ),
+              ),
+              const SizedBox(height: 14),
+            ],
           ),
         ),
       ),

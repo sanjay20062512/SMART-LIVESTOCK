@@ -700,15 +700,22 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
           Text('${context.tr('district')} *', style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 14)),
           const SizedBox(height: 6),
           DropdownButtonFormField<String>(
+            key: ValueKey('district_${_selectedDistrict}_${LocalizationService.instance.currentLanguage.code}'),
             initialValue: districts.contains(_selectedDistrict) ? _selectedDistrict : districts.first,
             decoration: const InputDecoration(prefixIcon: Icon(Icons.location_city_rounded)),
             isExpanded: true,
-            items: districts.map((d) => DropdownMenuItem(value: d, child: Text(d))).toList(),
+            items: districts.map((d) => DropdownMenuItem(value: d, child: Text(context.translateText(d)))).toList(),
+            selectedItemBuilder: (context) => districts.map((d) => Align(
+              alignment: Alignment.centerLeft,
+              child: Text(context.translateText(d)),
+            )).toList(),
             onChanged: (val) {
-              setState(() {
-                _selectedDistrict = val!;
-                _selectedBlock = _districtBlocks[_selectedDistrict]?.first ?? 'Other';
-              });
+              if (val != null) {
+                setState(() {
+                  _selectedDistrict = val;
+                  _selectedBlock = _districtBlocks[_selectedDistrict]?.first ?? 'Other';
+                });
+              }
             },
           ),
           const SizedBox(height: 16),
@@ -717,11 +724,20 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
           Text('${context.tr('taluk')} *', style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 14)),
           const SizedBox(height: 6),
           DropdownButtonFormField<String>(
+            key: ValueKey('block_${_selectedDistrict}_${_selectedBlock}_${LocalizationService.instance.currentLanguage.code}'),
             initialValue: talukas.contains(_selectedBlock) ? _selectedBlock : talukas.first,
             decoration: const InputDecoration(prefixIcon: Icon(Icons.apartment_rounded)),
             isExpanded: true,
-            items: talukas.map((b) => DropdownMenuItem(value: b, child: Text(b))).toList(),
-            onChanged: (val) => setState(() => _selectedBlock = val!),
+            items: talukas.map((b) => DropdownMenuItem(value: b, child: Text(context.translateText(b)))).toList(),
+            selectedItemBuilder: (context) => talukas.map((b) => Align(
+              alignment: Alignment.centerLeft,
+              child: Text(context.translateText(b)),
+            )).toList(),
+            onChanged: (val) {
+              if (val != null) {
+                setState(() => _selectedBlock = val);
+              }
+            },
           ),
           const SizedBox(height: 16),
 

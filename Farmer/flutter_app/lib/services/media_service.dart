@@ -295,6 +295,26 @@ class MediaService {
     }
   }
 
+  final Map<String, Uint8List> _bytesCache = {};
+  Uint8List? _lastPhotoBytes;
+  String? _lastPhotoName;
+  Uint8List? _lastVideoBytes;
+  String? _lastVideoName;
+
+  Uint8List? get lastPhotoBytes => _lastPhotoBytes;
+  String? get lastPhotoName => _lastPhotoName;
+  Uint8List? get lastVideoBytes => _lastVideoBytes;
+  String? get lastVideoName => _lastVideoName;
+
+  void cacheBytes(String key, Uint8List bytes) {
+    _bytesCache[key] = bytes;
+  }
+
+  Uint8List? getCachedBytes(String? key) {
+    if (key == null || key.isEmpty) return null;
+    return _bytesCache[key] ?? (_lastPhotoBytes);
+  }
+
   // ─── Photo Capture ────────────────────────────────────────────────────────────
 
   Future<XFile?> capturePhoto({ImageSource source = ImageSource.camera}) async {
@@ -305,11 +325,30 @@ class MediaService {
         maxHeight: 1080,
         imageQuality: 85,
       );
+      if (photo != null) {
+        try {
+          final bytes = await photo.readAsBytes();
+          _lastPhotoBytes = bytes;
+          _lastPhotoName = photo.name;
+          _bytesCache[photo.path] = bytes;
+          _bytesCache[photo.name] = bytes;
+        } catch (_) {}
+      }
       return photo;
     } catch (e) {
       debugPrint('[MediaService] Camera capture failed ($e), falling back to gallery...');
       try {
-        return await _picker.pickImage(source: ImageSource.gallery, imageQuality: 85);
+        final photo = await _picker.pickImage(source: ImageSource.gallery, imageQuality: 85);
+        if (photo != null) {
+          try {
+            final bytes = await photo.readAsBytes();
+            _lastPhotoBytes = bytes;
+            _lastPhotoName = photo.name;
+            _bytesCache[photo.path] = bytes;
+            _bytesCache[photo.name] = bytes;
+          } catch (_) {}
+        }
+        return photo;
       } catch (inner) {
         debugPrint('[MediaService] Gallery fallback failed: $inner');
         return null;
@@ -325,11 +364,30 @@ class MediaService {
         source: source,
         maxDuration: const Duration(minutes: 2),
       );
+      if (video != null) {
+        try {
+          final bytes = await video.readAsBytes();
+          _lastVideoBytes = bytes;
+          _lastVideoName = video.name;
+          _bytesCache[video.path] = bytes;
+          _bytesCache[video.name] = bytes;
+        } catch (_) {}
+      }
       return video;
     } catch (e) {
       debugPrint('[MediaService] Camera video failed ($e), falling back to gallery...');
       try {
-        return await _picker.pickVideo(source: ImageSource.gallery);
+        final video = await _picker.pickVideo(source: ImageSource.gallery);
+        if (video != null) {
+          try {
+            final bytes = await video.readAsBytes();
+            _lastVideoBytes = bytes;
+            _lastVideoName = video.name;
+            _bytesCache[video.path] = bytes;
+            _bytesCache[video.name] = bytes;
+          } catch (_) {}
+        }
+        return video;
       } catch (inner) {
         debugPrint('[MediaService] Gallery video fallback failed: $inner');
         return null;

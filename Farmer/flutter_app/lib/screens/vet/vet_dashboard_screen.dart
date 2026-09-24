@@ -8,6 +8,7 @@ import '../../theme/app_theme.dart';
 import '../../widgets/brand_logo.dart';
 import 'vet_case_detail_screen.dart';
 import 'vet_case_queue_screen.dart';
+import '../../services/localization_service.dart';
 
 class VetDashboardScreen extends StatelessWidget {
   final FarmerDataService dataService;
@@ -17,7 +18,7 @@ class VetDashboardScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return ListenableBuilder(
-      listenable: dataService,
+      listenable: Listenable.merge([dataService, LocalizationService.instance]),
       builder: (context, _) {
         final cases = dataService.getAllCases();
         final critical = cases.where((c) => c.riskLevel == 'CRITICAL').toList();
@@ -39,18 +40,18 @@ class VetDashboardScreen extends StatelessWidget {
           body: CustomScrollView(
             slivers: [
               SliverAppBar(
-                expandedHeight: 130,
+                expandedHeight: 145,
                 pinned: true,
                 backgroundColor: AppColors.primaryDark,
                 surfaceTintColor: Colors.transparent,
                 // Compact header with brand logo when scrolled/pinned
                 title: Row(
-                  children: const [
-                    BrandLogo.small(),
-                    SizedBox(width: 10),
+                  children: [
+                    const BrandLogo.small(),
+                    const SizedBox(width: 10),
                     Text(
-                      'Smart Livestock',
-                      style: TextStyle(
+                      context.tr('smart_livestock'),
+                      style: const TextStyle(
                         color: Colors.white,
                         fontSize: 16,
                         fontWeight: FontWeight.w700,
@@ -75,11 +76,9 @@ class VetDashboardScreen extends StatelessWidget {
                       children: [
                         Row(
                           children: [
-                            const BrandLogo.small(),
-                            const SizedBox(width: 10),
                             Expanded(
                               child: Text(
-                                'Dr. Rajesh Kumar · Veterinary Officer',
+                                context.tr('vet_officer_title'),
                                 style: const TextStyle(color: Colors.white70, fontSize: 13),
                                 overflow: TextOverflow.ellipsis,
                               ),
@@ -87,9 +86,9 @@ class VetDashboardScreen extends StatelessWidget {
                           ],
                         ),
                         const SizedBox(height: 4),
-                        const Text(
-                          'Veterinary Dashboard',
-                          style: TextStyle(
+                        Text(
+                          context.tr('veterinary_dashboard'),
+                          style: const TextStyle(
                             color: Colors.white,
                             fontSize: 22,
                             fontWeight: FontWeight.w800,
@@ -101,6 +100,22 @@ class VetDashboardScreen extends StatelessWidget {
                   ),
                 ),
                 actions: [
+                  PopupMenuButton<AppLanguage>(
+                    icon: const Icon(Icons.language, color: Colors.white, size: 24),
+                    tooltip: context.tr('change_language'),
+                    initialValue: LocalizationService.instance.currentLanguage,
+                    onSelected: (AppLanguage lang) {
+                      LocalizationService.instance.setLanguage(lang);
+                    },
+                    itemBuilder: (BuildContext context) {
+                      return AppLanguage.values.map((AppLanguage lang) {
+                        return PopupMenuItem<AppLanguage>(
+                          value: lang,
+                          child: Text(lang.label, style: const TextStyle(fontWeight: FontWeight.w600)),
+                        );
+                      }).toList();
+                    },
+                  ),
                   if (clusters.isNotEmpty)
                     Container(
                       margin: const EdgeInsets.only(top: 8),
@@ -112,7 +127,7 @@ class VetDashboardScreen extends StatelessWidget {
                       ),
                     ),
                   IconButton(
-                    tooltip: 'Notifications',
+                    tooltip: context.tr('notifications'),
                     icon: Badge(
                       isLabelVisible: unreadAlerts > 0,
                       label: Text('$unreadAlerts', style: const TextStyle(fontWeight: FontWeight.bold)),
@@ -140,15 +155,15 @@ class VetDashboardScreen extends StatelessWidget {
                       physics: const NeverScrollableScrollPhysics(),
                       crossAxisSpacing: 12,
                       mainAxisSpacing: 12,
-                      childAspectRatio: 1.6,
+                      childAspectRatio: 1.35,
                       children: [
-                        _statCard('CRITICAL', critical.length.toString(),
+                        _statCard(context.tr('critical'), critical.length.toString(),
                             Icons.emergency_rounded, const Color(0xFFB71C1C), Colors.red.shade50),
-                        _statCard('HIGH RISK', high.length.toString(),
+                        _statCard(context.tr('high_risk'), high.length.toString(),
                             Icons.warning_rounded, const Color(0xFFE65100), Colors.orange.shade50),
-                        _statCard('Pending Review', pending.length.toString(),
+                        _statCard(context.tr('pending_review'), pending.length.toString(),
                             Icons.inbox_rounded, const Color(0xFF1565C0), Colors.blue.shade50),
-                        _statCard('Visits Due', visits.length.toString(),
+                        _statCard(context.tr('visits_due'), visits.length.toString(),
                             Icons.directions_car_rounded, const Color(0xFF2E7D32), Colors.green.shade50),
                       ],
                     ),
@@ -158,9 +173,9 @@ class VetDashboardScreen extends StatelessWidget {
                     // Priority case queue header
                     Row(
                       children: [
-                        const Text(
-                          'Priority Case Queue',
-                          style: TextStyle(fontSize: 17, fontWeight: FontWeight.bold, color: Color(0xFF1A237E)),
+                        Text(
+                          context.tr('priority_case_queue'),
+                          style: const TextStyle(fontSize: 17, fontWeight: FontWeight.bold, color: Color(0xFF1A237E)),
                         ),
                         const Spacer(),
                         TextButton(
@@ -170,7 +185,7 @@ class VetDashboardScreen extends StatelessWidget {
                               MaterialPageRoute(builder: (_) => VetCaseQueueScreen(dataService: dataService)),
                             );
                           },
-                          child: const Text('View All'),
+                          child: Text(context.tr('view_all')),
                         ),
                       ],
                     ),
@@ -226,17 +241,19 @@ class VetDashboardScreen extends StatelessWidget {
                     children: [
                       Row(
                         children: [
-                          Text(
-                            '$count New Farmer Report${count > 1 ? 's' : ''} Received',
-                            style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 14, color: Color(0xFFB71C1C)),
+                          Expanded(
+                            child: Text(
+                              context.tr('new_farmer_reports_received', params: {'count': '$count'}),
+                              style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 13, color: Color(0xFFB71C1C)),
+                              overflow: TextOverflow.ellipsis,
+                            ),
                           ),
-                          const Spacer(),
-                          const Text('View', style: TextStyle(color: Colors.red, fontWeight: FontWeight.bold, fontSize: 12)),
+                          Text(context.tr('view'), style: const TextStyle(color: Colors.red, fontWeight: FontWeight.bold, fontSize: 12)),
                         ],
                       ),
                       const SizedBox(height: 2),
                       Text(
-                        latest.title,
+                        context.translateText(latest.title),
                         maxLines: 1,
                         overflow: TextOverflow.ellipsis,
                         style: TextStyle(fontSize: 12, color: Colors.grey.shade800),
@@ -285,15 +302,15 @@ class VetDashboardScreen extends StatelessWidget {
                       children: [
                         const Icon(Icons.notifications_active_rounded, color: Color(0xFF1565C0)),
                         const SizedBox(width: 10),
-                        const Text(
-                          'Vet Notifications',
-                          style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                        Text(
+                          context.tr('vet_notifications'),
+                          style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
                         ),
                         const Spacer(),
                         if (alerts.any((a) => !a.isRead))
                           TextButton(
                             onPressed: () => dataService.markAllVetAlertsRead(),
-                            child: const Text('Mark all read'),
+                            child: Text(context.tr('mark_all_read')),
                           ),
                       ],
                     ),
@@ -307,7 +324,7 @@ class VetDashboardScreen extends StatelessWidget {
                               children: [
                                 Icon(Icons.notifications_none_rounded, size: 54, color: Colors.grey.shade400),
                                 const SizedBox(height: 12),
-                                const Text('No notifications yet', style: TextStyle(color: Colors.grey, fontSize: 16)),
+                                Text(context.tr('no_notifications_yet'), style: const TextStyle(color: Colors.grey, fontSize: 16)),
                               ],
                             ),
                           )
@@ -441,10 +458,11 @@ class VetDashboardScreen extends StatelessWidget {
 
   String _formatTime(DateTime date) {
     final diff = DateTime.now().difference(date);
-    if (diff.inMinutes < 1) return 'Just now';
-    if (diff.inMinutes < 60) return '${diff.inMinutes}m ago';
-    if (diff.inHours < 24) return '${diff.inHours}h ago';
-    return '${diff.inDays}d ago';
+    final loc = LocalizationService.instance;
+    if (diff.inMinutes < 1) return loc.tr('just_now');
+    if (diff.inMinutes < 60) return loc.tr('minute_ago', params: {'n': '${diff.inMinutes}'});
+    if (diff.inHours < 24) return loc.tr('hour_ago', params: {'n': '${diff.inHours}'});
+    return loc.tr('day_ago', params: {'n': '${diff.inDays}'});
   }
 
   Widget _statCard(String label, String value, IconData icon, Color color, Color bg) {
@@ -454,19 +472,22 @@ class VetDashboardScreen extends StatelessWidget {
         borderRadius: BorderRadius.circular(16),
         border: Border.all(color: color.withValues(alpha: 0.2)),
       ),
-      padding: const EdgeInsets.all(14),
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
-          Icon(icon, color: color, size: 26),
+          Icon(icon, color: color, size: 24),
           Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Text(value,
-                  style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold, color: color)),
+                  style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold, color: color)),
+              const SizedBox(height: 2),
               Text(label,
-                  style: TextStyle(fontSize: 11, color: color.withValues(alpha: 0.8), fontWeight: FontWeight.w600)),
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: TextStyle(fontSize: 11, color: color.withValues(alpha: 0.85), fontWeight: FontWeight.w600)),
             ],
           ),
         ],
@@ -488,8 +509,8 @@ class VetDashboardScreen extends StatelessWidget {
             color: Colors.white,
             borderRadius: BorderRadius.circular(16),
           ),
-          child: const Center(
-            child: Text('No cases yet', style: TextStyle(color: Colors.grey, fontSize: 16)),
+          child: Center(
+            child: Text(LocalizationService.instance.tr('no_cases_yet'), style: const TextStyle(color: Colors.grey, fontSize: 16)),
           ),
         ),
       ];
@@ -505,6 +526,9 @@ class VetDashboardScreen extends StatelessWidget {
       'MEDIUM' => (const Color(0xFFF57F17), Colors.yellow.shade50, Icons.info_rounded),
       _ => (const Color(0xFF2E7D32), Colors.green.shade50, Icons.check_circle_outline),
     };
+
+    final translatedSpecies = context.translateSpecies(c.species);
+    final translatedSymptoms = c.symptoms.map((s) => context.translateSymptom(s)).take(2).join(', ');
 
     return Container(
       margin: const EdgeInsets.only(bottom: 10),
@@ -522,23 +546,35 @@ class VetDashboardScreen extends StatelessWidget {
           child: Icon(icon, color: color, size: 20),
         ),
         title: Text(
-          '${c.caseId} · ${c.species} · ${c.animalTag}',
+          '${c.caseId} · $translatedSpecies · ${c.animalTag}',
           style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 14),
         ),
         subtitle: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text(c.symptoms.take(2).join(', '),
+            Text(translatedSymptoms,
                 style: const TextStyle(fontSize: 12, color: Colors.grey)),
             const SizedBox(height: 4),
             Row(
               children: [
-                Icon(Icons.location_on, size: 12, color: Colors.grey),
+                const Icon(Icons.location_on, size: 12, color: Colors.grey),
                 const SizedBox(width: 2),
                 Text('${c.village}, ${c.district}',
                     style: const TextStyle(fontSize: 11, color: Colors.grey)),
                 const Spacer(),
-                _statusChip(c.status.displayName),
+                if (c.hasPhoto) ...[
+                  const Icon(Icons.photo_camera_rounded, size: 13, color: Colors.blue),
+                  const SizedBox(width: 4),
+                ],
+                if (c.hasVideo) ...[
+                  const Icon(Icons.videocam_rounded, size: 14, color: Colors.teal),
+                  const SizedBox(width: 4),
+                ],
+                if (c.hasVoiceNote) ...[
+                  const Icon(Icons.mic_rounded, size: 13, color: Colors.orange),
+                  const SizedBox(width: 4),
+                ],
+                _statusChip(context.translateStatus(c.status.displayName)),
               ],
             ),
           ],
