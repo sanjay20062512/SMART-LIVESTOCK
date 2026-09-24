@@ -513,7 +513,17 @@ class __GovtLoginScreenState extends State<_GovtLoginScreen> {
     setState(() => _loading = false);
     Navigator.pushReplacement(
       context,
-      MaterialPageRoute(builder: (_) => GovtShell(dataService: widget.dataService)),
+      MaterialPageRoute(
+        builder: (_) => GovtShell(
+          dataService: widget.dataService,
+          onSwitchRole: () {
+            Navigator.pushReplacement(
+              context,
+              MaterialPageRoute(builder: (_) => RoleSelectionScreen(dataService: widget.dataService)),
+            );
+          },
+        ),
+      ),
     );
   }
 
