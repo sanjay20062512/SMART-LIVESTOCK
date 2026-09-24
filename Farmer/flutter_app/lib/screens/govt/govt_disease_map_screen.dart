@@ -6,7 +6,7 @@ import 'govt_theme.dart';
 import 'govt_models.dart';
 import 'govt_mock_data.dart';
 import 'govt_campaign_engine.dart';
-import 'widgets/govt_maharashtra_map_widget.dart';
+import 'widgets/govt_osm_map_widget.dart';
 import 'widgets/govt_create_campaign_dialog.dart';
 import 'govt_area_detail_screen.dart';
 import '../../services/farmer_data_service.dart';
@@ -104,7 +104,7 @@ class _GovtDiseaseMapScreenState extends State<GovtDiseaseMapScreen> {
             const SizedBox(height: 12),
 
             // Map Widget with Embedded Controls
-            GovtMaharashtraMapWidget(
+            GovtOsmMapWidget(
               districts: _filteredDistricts,
               selectedDistrict: _selectedDistrict,
               onSelectDistrict: (dist) => setState(() => _selectedDistrict = dist),

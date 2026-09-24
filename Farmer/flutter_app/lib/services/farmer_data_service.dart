@@ -25,6 +25,7 @@ import '../models/advisory.dart';
 import '../models/cluster.dart';
 import '../models/vet_visit.dart';
 import '../models/government_alert.dart';
+import '../screens/govt/govt_new_data.dart' show GovtAlert, getInitialAlerts;
 
 // Note: import case.dart types directly in screens that need them.
 import 'api_service.dart';
@@ -423,6 +424,19 @@ class FarmerDataService extends ChangeNotifier {
       targetRole: 'VETERINARIAN',
     ));
 
+    // 3. Early warning alert to Government Surveillance for Critical / High-Risk reports
+    if (report.riskLevel == RiskLevel.critical || report.riskLevel == RiskLevel.high) {
+      addAlert(AppAlert(
+        id: generateAlertId(),
+        category: AlertCategory.highRiskHealthAlert,
+        title: '⚠️ Early Warning: ${report.riskLevel.displayName.toUpperCase()} Risk in ${_profile.village}',
+        message: 'Farmer ${_profile.fullName} reported ${report.symptoms.join(", ")} in ${report.species ?? "Livestock"} (${report.animalTag}). Automated surveillance flag active.',
+        severity: report.riskLevel == RiskLevel.critical ? AlertSeverity.critical : AlertSeverity.high,
+        relatedId: caseId,
+        targetRole: 'GOVERNMENT',
+      ));
+    }
+
     notifyListeners();
 
     try {
@@ -667,6 +681,17 @@ class FarmerDataService extends ChangeNotifier {
       severity: AlertSeverity.critical,
       relatedId: caseId,
       targetRole: 'VETERINARIAN',
+    ));
+
+    // 3. High priority surveillance alert to Government
+    addAlert(AppAlert(
+      id: generateAlertId(),
+      category: AlertCategory.mortalityAlert,
+      title: '🚨 Mortality Event Reported: ${report.animalTag} in ${_profile.village}',
+      message: 'Livestock mortality reported by Farmer ${_profile.fullName} in ${_profile.village}, ${_profile.district}. Suspected cause: ${report.description ?? "Acute condition"}.',
+      severity: AlertSeverity.critical,
+      relatedId: caseId,
+      targetRole: 'GOVERNMENT',
     ));
 
     notifyListeners();
@@ -1120,6 +1145,17 @@ class FarmerDataService extends ChangeNotifier {
       relatedId: c.caseId,
       targetRole: 'FARMER',
     ));
+
+    // Also dispatch an emergency alert to the Government feed
+    addAlert(AppAlert(
+      id: generateAlertId(),
+      category: AlertCategory.highRiskHealthAlert,
+      title: '🚨 Case Escalated by Vet: ${c.species} (${c.animalTag})',
+      message: 'Dr. ${c.assignedVetName ?? "Field Veterinarian"} escalated Case #${c.caseId} in ${c.village}, ${c.district}. ${reason != null ? "Reason: $reason" : "Priority emergency intervention requested."}',
+      severity: AlertSeverity.critical,
+      relatedId: c.caseId,
+      targetRole: 'GOVERNMENT',
+    ));
   }
 
   Future<void> escalateCase(String caseId, {String? reason}) async {
@@ -1357,6 +1393,153 @@ class FarmerDataService extends ChangeNotifier {
     } catch (_) {}
   }
 
+  // ─── Unified Government Alerts Bridge ───────────────────────────────────────
+
+  List<GovtAlert> getGovtAlertsList() {
+    final List<GovtAlert> result = [];
+    final Set<String> seenIds = {};
+
+    // 1. Live GovernmentAlerts (from escalated cases & high-risk clusters)
+    for (final a in _govtAlerts) {
+      final isEscalatedCase = a.type == 'ESCALATED_CASE';
+      final priority = (a.riskLevel == ClusterRisk.high || isEscalatedCase) ? 'Critical' : 'High';
+      final type = isEscalatedCase ? 'Risk Escalation' : 'Outbreak';
+      final timeStr = _formatRelativeTime(a.createdAt);
+
+      result.add(GovtAlert(
+        id: a.id,
+        type: type,
+        title: a.title,
+        district: a.district.isNotEmpty ? a.district : 'Pune',
+        time: timeStr,
+        priority: priority,
+        isRead: a.status != GovernmentAlertStatus.newAlert,
+        resolved: a.status == GovernmentAlertStatus.resolved,
+        actionText: isEscalatedCase ? 'Review Escalated Case' : 'Review Outbreak Cluster',
+        description: isEscalatedCase
+            ? 'Case escalated by Field Veterinarian for emergency Government surveillance in ${a.location}. ${a.suspectedDisease.isNotEmpty ? "Suspected: ${a.suspectedDisease}." : ""} Priority field intervention required.'
+            : 'Outbreak cluster detected with ${a.animalCount} affected animals and ${a.mortality} mortalities in ${a.location}. Suspected: ${a.suspectedDisease}.',
+      ));
+      seenIds.add(a.id);
+      if (a.clusterId.isNotEmpty) seenIds.add(a.clusterId);
+    }
+
+    // 2. Live AppAlerts targeted to GOVERNMENT or ALL
+    for (final a in _alerts) {
+      if (a.targetRole == 'GOVERNMENT' || a.targetRole == 'ALL') {
+        if (seenIds.contains(a.id) || (a.relatedId != null && seenIds.contains(a.relatedId!))) {
+          continue;
+        }
+        final priority = switch (a.severity) {
+          AlertSeverity.critical => 'Critical',
+          AlertSeverity.high => 'High',
+          AlertSeverity.warning => 'High',
+          AlertSeverity.info => 'Medium',
+        };
+        final type = switch (a.category) {
+          AlertCategory.highRiskHealthAlert => 'Risk Escalation',
+          AlertCategory.diseaseAlert => 'Outbreak',
+          AlertCategory.mortalityAlert => 'Outbreak',
+          AlertCategory.governmentAdvisory => 'Advisory',
+          AlertCategory.vaccinationReminder => 'Campaign Due',
+          AlertCategory.weatherRisk => 'Risk Escalation',
+          _ => 'Outbreak',
+        };
+        result.add(GovtAlert(
+          id: a.id,
+          type: type,
+          title: a.title,
+          district: 'Pune',
+          time: _formatRelativeTime(a.date),
+          priority: priority,
+          isRead: a.isRead,
+          resolved: false,
+          actionText: 'View Surveillance Log',
+          description: a.message,
+        ));
+        seenIds.add(a.id);
+      }
+    }
+
+    // 3. Baseline initial alerts (from govt_new_data)
+    final initialList = getInitialAlerts();
+    for (final initAlert in initialList) {
+      if (!seenIds.contains(initAlert.id)) {
+        result.add(initAlert);
+        seenIds.add(initAlert.id);
+      }
+    }
+
+    return result;
+  }
+
+  String _formatRelativeTime(DateTime dt) {
+    final diff = DateTime.now().difference(dt);
+    if (diff.inSeconds < 60) return 'Just now';
+    if (diff.inMinutes < 60) return '${diff.inMinutes}m ago';
+    if (diff.inHours < 24) return '${diff.inHours}h ago';
+    if (diff.inDays == 1) return 'Yesterday';
+    return '${diff.inDays}d ago';
+  }
+
+  int get unreadGovtAlertCount {
+    int count = 0;
+    count += _govtAlerts.where((a) => a.status == GovernmentAlertStatus.newAlert).length;
+    final liveGovtClusterIds = _govtAlerts.map((a) => a.clusterId).toSet();
+    count += _alerts.where((a) =>
+        !a.isRead &&
+        (a.targetRole == 'GOVERNMENT' || a.targetRole == 'ALL') &&
+        (a.relatedId == null || !liveGovtClusterIds.contains(a.relatedId!))).length;
+    return count;
+  }
+
+  void markGovtAlertRead(String id) {
+    final gIdx = _govtAlerts.indexWhere((a) => a.id == id || a.clusterId == id);
+    if (gIdx != -1) {
+      if (_govtAlerts[gIdx].status == GovernmentAlertStatus.newAlert) {
+        _govtAlerts[gIdx].status = GovernmentAlertStatus.acknowledged;
+        _govtAlerts[gIdx].acknowledgedAt = DateTime.now();
+        _govtAlerts[gIdx].updatedAt = DateTime.now();
+      }
+    }
+    final aIdx = _alerts.indexWhere((a) => a.id == id || a.relatedId == id);
+    if (aIdx != -1) {
+      _alerts[aIdx].isRead = true;
+    }
+    notifyListeners();
+  }
+
+  void acknowledgeGovtAlert(String id) => markGovtAlertRead(id);
+
+  void resolveGovtAlert(String id) {
+    final gIdx = _govtAlerts.indexWhere((a) => a.id == id || a.clusterId == id);
+    if (gIdx != -1) {
+      _govtAlerts[gIdx].status = GovernmentAlertStatus.resolved;
+      _govtAlerts[gIdx].updatedAt = DateTime.now();
+    }
+    final aIdx = _alerts.indexWhere((a) => a.id == id || a.relatedId == id);
+    if (aIdx != -1) {
+      _alerts[aIdx].isRead = true;
+    }
+    notifyListeners();
+  }
+
+  void markAllGovtAlertsRead() {
+    for (final a in _govtAlerts) {
+      if (a.status == GovernmentAlertStatus.newAlert) {
+        a.status = GovernmentAlertStatus.acknowledged;
+        a.acknowledgedAt = DateTime.now();
+        a.updatedAt = DateTime.now();
+      }
+    }
+    for (final a in _alerts) {
+      if (a.targetRole == 'GOVERNMENT' || a.targetRole == 'ALL') {
+        a.isRead = true;
+      }
+    }
+    notifyListeners();
+  }
+
   // â”€â”€â”€ Clusters â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
   List<OutbreakCluster> getAllClusters({
@@ -1464,6 +1647,29 @@ class FarmerDataService extends ChangeNotifier {
       c.riskLevel = ClusterRisk.high;
       c.updatedAt = DateTime.now();
       createGovernmentAlertIfNotExists(c);
+
+      // Dispatch emergency alert to Government surveillance feed
+      addAlert(AppAlert(
+        id: generateAlertId(),
+        category: AlertCategory.diseaseAlert,
+        title: '🚨 Outbreak Cluster Escalated: ${c.name}',
+        message: 'High-risk cluster in ${c.village}, ${c.district} escalated by Field Veterinarian. Suspected: ${c.suspectedDisease} (${c.animalCount} animals affected, ${c.mortality} mortalities).',
+        severity: AlertSeverity.critical,
+        relatedId: c.clusterId,
+        targetRole: 'GOVERNMENT',
+      ));
+
+      // Broadcast outbreak warning to farmers in the district
+      addAlert(AppAlert(
+        id: generateAlertId(),
+        category: AlertCategory.diseaseAlert,
+        title: '⚠️ Outbreak Alert: ${c.name}',
+        message: 'High-risk ${c.suspectedDisease} cluster confirmed in ${c.village}, ${c.district}. Practice strict isolation and report symptoms immediately.',
+        severity: AlertSeverity.high,
+        relatedId: c.clusterId,
+        targetRole: 'FARMER',
+      ));
+
       notifyListeners();
 
       try {

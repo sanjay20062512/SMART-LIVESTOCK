@@ -4,7 +4,7 @@
 import 'package:flutter/material.dart';
 import '../../services/farmer_data_service.dart';
 import 'govt_theme.dart';
-import 'widgets/govt_india_map_widget.dart';
+import 'widgets/govt_osm_india_map_widget.dart';
 
 class GovtLiveMapScreen extends StatefulWidget {
   final FarmerDataService dataService;
@@ -30,7 +30,7 @@ class _GovtLiveMapScreenState extends State<GovtLiveMapScreen> {
               padding: const EdgeInsets.all(12),
               child: SizedBox(
                 height: 560,
-                child: IndiaDiseaseIntelligenceMap(
+                child: GovtOsmIndiaDiseaseMap(
                   isExpanded: true,
                   currentJurisdictionState: _state,
                   currentJurisdictionDistrict: _district,
@@ -43,7 +43,7 @@ class _GovtLiveMapScreenState extends State<GovtLiveMapScreen> {
 
           return Padding(
             padding: const EdgeInsets.all(12),
-            child: IndiaDiseaseIntelligenceMap(
+            child: GovtOsmIndiaDiseaseMap(
               isExpanded: true,
               currentJurisdictionState: _state,
               currentJurisdictionDistrict: _district,

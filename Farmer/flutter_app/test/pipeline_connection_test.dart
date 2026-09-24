@@ -306,6 +306,66 @@ void main() {
       expect(escAlert.riskLevel, ClusterRisk.high);
       expect(escAlert.title, contains('ESCALATED CASE'));
       expect(escAlert.title, contains('MH-14-ESC-99'));
+
+      // 5. Government module live alerts feed receives the alert from Vet
+      final govtAlertsList = service.getGovtAlertsList();
+      final feedItem = govtAlertsList.firstWhere((a) => a.id == escAlert.id || a.title.contains('MH-14-ESC-99'));
+      expect(feedItem, isNotNull);
+      expect(feedItem.priority, 'Critical');
+      expect(feedItem.isRead, isFalse);
+      expect(feedItem.resolved, isFalse);
+      expect(service.unreadGovtAlertCount, greaterThan(0));
+
+      // 6. Government Officer acknowledges and resolves the alert
+      service.markGovtAlertRead(feedItem.id);
+      expect(service.getGovtAlertsList().firstWhere((a) => a.id == feedItem.id).isRead, isTrue);
+
+      service.resolveGovtAlert(feedItem.id);
+      expect(service.getGovtAlertsList().firstWhere((a) => a.id == feedItem.id).resolved, isTrue);
+    });
+
+    test('8. Vet escalates cluster -> Government surveillance feed immediately shows outbreak alert', () async {
+      final cluster = OutbreakCluster(
+        clusterId: 'CLS_VET_ESC_01',
+        name: 'Baramati Bovine Cluster',
+        location: 'Baramati Rural, Pune',
+        village: 'Baramati',
+        block: 'Baramati',
+        district: 'Pune',
+        state: 'Maharashtra',
+        riskLevel: ClusterRisk.medium,
+        species: 'Cow',
+        reportCount: 5,
+        animalCount: 14,
+        mortality: 1,
+        symptoms: ['High fever', 'Skin lesions'],
+        suspectedDisease: 'Lumpy Skin Disease',
+        status: ClusterStatus.investigation,
+        latitude: 18.1500,
+        longitude: 74.5800,
+        createdAt: DateTime.now(),
+        updatedAt: DateTime.now(),
+      );
+
+      service.addCluster(cluster);
+
+      // Vet escalates the cluster
+      await service.escalateCluster('CLS_VET_ESC_01');
+
+      // Cluster status and risk updated
+      final updated = service.getClusterById('CLS_VET_ESC_01');
+      expect(updated?.status, ClusterStatus.escalated);
+      expect(updated?.riskLevel, ClusterRisk.high);
+
+      // Government live alerts feed receives the cluster alert
+      final govtAlerts = service.getGovtAlertsList();
+      final clusterAlert = govtAlerts.firstWhere((a) => a.id == 'CLS_VET_ESC_01' || a.title.contains('Baramati Bovine Cluster'));
+      expect(clusterAlert, isNotNull);
+      expect(clusterAlert.priority, 'Critical');
+
+      // Farmer feed receives containment advisory
+      final farmerAlerts = service.getFarmerAlerts();
+      expect(farmerAlerts.any((a) => a.title.contains('Baramati Bovine Cluster')), isTrue);
     });
   });
 }

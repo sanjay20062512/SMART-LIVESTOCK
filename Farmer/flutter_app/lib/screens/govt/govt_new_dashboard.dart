@@ -4,15 +4,22 @@
 import 'package:flutter/material.dart';
 import 'govt_theme.dart';
 import 'govt_new_data.dart';
+import '../../services/farmer_data_service.dart';
 
 class GovtNewDashboard extends StatelessWidget {
   final ValueChanged<int> onNavigateTab;
-  const GovtNewDashboard({super.key, required this.onNavigateTab});
+  final FarmerDataService? dataService;
+
+  const GovtNewDashboard({
+    super.key,
+    required this.onNavigateTab,
+    this.dataService,
+  });
 
   @override
   Widget build(BuildContext context) {
     final highRisk = maharashtraDistricts.where((d) => d.riskScore >= 56).toList();
-    final alerts = getInitialAlerts();
+    final alerts = dataService != null ? dataService!.getGovtAlertsList() : getInitialAlerts();
 
     return Scaffold(
       backgroundColor: GovtColors.pageBackground,

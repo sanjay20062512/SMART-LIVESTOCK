@@ -5,8 +5,11 @@ import 'package:flutter/material.dart';
 import 'govt_theme.dart';
 import 'govt_new_data.dart';
 
+import '../../services/farmer_data_service.dart';
+
 class GovtNewResponseTasks extends StatefulWidget {
-  const GovtNewResponseTasks({super.key});
+  final FarmerDataService? dataService;
+  const GovtNewResponseTasks({super.key, this.dataService});
 
   @override
   State<GovtNewResponseTasks> createState() => _GovtNewResponseTasksState();

@@ -1,5 +1,5 @@
 // Smart Livestock — Government Shell (UPDATED)
-// Now uses the NEW Government module screens ported from the React web implementation.
+// Fully connected across Farmer, Vet, and Government modules via FarmerDataService.
 // Navigation: Dashboard · Disease Map · Campaigns · Outbreak · Alerts · Reports · Response
 
 import 'package:flutter/material.dart';
@@ -31,7 +31,7 @@ class GovtShell extends StatefulWidget {
 class _GovtShellState extends State<GovtShell> {
   int _selectedIndex = 0;
 
-  // All 7 tabs matching the new React Government module's navigation
+  // All 7 tabs matching the React Government module's navigation
   static const List<_NavItem> _navItems = [
     _NavItem('Dashboard',   Icons.dashboard_outlined,           Icons.dashboard_rounded),
     _NavItem('Disease Map', Icons.map_outlined,                  Icons.map_rounded),
@@ -48,42 +48,56 @@ class _GovtShellState extends State<GovtShell> {
   void initState() {
     super.initState();
     _pages = [
-      GovtNewDashboard(onNavigateTab: (i) => setState(() => _selectedIndex = i)),
-      const GovtNewDiseaseMap(),
-      const GovtNewCampaigns(),
-      const GovtNewOutbreakMonitoring(),
-      const GovtNewAlerts(),
-      const GovtNewReports(),
-      const GovtNewResponseTasks(),
+      GovtNewDashboard(
+        onNavigateTab: (i) => setState(() => _selectedIndex = i),
+        dataService: widget.dataService,
+      ),
+      GovtNewDiseaseMap(
+        onNavigateTab: (i) => setState(() => _selectedIndex = i),
+        dataService: widget.dataService,
+      ),
+      GovtNewCampaigns(dataService: widget.dataService),
+      GovtNewOutbreakMonitoring(dataService: widget.dataService),
+      GovtNewAlerts(
+        dataService: widget.dataService,
+        onNavigateTab: (i) => setState(() => _selectedIndex = i),
+      ),
+      GovtNewReports(dataService: widget.dataService),
+      GovtNewResponseTasks(dataService: widget.dataService),
     ];
   }
 
   @override
   Widget build(BuildContext context) {
-    return LayoutBuilder(
-      builder: (context, constraints) {
-        final isDesktop = constraints.maxWidth >= 900;
+    return ListenableBuilder(
+      listenable: widget.dataService,
+      builder: (context, _) {
+        return LayoutBuilder(
+          builder: (context, constraints) {
+            final isDesktop = constraints.maxWidth >= 900;
 
-        return Scaffold(
-          backgroundColor: GovtColors.pageBackground,
-          appBar: _buildTopHeader(),
-          body: isDesktop
-              ? Row(
-                  children: [
-                    _buildDesktopSidebar(),
-                    Expanded(
-                      child: IndexedStack(
-                        index: _selectedIndex,
-                        children: _pages,
-                      ),
+            return Scaffold(
+              backgroundColor: GovtColors.pageBackground,
+              appBar: _buildTopHeader(),
+              body: isDesktop
+                  ? Row(
+                      children: [
+                        _buildDesktopSidebar(),
+                        Expanded(
+                          child: IndexedStack(
+                            index: _selectedIndex,
+                            children: _pages,
+                          ),
+                        ),
+                      ],
+                    )
+                  : IndexedStack(
+                      index: _selectedIndex,
+                      children: _pages,
                     ),
-                  ],
-                )
-              : IndexedStack(
-                  index: _selectedIndex,
-                  children: _pages,
-                ),
-          bottomNavigationBar: isDesktop ? null : _buildMobileBottomNav(),
+              bottomNavigationBar: isDesktop ? null : _buildMobileBottomNav(),
+            );
+          },
         );
       },
     );
@@ -92,6 +106,8 @@ class _GovtShellState extends State<GovtShell> {
   // ─── Top Command Header ──────────────────────────────────────────────────────
 
   PreferredSizeWidget _buildTopHeader() {
+    final unreadAlerts = widget.dataService.unreadGovtAlertCount;
+
     return AppBar(
       backgroundColor: GovtColors.surface,
       elevation: 0,
@@ -153,18 +169,35 @@ class _GovtShellState extends State<GovtShell> {
 
         // Alerts bell — taps to alerts tab
         Stack(
+          clipBehavior: Clip.none,
           children: [
             IconButton(
               icon: const Icon(Icons.notifications_none_rounded, size: 20, color: GovtColors.textPrimary),
+              tooltip: 'Surveillance Alerts',
               onPressed: () => setState(() => _selectedIndex = 4),
             ),
-            Positioned(
-              right: 10, top: 10,
-              child: Container(
-                width: 8, height: 8,
-                decoration: const BoxDecoration(color: GovtColors.critical, shape: BoxShape.circle),
+            if (unreadAlerts > 0)
+              Positioned(
+                right: 8,
+                top: 8,
+                child: Container(
+                  padding: const EdgeInsets.all(3),
+                  decoration: const BoxDecoration(
+                    color: GovtColors.critical,
+                    shape: BoxShape.circle,
+                  ),
+                  constraints: const BoxConstraints(minWidth: 16, minHeight: 16),
+                  child: Text(
+                    unreadAlerts > 99 ? '99+' : '$unreadAlerts',
+                    style: const TextStyle(
+                      color: Colors.white,
+                      fontSize: 8.5,
+                      fontWeight: FontWeight.w800,
+                    ),
+                    textAlign: TextAlign.center,
+                  ),
+                ),
               ),
-            ),
           ],
         ),
 
@@ -197,62 +230,44 @@ class _GovtShellState extends State<GovtShell> {
                     child: Text('KM', style: TextStyle(fontSize: 9, fontWeight: FontWeight.w800, color: GovtColors.brandDark)),
                   ),
                   SizedBox(width: 6),
-                  Text('DAHO', style: TextStyle(fontSize: 11, fontWeight: FontWeight.w700, color: GovtColors.textPrimary)),
+                  Text(
+                    'DAHO Pune',
+                    style: TextStyle(fontSize: 11, fontWeight: FontWeight.w700, color: GovtColors.textPrimary),
+                  ),
                 ],
               ),
             ),
           ),
         ),
 
-        // Switch role button
-        Padding(
-          padding: const EdgeInsets.only(right: 8),
-          child: Tooltip(
-            message: 'Switch Role / Back',
-            child: OutlinedButton.icon(
-              style: OutlinedButton.styleFrom(
-                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                minimumSize: Size.zero,
-                tapTargetSize: MaterialTapTargetSize.shrinkWrap,
-                side: const BorderSide(color: GovtColors.border),
-                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
-                backgroundColor: GovtColors.surfaceSubtle,
-              ),
-              icon: const Icon(Icons.swap_horiz_rounded, size: 15, color: GovtColors.brandDark),
-              label: const Text(
-                'Switch',
-                style: TextStyle(fontSize: 11, fontWeight: FontWeight.w700, color: GovtColors.brandDark),
-              ),
-              onPressed: () {
-                if (widget.onSwitchRole != null) {
-                  widget.onSwitchRole!();
-                } else if (Navigator.canPop(context)) {
-                  Navigator.pop(context);
-                }
-              },
-            ),
-          ),
+        // Switch Role icon button (quick exit)
+        IconButton(
+          icon: const Icon(Icons.swap_horiz_rounded, color: GovtColors.textPrimary, size: 20),
+          tooltip: 'Switch Role',
+          onPressed: () {
+            if (widget.onSwitchRole != null) {
+              widget.onSwitchRole!();
+            } else if (Navigator.canPop(context)) {
+              Navigator.pop(context);
+            }
+          },
         ),
+        const SizedBox(width: 4),
       ],
-      bottom: const PreferredSize(
-        preferredSize: Size.fromHeight(1),
-        child: Divider(height: 1, color: GovtColors.border),
-      ),
     );
   }
 
-  // ─── Mobile Bottom NavigationBar (5 primary tabs) ────────────────────────────
-  // On mobile, show 5 most critical tabs; overflow tabs accessible from desktop sidebar
+  // ─── Mobile Bottom Navigation Bar (5 Primary Items) ─────────────────────────
 
   Widget _buildMobileBottomNav() {
-    // Show first 5 tabs on mobile nav bar
-    final mobileItems = _navItems.take(5).toList();
-    final mobileIdx = _selectedIndex < 5 ? _selectedIndex : 0;
+    // 5 primary items for mobile: Dashboard(0), Disease Map(1), Campaigns(2), Outbreak(3), Alerts(4)
+    final mobileIdx = _selectedIndex > 4 ? 0 : _selectedIndex;
+    final unreadAlerts = widget.dataService.unreadGovtAlertCount;
 
     return Container(
       decoration: const BoxDecoration(
         color: GovtColors.surface,
-        border: Border(top: BorderSide(color: GovtColors.border)),
+        border: Border(top: BorderSide(color: GovtColors.border, width: 0.8)),
       ),
       child: NavigationBar(
         selectedIndex: mobileIdx,
@@ -261,11 +276,43 @@ class _GovtShellState extends State<GovtShell> {
         indicatorColor: GovtColors.brandLight,
         elevation: 0,
         height: 62,
-        destinations: mobileItems.map((item) => NavigationDestination(
-          icon: Icon(item.icon, size: 20, color: GovtColors.textMuted),
-          selectedIcon: Icon(item.selectedIcon, size: 20, color: GovtColors.brand),
-          label: item.label,
-        )).toList(),
+        destinations: [
+          const NavigationDestination(
+            icon: Icon(Icons.dashboard_outlined, size: 20, color: GovtColors.textMuted),
+            selectedIcon: Icon(Icons.dashboard_rounded, size: 20, color: GovtColors.brand),
+            label: 'Dashboard',
+          ),
+          const NavigationDestination(
+            icon: Icon(Icons.map_outlined, size: 20, color: GovtColors.textMuted),
+            selectedIcon: Icon(Icons.map_rounded, size: 20, color: GovtColors.brand),
+            label: 'Disease Map',
+          ),
+          const NavigationDestination(
+            icon: Icon(Icons.vaccines_outlined, size: 20, color: GovtColors.textMuted),
+            selectedIcon: Icon(Icons.vaccines_rounded, size: 20, color: GovtColors.brand),
+            label: 'Campaigns',
+          ),
+          const NavigationDestination(
+            icon: Icon(Icons.monitor_heart_outlined, size: 20, color: GovtColors.textMuted),
+            selectedIcon: Icon(Icons.monitor_heart_rounded, size: 20, color: GovtColors.brand),
+            label: 'Outbreak',
+          ),
+          NavigationDestination(
+            icon: Badge(
+              isLabelVisible: unreadAlerts > 0,
+              label: Text('$unreadAlerts', style: const TextStyle(fontSize: 9, fontWeight: FontWeight.bold)),
+              backgroundColor: GovtColors.critical,
+              child: const Icon(Icons.notifications_none_rounded, size: 20, color: GovtColors.textMuted),
+            ),
+            selectedIcon: Badge(
+              isLabelVisible: unreadAlerts > 0,
+              label: Text('$unreadAlerts', style: const TextStyle(fontSize: 9, fontWeight: FontWeight.bold)),
+              backgroundColor: GovtColors.critical,
+              child: const Icon(Icons.notifications_active_rounded, size: 20, color: GovtColors.brand),
+            ),
+            label: 'Alerts',
+          ),
+        ],
       ),
     );
   }
@@ -273,6 +320,8 @@ class _GovtShellState extends State<GovtShell> {
   // ─── Desktop Sidebar (Light Theme, Full 7 Tabs) ──────────────────────────────
 
   Widget _buildDesktopSidebar() {
+    final unreadAlerts = widget.dataService.unreadGovtAlertCount;
+
     return Container(
       width: 220,
       decoration: const BoxDecoration(
@@ -295,6 +344,7 @@ class _GovtShellState extends State<GovtShell> {
             final idx = entry.key;
             final item = entry.value;
             final isSel = _selectedIndex == idx;
+            final isAlertTab = idx == 4;
 
             return Padding(
               padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 2),
@@ -310,13 +360,35 @@ class _GovtShellState extends State<GovtShell> {
                     size: 18,
                     color: isSel ? GovtColors.brand : GovtColors.textMuted,
                   ),
-                  title: Text(
-                    item.label,
-                    style: TextStyle(
-                      fontSize: 13,
-                      fontWeight: isSel ? FontWeight.w700 : FontWeight.w500,
-                      color: isSel ? GovtColors.brandDark : GovtColors.textPrimary,
-                    ),
+                  title: Row(
+                    children: [
+                      Expanded(
+                        child: Text(
+                          item.label,
+                          style: TextStyle(
+                            fontSize: 13,
+                            fontWeight: isSel ? FontWeight.w700 : FontWeight.w500,
+                            color: isSel ? GovtColors.brandDark : GovtColors.textPrimary,
+                          ),
+                        ),
+                      ),
+                      if (isAlertTab && unreadAlerts > 0)
+                        Container(
+                          padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                          decoration: BoxDecoration(
+                            color: GovtColors.critical,
+                            borderRadius: BorderRadius.circular(10),
+                          ),
+                          child: Text(
+                            '$unreadAlerts',
+                            style: const TextStyle(
+                              color: Colors.white,
+                              fontSize: 9.5,
+                              fontWeight: FontWeight.w800,
+                            ),
+                          ),
+                        ),
+                    ],
                   ),
                   onTap: () => setState(() => _selectedIndex = idx),
                 ),
@@ -368,7 +440,7 @@ class _GovtShellState extends State<GovtShell> {
                   children: [
                     _StatusDot(color: Color(0xFFC94343)),
                     SizedBox(width: 4),
-                    Text('Elevated Alert Level', style: TextStyle(fontSize: 9.5, fontWeight: FontWeight.w600, color: Color(0xFFC94343))),
+                    Text('Surveillance Live Link Active', style: TextStyle(fontSize: 9.5, fontWeight: FontWeight.w600, color: Color(0xFFC94343))),
                   ],
                 ),
               ],
@@ -397,7 +469,8 @@ class _StatusDot extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      width: 6, height: 6,
+      width: 6,
+      height: 6,
       decoration: BoxDecoration(color: color, shape: BoxShape.circle),
     );
   }

@@ -42,7 +42,6 @@ void main() {
     });
 
     test('Local advisory fallback supports Marathi and Hindi', () {
-      final pune = service.getDistrict('Pune');
       final weather = DistrictWeatherData(
         district: 'Pune',
         temperature: 28.0,

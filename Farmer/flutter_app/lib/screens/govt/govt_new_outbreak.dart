@@ -5,8 +5,11 @@ import 'package:flutter/material.dart';
 import 'govt_theme.dart';
 import 'govt_new_data.dart';
 
+import '../../services/farmer_data_service.dart';
+
 class GovtNewOutbreakMonitoring extends StatefulWidget {
-  const GovtNewOutbreakMonitoring({super.key});
+  final FarmerDataService? dataService;
+  const GovtNewOutbreakMonitoring({super.key, this.dataService});
 
   @override
   State<GovtNewOutbreakMonitoring> createState() => _GovtNewOutbreakMonitoringState();
@@ -29,9 +32,36 @@ class _GovtNewOutbreakMonitoringState extends State<GovtNewOutbreakMonitoring>
     super.dispose();
   }
 
+  List<DiseaseOutbreak> get _allSignals {
+    final list = List<DiseaseOutbreak>.from(outbreakSignals);
+    if (widget.dataService != null) {
+      final liveClusters = widget.dataService!.getAllClusters();
+      for (final c in liveClusters) {
+        if (!list.any((s) => s.id == c.clusterId)) {
+          list.insert(
+            0,
+            DiseaseOutbreak(
+              id: c.clusterId,
+              diseaseName: c.suspectedDisease.isNotEmpty ? c.suspectedDisease : c.name,
+              affectedDistrict: c.district,
+              riskLevel: c.riskLevel.name == 'high' ? RiskLevel.critical : RiskLevel.high,
+              cases: c.animalCount,
+              trendPercentage: 35,
+              detectionDate: 'Recently',
+              recommendedNextAction: 'Deploy veterinary task force and initiate ring vaccination.',
+              pathogenType: 'Viral',
+            ),
+          );
+        }
+      }
+    }
+    return list;
+  }
+
   List<DiseaseOutbreak> get _filtered {
-    if (_diseaseFilter == 'All') return outbreakSignals;
-    return outbreakSignals.where((o) => o.diseaseName.toLowerCase().contains(_diseaseFilter.toLowerCase())).toList();
+    final signals = _allSignals;
+    if (_diseaseFilter == 'All') return signals;
+    return signals.where((o) => o.diseaseName.toLowerCase().contains(_diseaseFilter.toLowerCase())).toList();
   }
 
   @override
