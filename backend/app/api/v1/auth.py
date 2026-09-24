@@ -37,6 +37,16 @@ DEMO_USERS = {
         "block": "Haveli",
         "village": "Pune City",
     },
+    "GOVT001": {
+        "id": "22222222-2222-2222-2222-222222222203",
+        "name": "Dr. Anil Deshmukh",
+        "role": "GOVERNMENT_OFFICER",
+        "password": "govt123",
+        "state": "Maharashtra",
+        "district": "Pune",
+        "block": "Haveli",
+        "village": "Pune City",
+    },
 }
 
 

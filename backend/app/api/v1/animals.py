@@ -44,11 +44,51 @@ def add_animal(animal_in: AnimalCreate, current_user: CurrentUser = Depends(get_
     return AnimalResponse(**res.data[0])
 
 
+DEMO_ANIMALS = [
+    {
+        "id": "11111111-1111-1111-1111-111111111101",
+        "farm_id": "33333333-3333-3333-3333-333333333301",
+        "owner_id": "22222222-2222-2222-2222-222222222201",
+        "ear_tag": "TAG-8821",
+        "species": "Cow",
+        "breed": "Gir",
+        "gender": "Female",
+        "age_category": "3.5 years",
+        "health_status": "HEALTHY",
+        "location": "Uruli Kanchan, Pune",
+    },
+    {
+        "id": "11111111-1111-1111-1111-111111111102",
+        "farm_id": "33333333-3333-3333-3333-333333333301",
+        "owner_id": "22222222-2222-2222-2222-222222222201",
+        "ear_tag": "TAG-8822",
+        "species": "Buffalo",
+        "breed": "Murrah",
+        "gender": "Female",
+        "age_category": "4 years",
+        "health_status": "HEALTHY",
+        "location": "Uruli Kanchan, Pune",
+    },
+    {
+        "id": "11111111-1111-1111-1111-111111111103",
+        "farm_id": "33333333-3333-3333-3333-333333333301",
+        "owner_id": "22222222-2222-2222-2222-222222222201",
+        "ear_tag": "TAG-8823",
+        "species": "Cow",
+        "breed": "Sahiwal",
+        "gender": "Female",
+        "age_category": "2 years",
+        "health_status": "QUARANTINED",
+        "location": "Uruli Kanchan, Pune",
+    },
+]
+
+
 @router.get("", response_model=List[AnimalResponse])
 def list_animals(current_user: CurrentUser = Depends(get_current_user)):
     supabase = get_supabase_client()
     if not supabase:
-        raise HTTPException(status_code=500, detail="Database connection not configured")
+        return [AnimalResponse(**a) for a in DEMO_ANIMALS]
         
     if current_user.role == "FARMER":
         res = supabase.table("animals").select("*").eq("owner_id", current_user.user_id).execute()

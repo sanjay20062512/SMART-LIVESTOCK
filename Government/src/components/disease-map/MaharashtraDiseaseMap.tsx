@@ -1,4 +1,4 @@
-import React, { useEffect, useRef, useCallback, useMemo } from 'react';
+import React, { useState, useEffect, useRef, useCallback, useMemo } from 'react';
 import { MapContainer, TileLayer, GeoJSON, Marker, useMap } from 'react-leaflet';
 import L from 'leaflet';
 import type { FeatureCollection, Feature, Geometry } from 'geojson';
@@ -249,18 +249,28 @@ export const MaharashtraDiseaseMap: React.FC<MaharashtraDiseaseMapProps> = ({
     });
   }, [selectedDistrict]);
 
+  const [mounted, setMounted] = useState(false);
+  useEffect(() => {
+    setMounted(true);
+  }, []);
+
   return (
-    <div className="relative w-full h-full min-h-[480px] sm:min-h-[560px] lg:min-h-[620px] rounded-2xl overflow-hidden bg-[#F8FAFC]">
-      <MapContainer
-        center={MAHARASHTRA_CENTER}
-        zoom={7}
-        minZoom={7}
-        maxZoom={12}
-        maxBounds={MAHARASHTRA_BOUNDS}
-        maxBoundsViscosity={1.0}
-        scrollWheelZoom={true}
-        className="w-full h-full z-0"
-      >
+    <div
+      style={{ height: '620px', minHeight: '520px', width: '100%' }}
+      className="relative w-full rounded-2xl overflow-hidden bg-[#F8FAFC]"
+    >
+      {mounted ? (
+        <MapContainer
+          center={MAHARASHTRA_CENTER}
+          zoom={7}
+          minZoom={7}
+          maxZoom={12}
+          maxBounds={MAHARASHTRA_BOUNDS}
+          maxBoundsViscosity={1.0}
+          scrollWheelZoom={true}
+          style={{ height: '100%', minHeight: '520px', width: '100%' }}
+          className="w-full h-full z-0"
+        >
         {/* OpenStreetMap: Clean public tiles with no API key requirement */}
         <TileLayer
           attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
@@ -310,6 +320,11 @@ export const MaharashtraDiseaseMap: React.FC<MaharashtraDiseaseMapProps> = ({
           resetViewTrigger={resetViewTrigger}
         />
       </MapContainer>
+      ) : (
+        <div className="w-full h-full flex items-center justify-center text-sm text-[#667482]">
+          Loading Maharashtra Disease Map...
+        </div>
+      )}
 
       {/* Floating Map Legend (Bottom-Left) */}
       <div className="absolute bottom-4 left-4 z-400 max-w-[260px]">

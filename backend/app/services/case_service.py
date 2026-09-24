@@ -429,6 +429,8 @@ class CaseService:
         district: Optional[str] = None,
     ) -> List[CaseResponse]:
         supabase = get_supabase_client()
+        if not supabase:
+            return []
         
         query = supabase.table("cases").select("*")
         
@@ -606,7 +608,7 @@ class CaseService:
         """
         supabase = get_supabase_client()
         if not supabase:
-            raise HTTPException(status_code=500, detail="Database connection not configured")
+            return []
 
         # 1. Attempt PostGIS stored procedure RPC
         try:

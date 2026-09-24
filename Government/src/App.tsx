@@ -15,6 +15,7 @@ export function App() {
     <TooltipProvider delayDuration={150}>
       <BrowserRouter>
         <Routes>
+          <Route path="/embed/disease-map" element={<div className="p-3 sm:p-5 bg-[#F7F9FB] min-h-screen"><DiseaseMapView /></div>} />
           <Route element={<AppShell />}>
             <Route path="/" element={<Navigate to="/overview" replace />} />
             <Route path="/overview" element={<OverviewView />} />
